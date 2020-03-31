@@ -18,8 +18,6 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/edit/client/{client_id}', 'ClientController@update');
-Route::get('/edit/client/{client_id}', 'ClientController@clientInfo');
 Route::get('/structure','API\StructureController@index');
 Route::get('/auth/structure','API\StructureController@auth');
 Route::get('/auth/branches','API\StructureController@branches');    

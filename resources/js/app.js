@@ -10,7 +10,6 @@ require('./bootstrap');
 import { VueMaskDirective } from 'v-mask'
 
 window.Vue = require('vue');
-// window.flatten = require('flat')
 
 window.Swal = require('sweetalert2');
 window.moment = require('moment');
@@ -34,11 +33,9 @@ Vue.component('structure-filter', require('./components/StructureFilterComponent
 Vue.component('date-picker', require('./components/DatePickerComponent.vue').default);
 Vue.component('v2-select', require('./components/SelectComponentV2.vue').default);
 Vue.component('create-client-form', require('./components/ClientCreateFormComponent.vue').default);
-Vue.component('update-client-form', require('./components/ClientUpdateFormComponent.vue').default);
 Vue.component('client-list', require('./components/ClientListComponent.vue').default);
 Vue.component('paginator', require('./components/PaginatorComponent.vue').default);
 Vue.component('upload-file', require('./components/UploadSampleComponent.vue').default);
-Vue.component('create-office', require('./components/CreateOfficeComponent.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

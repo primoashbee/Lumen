@@ -31,7 +31,7 @@
 								</a>
 							</li>
 							<li class="sub-list">
-								<a class="sub-nav" href="/create/group">
+								<a class="sub-nav" href="">
 									<i class="">CL</i>
 									<p>Cluster</p>
 								</a>
@@ -39,26 +39,26 @@
 						</ul>
 					 </div>
 				</li>
-				<li class="{{ request()->is('clients') ? 'active' : '' }} py-2">
+				<li class="{{ request()->is('client') ? 'active' : '' }} py-2">
 					<a href="{{ route('client.list') }}">
 						<i class="fas fa-2x fa-user"></i>
 						<p>Client</p>
 					</a>
 				</li>
-				<li class="py-2 {{ request()->is('cluster') ? 'active' : '' }}">
-					<a href="">
+				<li class="py-2">
+					<a href="{{ request()->is('cluster') ? 'active' : '' }}">
 						<i class="fas fa-2x fa-user-friends"></i>
 						<p>Clusters</p>
 					</a>
 				</li>
-				<li class="py-2 {{ request()->is('accounting') ? 'active' : '' }}">
-					<a href="">
+				<li class="py-2">
+					<a href="{{ request()->is('accounting') ? 'active' : '' }}">
 						<i class="far fa-2x fa-money-bill-alt"></i>
 						<p>Accounting</p>
 					</a>
 				</li>
-				<li class="py-2 {{ request()->is('report') ? 'active' : '' }}">
-					<a href="">
+				<li class="py-2">
+					<a href="{{ request()->is('report') ? 'active' : '' }}">
 						<i class="far fa-2x fa-list-alt"></i>
 						<p>Reports</p>
 					</a>

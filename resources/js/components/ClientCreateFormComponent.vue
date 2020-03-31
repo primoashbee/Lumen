@@ -12,7 +12,7 @@
                 <div class="row px-3">
                 <div class="form-group col-md-6 col-lg-3">
                     <label for="client_id">Linked To</label>
-                    <v2-select @officeSelected="assignOffice" list_level="cluster" v-bind:class="officeHasError ? 'is-invalid' : ''"></v2-select>
+                    <v2-select @officeSelected="assignOffice" v-bind:class="officeHasError ? 'is-invalid' : ''"></v2-select>
                     <div class="invalid-feedback" v-if="officeHasError">
                         {{ errors.office_id[0]}}
                     </div>
@@ -55,7 +55,7 @@
                         <label for="gender">Gender</label>
                         <div class="select" v-bind:class="genderHasError ? 'is-invalid' : ''">
                             <select v-model="fields.gender" id="gender" class="form-control" v-bind:class="genderHasError ? 'is-invalid' : ''">
-                                <option value="">CHOOSE AN OPTION</option>
+                                <option :value="null">CHOOSE AN OPTION</option>
                                 <option value="MALE">MALE</option>
                                 <option value="FEMALE">FEMALE</option>
                             </select>
@@ -70,7 +70,7 @@
                         <label for="civil_status">Marital Status</label>
                         <div class="select" v-bind:class="civilStatusHasError ? 'is-invalid' : ''">
                             <select v-model="fields.civil_status" id="civil_status" class="form-control" v-bind:class="civilStatusHasError ? 'is-invalid' : ''">
-                                <option value="">CHOOSE AN OPTION</option>
+                                <option :value="null">CHOOSE AN OPTION</option>
                                 <option value="SINGLE">SINGLE</option>
                                 <option value="MARRIED">MARRIED</option>
                                 <option value="DIVORCED">DIVORCED</option>
@@ -125,9 +125,9 @@
                         <label for="education">Educational Attainment</label>
                         <div class="select" v-bind:class="educationHasError ? 'is-invalid' : ''">
                             <select v-model="fields.education" id="education" class="form-control" v-bind:class="educationHasError ? 'is-invalid' : ''">
-                                <option value="">CHOOSE AN OPTION</option>
+                                <option :value="null">CHOOSE AN OPTION</option>
                                 <option value="COLLEGE">COLLEGE</option>
-                                <option value="VOCATIONAL">VOCATIONAL</option>
+                                <option value="VOCATION">VOCATIONAL</option>
                                 <option value="HIGH SCHOOL">HIGH SCHOOL</option>
                                 <option value="ELEMENTARY">ELEMENTARY</option>
                             </select>
@@ -181,7 +181,7 @@
                     </div>
                 </div>
                 <h3 class="px-3 my-3 h3">Family Information</h3>	
-                <div class="row px-3"> 
+                <div class="row px-3">
                     <div class="form-group col-md-12">
                         <label for="business_address">Full Business Address</label>
                         <input value="" type="text" v-model="fields.business_address" id="business_address" class="form-control" v-bind:class="businessAddressHasError ? 'is-invalid' : ''" z>
@@ -218,7 +218,7 @@
                     <div class="form-group px-3 col-md-3 col-md-offset-2">
                         <label for="house_type">House Type</label>
                         <select v-model="fields.house_type" id="house_type" class="form-control" v-bind:class="houseTypeHasError ? 'is-invalid' : ''">
-                            <option value="">CHOOSE AN OPTION</option>
+                            <option :value="null">CHOOSE AN OPTION</option>
                             <option value="OWNED">OWNED</option>
                             <option value="RENTED">RENTED</option>
                         </select>
@@ -296,43 +296,43 @@
                     <div class="form-group col-md-3">
                         <div class="p0 form-check">
                             <label class="form-check-label" for="is_self_employed">
-                                <input class="form-check-input cb-type" :disabled = "fields.is_employed" :class = "{disabled:fields.is_employed}" v-model ="fields.is_self_employed" id="is_self_employed" type="checkbox" name="is_self_employed" value="">
+                                <input class="form-check-input cb-type" v-model ="fields.is_self_employed" id="is_self_employed" type="checkbox" name="is_self_employed" value="">
                                 <span class="form-check-sign">
                                 <span class="check"></span>
                                 </span>
                                 <label for="is_self_employed">Self-Employed</label>
                             </label>
                         </div>
-                        <div class="hi form-group p0 my-2" data-attribute="is_self_employed" :class="{active:fields.is_self_employed}">
+                        <div class="hi form-group p0 my-2" data-attribute="is_self_employed">
                             <label for="sevice_type">Service Type</label>
                             <div class="select">
                                 <select v-model="fields.service_type" id="service_type">
-                                <option value=""> CHOOSE AN OPTION</option> 
-                                <option value="AGRICULTURE"> AGRICULTURE </option>
-                                <option value="TRADING/MERCHANDISING"> TRADING/MERCHANDISING </option>
-                                <option value="MANUFACTURING"> MANUFACTURING </option>
-                                <option value="SERVICE"> SERVICE </option>
-                                <option value="OTHERS"> OTHERS </option>
+                                <option :value="null"> CHOOSE AN OPTION</option> 
+                                <option value="Agriculture"> Agriculture </option>
+                                <option value="Trading/Merchandising"> Trading/Merchandising </option>
+                                <option value="Manufacturing"> Manufacturing </option>
+                                <option value="Service"> Service </option>
+                                <option value="Others"> Others </option>
                                 </select>
                             </div>
                         </div>
-                        <div class="hi form-group p0 my-2" data-attribute="is_self_employed" :class="{active:fields.is_self_employed}">
-                            <label for="service_type_monthly_gross_income">Monthly Income</label>
-                            <input type="number" step ="0.01" id="service_type_monthly_gross_income" v-model="fields.service_type_monthly_gross_income" class="form-control" value="service_type_monthly_gross_income">
+                        <div class="hi form-group p0 my-2" data-attribute="is_self_employed">
+                            <label for="service_type_gross_income">Monthly Income</label>
+                            <input type="number" step ="0.01" id="service_type_gross_income" v-model="fields.service_type_gross_income" class="form-control" value="service_type_gross_income">
                         </div>
                     </div>
             
                     <div class="form-group col-md-3">
                         <div class="p0 form-check">
                             <label class="form-check-label" for="is_employed">
-                                <input class="form-check-input cb-type" id="is_employed" :disabled = "fields.is_self_employed" :class="{disabled:fields.is_self_employed}" type="checkbox" v-model="fields.is_employed">
+                                <input class="form-check-input cb-type" id="is_employed" type="checkbox" v-model="fields.is_employed">
                                 <span class="form-check-sign">
                                 <span class="check"></span>
                                 </span>
                                 <label for="is_employed">Working on Company</label>
                             </label>
                         </div>
-                        <div class="hi my-2" data-attribute="is_employed" :class="{active:fields.is_employed}">
+                        <div class="hi my-2" data-attribute="is_employed">
                             <div class="row">
                                 <div class="form-group w-100">
                                     <label for="employed_position">Position</label>
@@ -353,41 +353,41 @@
                     <div class="form-group col-md-3">
                         <div class="p0 form-check">
                             <label class="form-check-label" for="spouse_is_self_employed">
-                                <input class="form-check-input cb-type" :disabled="fields.spouse_is_employed" id="spouse_is_self_employed" :class="{disabled:fields.spouse_is_employed}" type="checkbox" v-model="fields.spouse_is_self_employed" value="">
+                                <input class="form-check-input cb-type" id="spouse_is_self_employed" type="checkbox" v-model="fields.spouse_is_self_employed" value="">
                                 <span class="form-check-sign">
                                 <span class="check"></span>
                                 </span>
                                 <label for="spouse_is_self_employed">Spouse Self-Employed</label>
                             </label>
                         </div>
-                        <div class="hi form-group col-md-12 p0 my-2" :class="{active:fields.spouse_is_self_employed}" data-attribute="spouse_is_self_employed">
+                        <div class="hi form-group col-md-12 p0 my-2" data-attribute="spouse_is_self_employed">
                             <label for="spouse_service_type">Spouse Service Type</label>
                             <select v-model="fields.spouse_service_type" id="spouse_service_type" class="form-control">
-                                <option value=""> CHOOSE AN OPTION</option> 
-                                <option value="AGRICULTURE"> AGRICULTURE </option>
-                                <option value="TRADING/MERCHANDISING"> TRADING/MERCHANDISING </option>
-                                <option value="MANUFACTURING"> MANUFACTURING </option>
-                                <option value="SERVICE"> SERVICE </option>
-                                <option value="OTHERS"> OTHERS </option>
+                                <option :value="null">CHOOSE AN OPTION</option> 
+                                <option value="Agriculture"> Agriculture </option>
+                                <option value="Trading/Merchandising"> Trading/Merchandising </option>
+                                <option value="Manufacturing"> Manufacturing </option>
+                                <option value="Service"> Service </option>
+                                <option value="Others"> Others </option>
                             </select>
                         </div>
-                        <div class="hi form-group p0 my-2" :class="{active:fields.spouse_is_self_employed}" data-attribute="spouse_is_self_employed" >
-                            <label for="spouse_service_type_monthly_gross_income">Monthly Income</label> 
-                            <input type="number" step ="0.01" id="spouse_service_type_monthly_gross_income" v-model="fields.spouse_service_type_monthly_gross_income" value="" class="form-control">
+                        <div class="hi form-group p0 my-2" data-attribute="spouse_is_self_employed" >
+                            <label for="spouse_service_type_gross_income">Monthly Income</label> 
+                            <input type="number" step ="0.01" id="spouse_service_type_gross_income" v-model="fields.spouse_service_type_gross_income" value="" class="form-control">
                         </div>
                     </div>
             
                     <div class="form-group col-md-3">
                         <div class="p0 form-check">
                             <label class="form-check-label" for="spouse_is_employed">
-                                <input class="form-check-input cb-type" id="spouse_is_employed" type="checkbox" v-model="fields.spouse_is_employed" :disabled="fields.spouse_is_self_employed" :class="{disabled:fields.spouse_is_self_employed}">
+                                <input class="form-check-input cb-type" id="spouse_is_employed" type="checkbox" v-model="fields.spouse_is_employed" value="">
                                 <span class="form-check-sign">
                                 <span class="check"></span>
                                 </span>
                                 <label for="spouse_is_employed">Spouse Working on Company</label>
                             </label>
                         </div>
-                        <div class="hi my-2" data-attribute="spouse_is_employed" :class="{active:fields.spouse_is_employed}">
+                        <div class="hi my-2" data-attribute="spouse_is_employed">
                             <div class="row">
                                 <div class="form-group w-100">
                                     <label for="spouse_employed_position">Position</label>
@@ -406,19 +406,19 @@
                     </div>
                 </div>
             
-                <h3 class="px-3 my-4 h3">Other Income</h3>	
+                <h3 class="px-3 my-4">Other Income</h3>	
                 <div class="row px-3">
                     <div class="form-group col-md-3">
                         <div class="form-check p0">
                             <label class="form-check-label" for="has_remittance">
-                                <input class="form-check-input cb-type" id="has_remittance" type="checkbox" v-model="fields.has_remittance">
+                                <input class="form-check-input cb-type" id="has_remittance" type="checkbox" v-model="fields.has_remittance" value="">
                                 <span class="form-check-sign">
                                 <span class="check"></span>
                                 </span>
                                 <label for="has_remittance">Remittance</label>
                             </label>
                         </div>
-                        <div class="hi form-group col-md-12 p0 my-2" data-attribute="has_remittance" :class="{active:fields.has_remittance}"  >
+                        <div class="hi form-group col-md-12 p0 my-2" data-attribute="has_remittance">
                             <label for="remittance_amount">Remittance Amount</label>
                             <input value="" type="number" v-model="fields.remittance_amount" class="form-control" id="remittance_amount">
                         </div>
@@ -434,7 +434,7 @@
                                 <label for="has_pension">Pension</label>
                             </label>
                         </div>
-                        <div class="hi form-group col-md-12 p0 my-2" data-attribute="has_pension" :class="{active:fields.has_pension}" >
+                        <div class="hi form-group col-md-12 p0 my-2" data-attribute="has_pension">
                             <label for="pension_amount">Pension Amoount</label>
                             <input value="" type="number" v-model="fields.pension_amount" class="form-control" id="pension_amount">
                         </div>
@@ -456,9 +456,8 @@
                     <div class="form-group col-md-12">
                         <textarea value="notes" rows="3" cols="40" v-model="fields.notes" class="form-control"></textarea>
                     </div>
-                    
                 </div>
-                 <button type="submit" class="btn btn-primary"> Submit </button>
+                <button type="submit" class="btn btn-primary mx-3">Submit</button>
                 </form>
           </div>
     </div>
@@ -507,9 +506,8 @@
                         <p v-for="list in error" :key="list.id">{{ list }}</p>
                     </li>
                 </ul>
-
+             
      </div>
-     
  </div> 
 </div>       
 </template>
@@ -541,19 +539,19 @@ export default {
             },
             isLoading:false,
             fields: {
-                'office_id':"",
+                'office_id':null,
                 'firstname':"",
-                'middlename':"",
+                'middlename':null,
                 'lastname':"",
-                'suffix':"",
-                'nickname':"",
-                'gender':"",
-                'civil_status':"",
-                'fb_account':"",
+                'suffix':null,
+                'nickname':null,
+                'gender':null,
+                'civil_status':null,
+                'fb_account':null,
                 'contact_number':null,
                 'birthday':"",
                 'birthplace':"",
-                'education':"",
+                'education':null,
                 'street_address':"",
                 'barangay_address':"",
                 'city_address':"",
@@ -563,7 +561,7 @@ export default {
                 'number_of_dependents':"",
                 'household_size':null,
                 'years_of_stay_on_house':null,
-                'house_type':"",
+                'house_type':null,
                 'spouse_name':"",
                 'spouse_contact_number':"",
                 'spouse_birthday':null,
@@ -573,30 +571,30 @@ export default {
                 'mother_maiden_name':"",
 
                 'is_self_employed':false,
-                'service_type':"",
-                'service_type_monthly_gross_income':0,
+                'service_type':null,
+                'service_type_gross_income':0,
 
                 'is_employed':false,
-                'employed_position':"",
-                'employed_company_name':"",
+                'employed_position':null,
+                'employed_company_name':null,
                 'employed_monthly_gross_income':0,
 
                 'spouse_is_self_employed':false,
-                'spouse_service_type':"",
-                'spouse_service_type_monthly_gross_income':0,
+                'spouse_service_type':null,
+                'spouse_service_type_gross_income':0,
 
                 'spouse_is_employed':false,
-                'spouse_employed_position':"",
-                'spouse_employed_company_name':"",
+                'spouse_employed_position':null,
+                'spouse_employed_company_name':null,
                 'spouse_employed_monthly_gross_income':0,
 
                 'has_remittance':false,
                 'remittance_amount':0,
 
-                'has_pension':false,
+                'has_pension':null,
                 'pension_amount':0,
 
-                'notes':"",
+                'notes':null,
 
                 'profile_picture_path_preview':location.origin + '/assets/img/anime3.png',
                 'signature_path_preview': location.origin + '/assets/img/signature.png',
@@ -613,7 +611,7 @@ export default {
     },
     computed:{
         total_household_income(){
-            var total = parseFloat(this.fields.service_type_monthly_gross_income) + parseFloat(this.fields.employed_monthly_gross_income) +  parseFloat(this.fields.spouse_service_type_monthly_gross_income) +parseFloat(this.fields.spouse_employed_monthly_gross_income) + parseFloat(this.fields.remittance_amount) + parseFloat(this.fields.pension_amount) 
+            var total = parseFloat(this.fields.service_type_gross_income) + parseFloat(this.fields.employed_monthly_gross_income) +  parseFloat(this.fields.spouse_service_type_gross_income) +parseFloat(this.fields.spouse_employed_monthly_gross_income) + parseFloat(this.fields.remittance_amount) + parseFloat(this.fields.pension_amount) 
             if(isNaN(total)){
                 return 'Use positive integers for amounts only';
             }
@@ -724,22 +722,8 @@ export default {
         },
         duplicateClient(){
             return this.errors.hasOwnProperty('client')
-        },
-        // isEmployedDisabled(){
-        //     return this.fields.is_self_employed
-        // },
-        // isSelfEmployedDisabled(){
-        //     return this.fields.is_employed
-        // },
-        // isSpouseSelfEmployedDisabled(){
-        //     return this.fields.spouse_is_employed
-        // },
-        // isSpouseEmployedDisabled(){
-        //     return this.fields.spouse_is_self_employed
-        // }
-
+        }
     },
-
     created(){
         
     },
@@ -809,7 +793,7 @@ export default {
                         confirmButtonText: 'OK'
                     })
                     .then(res=>{
-                        // location.reload();
+                        location.reload();
                     })
                 })
                 .catch(error=>{
@@ -830,30 +814,30 @@ export default {
         'fields.is_self_employed' : function (newVal,oldVal){
            if(!newVal){
                console.log('unclicked');
-               this.fields.service_type = ""
-               this.fields.service_type_monthly_gross_income = 0
+               this.fields.service_type = null
+               this.fields.service_type_gross_income = 0
                return;
            }
         },
         'fields.is_employed' : function (newVal,oldVal){
            if(!newVal){
-               this.fields.employed_position = ""
-               this.fields.employed_company_name =  ""
+               this.fields.employed_position = null
+               this.fields.employed_company_name =  null
                this.fields.employed_monthly_gross_income = 0
                return;
            }
         },
         'fields.spouse_is_self_employed' : function (newVal,oldVal){
            if(!newVal){
-               this.fields.spouse_service_type = ""
-               this.fields.spouse_service_type_monthly_gross_income = 0
+               this.fields.spouse_service_type = null
+               this.fields.spouse_service_type_gross_income = 0
                return;
            }
         },
         'fields.spouse_is_employed' : function (newVal,oldVal){
            if(!newVal){
-               this.fields.spouse_employed_position = ""
-               this.fields.spouse_employed_company_name = ""
+               this.fields.spouse_employed_position = null
+               this.fields.spouse_employed_company_name = 0
                this.fields.spouse_employed_monthly_gross_income = 0
                return;
            }

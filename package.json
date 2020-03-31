@@ -26,7 +26,6 @@
     "dependencies": {
         "@voerro/vue-tagsinput": "github:voerro/vue-tagsinput",
         "bootstrap-datepicker": "^1.9.0",
-        "flat": "^5.0.0",
         "js-datepicker": "^5.4.0",
         "moment": "^2.24.0",
         "sweetalert2": "^9.10.0",

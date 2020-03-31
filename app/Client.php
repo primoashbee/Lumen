@@ -51,18 +51,6 @@ class Client extends Model
         'created_by',
     ];
 
-    protected $searchables = [
-        'client_id',
-        'firstname',
-        'middlename',
-        'lastname',
-        'civil_status',
-        'contact_number',
-        'tin',
-        'umid',
-        'sss'
-    ];
-
     public function household_income(){
         return $this->hasOne(HouseholdIncome::class, 'client_id','client_id');
     }
@@ -94,38 +82,5 @@ class Client extends Model
     public function officeGet(){
         return ['id'=>$this->branch()->id,'name'=>$this->branch()->name];
     }
-
-    public static function searchables(){
-        $me = new static;
-        return $me->searchables;
-    }
-
-    public static function like($office_id, $query=false){
-        $me = new static;
-        $searchables = $me->searchables;
-       
-        $office = Office::find($office_id);
-        $office_ids = $office->getAllChildrenIDS();
-        
-        if(count($office_ids)>0){
-            if($query!=false){
-                $clients = Client::with('office');
-                foreach($searchables as $item){
-                    $clients->orWhere($item, 'LIKE', '%' .$query.'%');
-                }
-                return $clients;
-            }
-        }
-
-        if($query!=false){
-            $clients = Client::with('office');
-                foreach($searchables as $item){
-                    $clients->orWhere($item, 'LIKE', '%' .$query.'%');
-                }
-            return $clients;
-        }
-    }
-
-
     
 }

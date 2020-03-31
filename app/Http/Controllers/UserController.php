@@ -12,11 +12,10 @@ class UserController extends Controller
     }
 
     public function authStructure(){
-      
         return auth()->user()->scopes();
     }
 
-    public function branches(Request $request){
-        return auth()->user()->scopesBranch($request->level);
+    public function branches(){     
+        return auth()->user()->scopesBranch();
     }
 }

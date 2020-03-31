@@ -5,10 +5,9 @@
             <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px" v-model="office_id"></v2-select>
             <button type="button" class="btn btn-primary" @click="filter">Add New</button>
         </div>
-       
+        <div v-if="hasRecords">
         <label for="">Search</label>
         <input type="text" class="form-control" v-model="query" v-debounce:300ms="inputSearch"/>
-        <div v-if="hasRecords">
         <paginator :dataset="lists" @updated="fetch"></paginator>
         <table class="table" >
             <thead>
@@ -66,7 +65,7 @@ export default {
             return this.toClient + client_id
         },
         inputSearch(){
-            this.fetchBySearch()
+            console.log(this.query)
         },
         filter(){
             if(this.office_id == null){
@@ -82,40 +81,13 @@ export default {
         },
         assignOffice(value){
             this.office_id = value['id']
-            this.fetch()
         },
         checkIfHasRecords(){
             this.hasRecords = false
-            if (this.totalRecords > 0){
+            if (Object.keys(this.lists).length > 0){
                 this.hasRecords = true
             }
                
-        },
-        noOfficeSelected(){
-            if(this.office_id == null){
-                return true
-            }
-            return false
-        },
-        fetchBySearch(){
-            if(this.noOfficeSelected()){
-                return;
-            }
-            this.isLoading = true
-            
-            
-            axios.get(this.searchQuery ,{
-                'query' : this.query
-            })
-            .then(res => {
-                this.lists = res.data
-                this.checkIfHasRecords()
-                this.isLoading =false
-            })
-            .catch(err=>{
-
-            })
-            
         },
         fetch(page){
             this.isLoading =true
@@ -139,16 +111,6 @@ export default {
         // }
     },
     computed : {
-
-        totalRecords(){
-            return Object.keys(this.lists.data).length
-        },
-        searchQuery(){
-            if(this.query==""){
-                return `/clients/list?office_id=`+this.office_id
-            }
-            return `/clients/list?office_id=`+this.office_id+`&search=`+this.query
-        }
 
     }
 }

@@ -27,7 +27,7 @@
           <a class="dropdown-item d-text" href="#one">Profile</a>
           </li>
           <li class="">
-          <a class="dropdown-item d-text" href="{{ route('logout')}}">Logout</a>
+          <a class="dropdown-item d-text" href="#two">Logout</a>
           </li>
         </ul>
       </div>
