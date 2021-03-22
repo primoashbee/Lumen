@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Room;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Builder;
@@ -204,5 +205,44 @@ class User extends Authenticatable
         );
     }
 
+    public function rooms(){
+        return $this->belongsToMany(Room::class)->withTimestamps()->withPivot('id');
+    }
 
+    public function canJoinRoom($room_id){
+        $room_ids = session('room_ids');
+        return in_array($room_id,session('room_ids')) ? true : false;
+
+    }
+
+    public function setSessions($user_id){
+
+        $ids = [];
+        $this->office->map(function($x) use(&$ids){
+            $ids = array_merge($ids, $x->getLowerOfficeIDS());
+        });
+
+        $ids = array_unique($ids);
+        session(['office_list_ids'=>array_unique($ids)]);
+
+        // $rooms = Room::select('id')->whereIn('office_id',$ids)->pluck('id')->toArray();
+        // session(['room_ids'=>array_unique($rooms)]);
+
+        // $top = User::find($user_id)->office->sortBy('level_in_number')->first();
+        // session(['top_level'=>$top]);
+        // session(['default_room'=>Room::select('id','name')->where('office_id',$top->id)->first()]);
+
+    }
+
+
+    public function assignToOffice($office_id){
+        $this->office()->attach($office_id);
+        $this->addToRoom($office_id);
+    }
+
+    public function addToRoom($office_id){
+        $ids = Office::find($office_id)->getLowerOfficeIDS();
+        $rooms = Room::whereIn('office_id',$ids)->pluck('id');
+        return $this->rooms()->sync($rooms);
+    }
 }

@@ -9,8 +9,10 @@ use Carbon\Carbon;
 use App\LoanAccount;
 use App\PaymentMethod;
 use Illuminate\Http\Request;
+use App\Events\LoanDisbursed;
 use App\Rules\DateIsWorkingDay;
 use App\Rules\LoanAmountModulo;
+use App\Rules\MaxLoanableAmount;
 use App\Rules\PaymentMethodList;
 use App\Events\BulkLoanDisbursed;
 use Faker\Provider\zh_TW\Payment;
@@ -122,7 +124,7 @@ class LoanAccountController extends Controller
                 'loan_id'=>'required|exists:loans,id',
                 'client_id'=>['required','exists:clients,client_id',new HasNoUnusedDependent],
                 'client_id'=>['required','exists:clients,client_id',new HasNoPendingLoanAccount],
-                'amount'=>['required','gte:2000',new LoanAmountModulo],
+                'amount'=>['required','gte:2000',new LoanAmountModulo, new MaxLoanableAmount($data['office_id'])],
                 'disbursement_date'=>['required','date', new DateIsWorkingDay],
                 
                 'first_payment'=>['required','date','after_or_equal:disbursement_date', new DateIsWorkingDay],
@@ -215,10 +217,10 @@ class LoanAccountController extends Controller
             
             $this->createInstallments($loan_acc,$calculator->installments);
             $client->unUsedDependent()->update(['status'=>'For Loan Disbursement','loan_account_id'=>$loan_acc->id]);
-            $loan_acc->account()->create([
-                'status'=>'Pending Approval',
-                'client_id'=>$client->client_id
-            ]);
+            // $loan_acc->account()->create([
+            //     'status'=>'Pending Approval',
+            //     'client_id'=>$client->client_id
+            // ]);
             \DB::commit();
             
             
@@ -333,7 +335,7 @@ class LoanAccountController extends Controller
             'loan_id'=>'required|exists:loans,id',
             'accounts.*.client_id'=>['required','exists:clients,client_id','bulk_has_no_unused_dependent'],
             // 'accounts.*.client_id'=>['required','exists:clients,client_id'],
-            'accounts.*.amount'=>['required','gte:2000',new LoanAmountModulo],
+            'accounts.*.amount'=>['required','bulk_with_loanable_amount',new LoanAmountModulo],
             'disbursement_date'=>'required|date',
             'first_payment'=>'required|date|after_or_equal:disbursement_date',
             'number_of_installments'=>'required|gt:0|integer',
@@ -342,6 +344,9 @@ class LoanAccountController extends Controller
         return Validator::make(
             $data,
             $rules,
+            [
+                'accounts.*.amount.required'=>'Loan amount is required'
+            ]
         );
     }
 
@@ -490,7 +495,7 @@ class LoanAccountController extends Controller
             $client = Client::select('firstname','lastname','client_id')->where('client_id',$client_id)->first();
             
             
-            $activity = $account->activity()->each->append('mutated');
+            $activity = $account->activity()->orderBy('created_at','desc')->get()->each->transactionable;
             return response()->json([
                 'account'=>$account,
                 'client'=>$client,
@@ -548,9 +553,15 @@ class LoanAccountController extends Controller
             ];
             $disbursed_amount = 0;
             $bulk_disbursement_id = sha1(time());
+            $first_payment = null;
             foreach ($request->accounts as $account) {
                 $account =  LoanAccount::find($account);
+                //get first payment of 1st loan account
+
                 $account->disburse($payment_info,true,$bulk_disbursement_id);
+                if (is_null($first_payment)) {
+                    $first_payment = $account->installments->first()->date->format('d-F');
+                }
                 $disbursed_amount+= $account->disbursed_amount;
             }
 
@@ -559,11 +570,15 @@ class LoanAccountController extends Controller
             $by = auth()->user()->fullname;
             $payment = PaymentMethod::find($request->payment_method)->name;
             $msg = 'Disbursed '. money($disbursed_amount,2) .' at ' . $office .' by ' . $by. ' ['.$payment.'].';
-        
+            $payload = [
+                'msg'=>$msg,
+                'office_id'=>$request->office_id,
+                'amount'=>$disbursed_amount,
+                'date'=>$first_payment,
+            ];
+            event(new LoanDisbursed($payload));
+
             \DB::commit();
-            
-            event(new BulkLoanDisbursed($msg,$request->office_id));
-            
             return response()->json(['msg'=>'Loan Account successfully created','bulk_disbursement_id'=>$bulk_disbursement_id], 200);
         } catch (\Exception $e) {
             return response()->json(['msg'=>$e->getMessage()], 500);

@@ -31,9 +31,11 @@ class PreventLaterThanLastTransactionDate implements Rule
         if($this->deposit->lastTransaction() == null){
             return true;
         }
-        $last_transaction_date = Carbon::parse($this->deposit->lastTransaction()->repayment_date);
+
+        $last_transaction_date = $this->deposit->lastTransaction()->transaction_date;
         
-        if(Carbon::parse($value) < $last_transaction_date){
+        $diff = $last_transaction_date->diffInDays(Carbon::parse($value)->startOfDay(),false);
+        if($diff  < 0){
             return false;
         }
         return true;
@@ -46,6 +48,6 @@ class PreventLaterThanLastTransactionDate implements Rule
      */
     public function message()
     {
-        return 'Repayment date should not be earlier than '.Carbon::parse($this->deposit->lastTransaction()->repayment_date)->format('F d, yy');
+        return 'Repayment date should not be earlier than '.$this->deposit->lastTransaction()->transaction_date->format('F d, Y');
     }
 }

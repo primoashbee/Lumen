@@ -5,6 +5,7 @@ namespace App;
 use App\Fee;
 use App\User;
 use Carbon\Carbon;
+use App\Transaction;
 use Illuminate\Database\Eloquent\Model;
 
 class LoanAccountFeePayment extends Model
@@ -45,7 +46,7 @@ class LoanAccountFeePayment extends Model
     }
     
     public function getMutatedAttribute(){
-        $mutated['total_paid'] = env('CURRENCY_SIGN') . ' ' . number_format($this->amount,2);
+        $mutated['amount'] = env('CURRENCY_SIGN') . ' ' . number_format($this->amount,2);
         if($this->paidBy!=null){
             $mutated['paid_by'] = $this->paidBy->fullname;
             $mutated['payment_method'] = $this->paymentMethod->name;
@@ -60,28 +61,28 @@ class LoanAccountFeePayment extends Model
     }
 
     public function generateTransactionID($add){
-        $now = Carbon::now();
-        $year = $now->year;
-        $month = $now->month;
-        $day = $now->day;
+        // $now = Carbon::now();
+        // $year = $now->year;
+        // $month = $now->month;
+        // $day = $now->day;
 
-        $mt = explode(' ', microtime());
-        $microsecs = $mt[0];
-        $secs = $mt[1];
+        // $mt = explode(' ', microtime());
+        // $microsecs = $mt[0];
+        // $secs = $mt[1];
         
-        $loan_account_id = $this->loan_account_id;
+        // $loan_account_id = $this->loan_account_id;
         
         
-        // $length = strlen($secs);
-        // $total = 0;
-        // for($x=0;$x<=$length-1;$x++){
-        //     $total+= (int) $secs[$x];
-        // }
+        // // $length = strlen($secs);
+        // // $total = 0;
+        // // for($x=0;$x<=$length-1;$x++){
+        // //     $total+= (int) $secs[$x];
+        // // }
         
-        $repayments = LoanAccountFeePayment::count()+$add;
-        $last = str_pad($repayments, 3, 0, STR_PAD_LEFT);
-        $transaction = 'F'.$year.$month.$day.$loan_account_id.$last;
-        return $transaction;
+        // $repayments = LoanAccountFeePayment::count()+$add;
+        // $last = str_pad($repayments, 3, 0, STR_PAD_LEFT);
+        // $transaction = 'F'.$year.$month.$day.$loan_account_id.$last;
+        // return $transaction;
     }
 
     public function revert($user_id){
@@ -95,5 +96,44 @@ class LoanAccountFeePayment extends Model
             'paid_at'=>null
         ]);
     }
+    
+    public function transaction(){
+        return $this->morphOne(Transaction::class,'transactionable');
+    }
+    
+    public function getLoanActivityAttribute(){
+        return 'x';
+    }
 
+    public static function generateTransactionNumber($office_id){
+        $now = Carbon::now();
+        $year = $now->year;
+        $month = $now->month;
+        $day = $now->day;
+
+        $mt = explode(' ', microtime());
+        $microsecs = $mt[0];
+        $secs = $mt[1];
+        
+        // $length = strlen($secs);
+        // $total = 0;
+        // for($x=0;$x<=$length-1;$x++){
+        //     $total+= (int) $secs[$x];
+        // }
+        
+        $start = Transaction::where('transactionable_type','App\LoanAccountFeePayment')->where('office_id',$office_id)->count();
+        $last = str_pad($start, 6, 0, STR_PAD_LEFT); //autoadjust
+        $transaction = 'F'.$year.$month.$day.$last;
+        return $transaction;
+        return 'F'.uniqid();
+    }
+
+    public function reset(){
+        return $this->update([
+            'payment_method_id'=>null,
+            'paid'=>false,
+            'paid_by'=>null,
+            'paid_at'=>null
+        ]);
+    }
 }

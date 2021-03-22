@@ -20,8 +20,15 @@ Broadcast::channel('dashboard.charts.repayment.{office_id}', function ($user, $o
     $office_id = (int) $office_id;
     return in_array($office_id,session('office_list_ids')) ? true :false;
 });
+Broadcast::channel('dashboard.charts.disbursement.{office_id}', function ($user, $office_id) {
+    $office_id = (int) $office_id;
+    return in_array($office_id,session('office_list_ids')) ? true :false;
+});
 Broadcast::channel('dashboard.notifications.{office_id}', function ($user, $office_id) {
     $office_id = (int) $office_id;
     return in_array($office_id,session('office_list_ids')) ? true :false;
 });
-
+// Broadcast::channel('group.channel.{office_id}', function ($user, $office_id) {
+//     $office_id = (int) $office_id;
+//     return in_array($office_id,session('office_list_ids')) ? true :false;
+// });

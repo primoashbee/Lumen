@@ -29,6 +29,7 @@ export default {
   },
   props: ['payment_type'],
   created(){
+    console.log('hey',this.payment_type);
     axios.get('/payment/methods?payment_type='+this.payment_type)
     .then(res=>{
       this.options = res.data.methods

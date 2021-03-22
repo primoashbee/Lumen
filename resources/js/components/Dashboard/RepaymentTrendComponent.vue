@@ -29,6 +29,22 @@ export default {
                       fontColor: "white",
                       fontSize:15
                   }
+                },
+                scales : {
+                  yAxes : [{
+                    ticks : {
+                      fontColor : 'white',
+                      fontSize : 12,
+                      beginAtZero: true
+                    }
+                  }],
+                  xAxes : [{
+                    ticks : {
+                      fontColor: 'white',
+                      fontSize:12,
+                      beginAtZero: true
+                    }
+                  }]
                 }
               },
               data: {
@@ -38,7 +54,6 @@ export default {
                     label: 'Expected Repayment',
                     fill:false,
                     borderColor: "#0000FF",
-
                     data: []
                   },
                   {
@@ -57,10 +72,18 @@ export default {
   },
   mounted() {
       this.getData();    
-      window.Echo.private('dashboard.charts.repayment.'+this.office_id)
+      //repayment
+      window.Echo.private(this.repaymentChannel)
         .listen('.loan-payment',data =>{
+          console.log('lp',data);
           this.paymentMade(data.data);
       })
+      window.Echo.private(this.expectedChannel)
+        .listen('.loan-disbursed',data =>{
+          console.log('ld,',data);
+          this.disbursementMade(data.data);
+      })
+
         
   },
   methods : {
@@ -73,21 +96,41 @@ export default {
         .then(res=>{
             
             this.chart_data.data.labels = res.data.labels
-            this.chart_data.data.datasets[0].data = res.data.expected_repayments
-            this.chart_data.data.datasets[1].data = res.data.actual_repayments
+            this.chart_data.data.datasets[0].data = res.data.expected_repayment
+            this.chart_data.data.datasets[1].data = res.data.actual_repayment
+            
             this.chartInit()
         })
 
     },
     paymentMade(data){ 
       
+      //get index of date
       var index = this.chart_data.data.labels.findIndex(x=>x == data.date);
+
+      
+      //actual repayment index is 1
       var curr_value = this.chart_data.data.datasets[1].data[index];
-      this.chart_data.data.datasets[1].data[index] = curr_value + data.amount
+      console.log('New Value' , curr_value);
+
+      var new_value = parseInt(curr_value) + parseInt(data.amount);
+      console.log('New Value' , new_value);
+      this.chart_data.data.datasets[1].data[index] = parseInt(curr_value) + parseInt(data.amount)
+
       this.chartInit();
     },
-    disbursmentMade(){
-      
+    disbursementMade(){
+      return;
+      //get index of date
+      var index = this.chart_data.data.labels.findIndex(x=>x == data.date);
+      //actual repayment index is 1
+      var curr_value = this.chart_data.data.datasets[0].data[index];
+
+      var new_value = parseInt(curr_value) + parseInt(data.amount);
+      console.log('New Value' , new_value);
+      this.chart_data.data.datasets[0].data[index] = parseInt(curr_value) + parseInt(data.amount)
+
+      this.chartInit();
     },
     updateChart(){
           this.chart_data = {
@@ -136,6 +179,12 @@ export default {
     url(){
       return '/dashboard/v1/repayment_trend/'+this.office_id
     },
+    repaymentChannel(){
+      return 'dashboard.charts.repayment.'+this.office_id
+    },
+    expectedChannel(){
+      return 'dashboard.charts.disbursement.'+this.office_id
+    }
  
   }
 }

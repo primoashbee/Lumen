@@ -51,7 +51,10 @@ class LoanAccountInstallment extends Model
     public function repayments(){
         return $this->hasMany(LoanAccountInstallmentRepayment::class);
     }
-    public function pay($amount,$transaction_id,$paid_by){
+    public function ctlpRepayments(){
+        return $this->hasMany(DepositToLoanInstallmentRepayment::class);
+    }
+    public function pay($amount,$paid_by,$loan_account_repayment_id,$is_ctlp=false,$ctlp_account_id=false,$deposit_to_loan_repayment_id=false){
         
         $payment = $amount;
         $principal = $this->principal_due;
@@ -59,7 +62,7 @@ class LoanAccountInstallment extends Model
         $amount_paid = new stdClass;
         $amount_paid->interest = 0;
         $amount_paid->principal = 0;
-        $temp;
+        $amount_paid->total_paid = 0;
         $fully_paid = false;
         $is_due = $this->isDue();
         $amount_due = 0;
@@ -87,7 +90,9 @@ class LoanAccountInstallment extends Model
             $amount_paid->principal = $payment;
             $payment = 0;
         }
+        $amount_paid->total_paid = round($amount_paid->principal  + $amount_paid->interest,2);
         if($is_due){
+            
             $amount_due = round($this->amount_due - ($amount_paid->interest + $amount_paid->principal),2);
         }
         
@@ -99,6 +104,7 @@ class LoanAccountInstallment extends Model
                 'paid'=>$fully_paid,
                 'amount_due'=>$amount_due
             ]);
+
         }else{
             $this->update([
                 'interest'=>round($this->interest - $amount_paid->interest,2),
@@ -107,18 +113,30 @@ class LoanAccountInstallment extends Model
                 'amount_due'=>$amount_due
             ]);
         }
-        $this->repayments()->create([
-            'principal_paid'=>$amount_paid->principal,
-            'interest_paid'=>$amount_paid->interest,
-            'total_paid'=>round($amount_paid->principal + $amount_paid->interest,2),
-            'paid_by'=>$paid_by,
-            'transaction_id'=>$transaction_id   
-        ]);
+        if ($is_ctlp) {
+            $this->ctlpRepayments()->create([
+                'principal_paid'=>$amount_paid->principal,
+                'interest_paid'=>$amount_paid->interest,
+                'total_paid'=>round($amount_paid->principal + $amount_paid->interest, 2),
+                'paid_by'=>$paid_by,
+                'deposit_to_loan_repayment_id'=>$deposit_to_loan_repayment_id,
+                'deposit_account_id'=>$ctlp_account_id
+            ]);
+        }else{
+            $this->repayments()->create([
+                'principal_paid'=>$amount_paid->principal,
+                'interest_paid'=>$amount_paid->interest,
+                'total_paid'=>round($amount_paid->principal + $amount_paid->interest, 2),
+                'paid_by'=>$paid_by,
+                'loan_account_repayment_id'=>$loan_account_repayment_id
+            ]);
+        }
         if($payment > 0){
             // $temp = $this->pay($amount,$transaction_id);
             
             if($this->loanAccount->remainingInstallments()->count() > 0){
-                $temp = $this->loanAccount->remainingInstallments()->first()->pay($payment,$transaction_id,$paid_by);
+                $temp = $this->loanAccount->remainingInstallments()->first()->pay($payment,$paid_by,$loan_account_repayment_id,$is_ctlp,$ctlp_account_id,$deposit_to_loan_repayment_id);
+                
             }else{
                 
 
@@ -127,6 +145,8 @@ class LoanAccountInstallment extends Model
             
             $amount_paid->interest += $temp->interest;
             $amount_paid->principal += $temp->principal;
+            $amount_paid->total_paid += $temp->interest + $temp->principal;
+            // $amount_paid->total = round($amount_paid->principal + $amount_paid->interest,2);
         }
         return $amount_paid;
     }

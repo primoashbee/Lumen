@@ -17,9 +17,9 @@ class CreateJournalVouchersTable extends Migration
             $table->id();
             $table->string('journal_voucher_number');
             $table->date('transaction_date');
-            $table->unsignedDouble('amount');
             $table->unsignedBigInteger('journal_voucherable_id');
             $table->string('journal_voucherable_type');
+            $table->string('office_id');
             $table->string('notes');
             $table->timestamps();
         });

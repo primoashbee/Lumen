@@ -16,11 +16,12 @@ class CreateLoanAccountInstallmentRepaymentsTable extends Migration
         Schema::create('loan_account_installment_repayments', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('loan_account_installment_id');
+            $table->unsignedInteger('loan_account_repayment_id');
             $table->unsignedDouble('principal_paid');
             $table->unsignedDouble('interest_paid');
             $table->unsignedDouble('total_paid');
             $table->unsignedDouble('paid_by');
-            $table->string('transaction_id');
+            // $table->string('transaction_id');
             // $table->boolean('reverted')->default(false);
             $table->timestamps();
         });

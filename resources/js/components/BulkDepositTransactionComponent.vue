@@ -64,7 +64,7 @@
 				</tbody>
 				<tbody v-else>
 					<tr  v-for="(item, key) in lists.data" :key="item.id">
-						
+
 						<td><input type="checkbox" class="item_checkbox"  :id="item.id" @change="checked(item,$event)" :checked="accountOnList(item.id)"></td>
 						
 						<td><label :for="item.id">{{item.type.name}}</label></td>
@@ -91,7 +91,7 @@
 			</table>
 			<p class="lead float-left text-right" style="color:white">Showing Records {{lists.from}} - {{lists.to}} of {{totalRecords}} </p>
 			<p class="lead float-right text-right" style="color:white">Total Records: {{totalRecords}} </p>
-			<button type="button" class="btn btn-primary" @click="showModal()" v-if="hasRecords"> {{transactionTypeDisplay}} </button>
+			<button type="button" class="btn btn-primary" @click="showModal()" v-if="form.accounts.length > 0"> {{transactionTypeDisplay}} </button>
 			<div class="clearfix"></div>
 			<paginator :dataset="lists" @updated="fetch"></paginator>
 		</div>
@@ -108,25 +108,32 @@
                         {{ errors.office_id[0]}}
                     </div>
 		        </div>
-		        <div class="form-group">
+		        <div class="form-group" v-if="transactionType!='post_interest'">
 		        	<label class="text-lg">Payment Method</label>
 					<payment-methods payment_type="for_deposit" @paymentSelected="paymentSelected" v-bind:class="hasError('payment_method') ? 'is-invalid' : ''" ></payment-methods>
 					<div class="invalid-feedback" v-if="hasError('payment_method')">
                         {{ errors.payment_method[0]}}
                     </div>
 		        </div>
-		        <div class="form-group">
+		        <div class="form-group" v-if="transactionType!='post_interest'">
 		        	<label class="text-lg">Repayment Date</label>
                     <input type="date" class="form-control" v-model="form.repayment_date" v-bind:class="hasError('repayment_date') ? 'is-invalid' : ''">
 					<div class="invalid-feedback" v-if="hasError('repayment_date')">
                         {{ errors.repayment_date[0]}}
                     </div>
 				</div>
-		        <div class="form-group">
+		        <div class="form-group" v-if="transactionType!='post_interest'">
 		        	<label class="text-lg">OR #:</label>
-                    <input type="date" class="form-control" v-model="form.receipt_number" v-bind:class="hasError('receipt_number') ? 'is-invalid' : ''">
+                    <input type="text" class="form-control" v-model="form.receipt_number" v-bind:class="hasError('receipt_number') ? 'is-invalid' : ''">
 					<div class="invalid-feedback" v-if="hasError('receipt_number')">
                         {{ errors.receipt_number[0]}}
+                    </div>
+				</div>
+		        <div class="form-group" v-if="transactionType=='post_interest'">
+		        	<label class="text-lg">JV #:</label>
+                    <input type="text" class="form-control" v-model="form.journal_voucher_number" v-bind:class="hasError('journal_voucher_number') ? 'is-invalid' : ''">
+					<div class="invalid-feedback" v-if="hasError('journal_voucher_number')">
+                        {{ errors.journal_voucher_number[0]}}
                     </div>
 				</div>
 				<div>

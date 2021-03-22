@@ -21,9 +21,9 @@ class LoanAccountRepayment extends Model
         'repayment_date',
         'for_pretermination',
         'notes',
-        'transaction_id',
-        'reverted',
-        'reverted_by',
+        // 'transaction_id',
+        // 'reverted',
+        // 'reverted_by',
     ];
     
     protected $dates = ['created_at','updated_at','repayment_date','mutated'];
@@ -58,12 +58,17 @@ class LoanAccountRepayment extends Model
         return $mutated;
         
     }
-    public function repayments(){
-        return $this->hasMany(LoanAccountInstallmentRepayment::class,'transaction_id','transaction_id');
-    }
-
 
     public function revert($user_id){
+        //if already reverted
+
+        //if has transaction before
+
+
+        //delete installment repayments
+
+
+
         if($this->reverted){
             return false;
         }
@@ -75,18 +80,18 @@ class LoanAccountRepayment extends Model
         //get installment repayments
         $installments = $this->repayments()->orderBy('id','desc')->get();
         //revert installment repayments
+        $total = $installments->count();
+        $ctr = 0;
         foreach($installments as $item){
             $item->revert();
             $item->delete();
+            $ctr++;
         }
         //update balances
-        $account = $this->loanAccount;
+        $this->receipt->delete();
+        $this->loanAccount->updateStatus();
+        return $total == $ctr;
        
-
-        return $this->update([
-            'reverted'=>true,
-            'reverted_by'=>$user_id
-        ]);
        
        
     }
@@ -95,9 +100,14 @@ class LoanAccountRepayment extends Model
     public function hasTransactionBefore(){
         $id = $this->id;
         $loan_account_id = $this->loan_account_id;
-        $transactions = LoanAccountRepayment::where('loan_account_id',$loan_account_id)->where('reverted',false)->orderBy('id','desc');
+        $transactions = Transaction::loanAccountTransactions($this->loan_account_id)
+                    ->where('transaction_date',$this->repayment_date->addDay())
+                    ->where('reverted',false);
+                   
 
-        if($transactions->count() > 1){
+        // $transactions = LoanAccountRepayment::where('loan_account_id',$loan_account_id)->where('reverted',false)->orderBy('id','desc');
+
+        if($transactions->count() > 0){
             
             return $transactions->first()->id  > $this->id ? true : false;
         }
@@ -123,8 +133,9 @@ class LoanAccountRepayment extends Model
             $item->delete();
         }
         //update balances
-        $account = $this->loanAccount;
-       
+
+        
+        $this->receipt->delete();
 
         return $this->update([
             'reverted'=>true,
@@ -134,5 +145,16 @@ class LoanAccountRepayment extends Model
         
     }
 
+    public function transaction(){
+        return $this->morphOne(Transaction::class,'transactionable');
+    }
+
+    public function repayments(){
+        return $this->hasMany(LoanAccountInstallmentRepayment::class);
+    }
+
+    public function receipt(){
+        return $this->morphOne(Receipt::class,'receiptable');
+    }
     
 }

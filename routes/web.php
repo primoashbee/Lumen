@@ -2,13 +2,16 @@
 // ini_set('xdebug.max_nesting_level', 9999);
 
 use App\User;
+use App\Deposit;
 use App\Dashboard;
 use App\LoanAccount;
+use App\Transaction;
 use App\BulkDisbursement;
 use App\Events\LoanPayment;
 use App\Imports\TestImport;
 use App\LoanAccountDisbursement;
 use App\Events\BulkLoanDisbursed;
+use App\Events\PresenceTestEvent;
 use App\Events\LoanAccountPayment;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
@@ -29,25 +32,38 @@ use Symfony\Component\HttpFoundation\Request;
 |
 */
 
+Route::get('/gen/{office_id}',function($office_id){
+    seed($office_id,25,true);
+    return 'gg';
+});
 Route::get('/epay',function(){
-    ;
+    return Transaction::depositAccountTransactions(4);
+    return auth()->user()->canJoinRoom(21);
+    return session()->all();
+    return event(new PresenceTestEvent());
+    $x = 0;
+    // return Transaction::loanAccountTransactions(1)->get();
+    collect(Transaction::loanAccountTransactions(1)->get())->map(function($i) use(&$x){ 
+        $x+=$i->transactionable->amount;
+    });
+    return $x;
     $dates = collect(["2021-03-01", "2021-03-02", "2021-03-03", "2021-03-04", "2021-03-05", "2021-03-08"]);
     $amount = rand(500,15000);
     $payload = ['date'=>$dates->random(1)->first(),'amount'=>$amount];
     event(new LoanAccountPayment($payload,21,auth()->user()->id, 8));
 });
 Route::get('/snappy',function(){
-    $summary = session('ccr');
-    
-    return view('exports.test',compact('summary'));
-    $pdf = App::make('snappy.pdf.wrapper');
-    $file = public_path('temp/').$summary->office.' - '.$summary->repayment_date.'.pdf';            
 
-    // $pdf->loadView('exports.test',compact('summary'))->setPaper('a4','landscape')->save($file);
+    $summary = session('ccr');
+    // dd($summary);
+    $file = public_path('temp/').$summary->office.' - '.$summary->repayment_date.'.pdf';            
+    // $pdf = app()->make('dompdf.wrapper');
+    $pdf = App::make('snappy.pdf.wrapper');
+    $headers = ['Content-Type'=> 'application/pdf','Content-Disposition'=> 'attachment;','filename'=>$summary->name];
+
     $pdf->loadView('exports.test',compact('summary'));
     return $pdf->stream();
-    return;
-    $headers = ['Content-Type'=> 'application/pdf','Content-Disposition'=> 'attachment;','filename'=>$summary->name];
+    // $pdf->loadView('exports.test',compact('summary'))->save($file,true);
     return response()->download($file,$summary->name,$headers);
 
 });
@@ -74,58 +90,6 @@ Route::get('/download/ccr',function(Request $request){
     // $headers = ['Content-Type'=> 'application/pdf','Content-Disposition'=> 'attachment;','filename'=>$summary->name];
     // return response()->download($file,$summary->name,$headers);
 
-});
-Route::post('/ccr',function(Request $request){
-    $pdf = App::make('dompdf.wrapper');
-    $d_ids = array(2,1);
-    sort($d_ids);   
-    $data = [
-        'office_id' => 21,
-        'date'=>"2021-02-04",
-        'loan_account_id' => 1,
-        'deposit_product_ids'=>$d_ids,
-    ];
-    $d_ids = collect($request->deposit_products)->pluck('id')->sort();
-    
-    $request->merge([
-        'deposit_product_ids' => $d_ids,
-        'loan_account_id' => $request->loan_product_id
-    ]);
-    $request->request->deposit_product_ids = $d_ids;
-    $request->request->loan_account_id = $request->loan_product_id;
-    $data = $request->all();
-    $summary  = \App\Account::repaymentsFromDate($data);
-    
-    $file = public_path('temp/').$summary->office.' - '.$summary->repayment_date.'.pdf';
-    
-    $pdf->loadView('exports.ccrv2',compact('summary'))->setPaper('a4','landscape')->save($file);
-    // return $pdf->stream();
-    
-    $headers = ['Content-Type: application/zip','Content-Disposition: attachment; filename={$file}'];
-
-    return response()->download($file, 200,$headers);
-});
-
-Route::get('/ccr',function(Request $request){
-    $pdf = App::make('dompdf.wrapper');
-    $d_ids = array(2,1);
-    sort($d_ids);   
-    $data = [
-        'office_id' => 21,
-        'date'=>"2021-02-04",
-        'loan_account_id' => 1,
-        'deposit_product_ids'=>$d_ids,
-    ];
-    $d_ids = collect($request->deposit_products)->pluck('id')->sort();
-    $summary  = \App\Account::repaymentsFromDate($data);
-    
-    $file = public_path('temp/').$summary->office.' - '.$summary->repayment_date.'.pdf';
-    
-    $pdf->loadView('exports.ccrv2',compact('summary'))->setPaper('a4','landscape')->save($file);
-    return $pdf->stream();
-
-    $headers = ['Content-Type: application/zip','Content-Disposition: attachment; filename={$file}'];
-    return response()->download($file, 200,$headers);
 });
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -204,6 +168,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/client/{client_id}/deposit/{deposit_account_id}', 'ClientController@depositAccount')->name('client.deposit'); 
 
     Route::post('/deposit/{deposit_account_id}','DepositAccountController@deposit')->name('client.make.deposit'); //make deposit transaction individually
+    Route::post('/withdraw/{deposit_account_id}','DepositAccountController@withdraw')->name('client.make.withdrawal'); //make deposit transaction individually
     Route::get('/payment/methods','PaymentMethodController@fetchPaymentMethods');
 
     
@@ -234,14 +199,14 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/deposits','DepositAccountController@showList');
     Route::get('/product','ProductController@getItems');
     Route::post('/deposit/{deposit_account_id}','DepositAccountController@deposit')->name('client.make.deposit');
-    Route::post('/deposit/account/post/interest','DepositAccountController@postInterestByUser')->name('deposit.account.post.interest');
+    Route::post('/deposit/account/post/interest','DepositAccountController@postInterest')->name('deposit.account.post.interest');
 
 
     Route::get('/accounts/{type}','AccountController@index')->name('accounts.list');
 
     // Route::post('/accounts/{type}','AccountController@filter')->name('accounts.all');
 
-    Route::post('/loans/list','LoanController@postInterestByUser')->name('deposit.account.post.interest');
+    // Route::post('/loans/list','LoanController@postInterestByUser')->name('deposit.account.post.interest');
 
 
     Route::get('/loan/products','LoanController@loanProducts')->name('loan.products');

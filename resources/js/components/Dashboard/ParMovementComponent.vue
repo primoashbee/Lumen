@@ -24,6 +24,25 @@ export default {
                fontColor: "white",
                fontSize:15
           }
+        },
+        
+        scales : {
+          yAxes : [{
+            ticks : {
+              fontColor : 'white',
+              fontSize : 12,
+              
+              beginAtZero: true
+            }
+          }],
+          xAxes : [{
+            ticks : {
+              fontColor: 'white',
+              fontSize:12,
+              
+              beginAtZero: true
+            }
+          }]
         }
       },
       data: {

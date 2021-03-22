@@ -49,8 +49,8 @@ class Account extends Model
         ])
         ->select('id','client_id','loan_id','number_of_months','number_of_installments','total_balance')
         ->where('loan_id',$loan_product_id)
-        ->whereNotNull('approved_by')
-        ->whereNotNull('disbursed_by')
+        ->whereNotNull('approved_at')
+        ->whereNotNull('disbursed_at')
         ->whereNull('closed_by')
         ->whereIn('client_id',$client_ids)
         ->get();
@@ -99,11 +99,11 @@ class Account extends Model
                 $account['overdue'] = $overdue;
                 $account['due'] = $due;
                 $account['total_due'] = $total_due;
-                $account['_total_balance'] = money($account->total_balance,2);
+                $account['_total_balance'] = money($account->getRawOriginal('total_balance'),2);
                 $account['total_due'];
                 
                 
-                $total['loan']['loan_balance'] += $account->total_balance;
+                $total['loan']['loan_balance'] += $account->getRawOriginal('total_balance');
                 $total['loan']['overdue']['total_interest']+=$overdue->interest;
                 $total['loan']['overdue']['total_principal']+=$overdue->principal;
                 $total['loan']['overdue']['total_amount_due']+=$overdue->total;

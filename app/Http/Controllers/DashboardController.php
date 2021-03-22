@@ -25,11 +25,13 @@ class DashboardController extends Controller
         }
     }
     public function repaymentTrend($office_id){
+        
         $rt = Dashboard::repaymentTrend($office_id);
-        $labels = $rt->pluck('date');
-        $expected_repayment = $rt->pluck('total');
-        $actual_repayments = [0,0,0,0,0,0];
-        return response()->json(['labels'=>$labels,'expected_repayments'=>$expected_repayment,'actual_repayments'=>$actual_repayments],200);
+
+        // return response()->json(['labels'=>$rt['labels'],'expected_repayment'=>$rt['expected_repayment'],'actual_repayment'=>$rt['actual_repayment']],200);
+        
+        // $actual_repayments = [0,0,0,0,0,0];
+        return response()->json($rt,200); 
     }
 
     public function disbursementTrend($office_id){

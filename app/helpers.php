@@ -2,165 +2,291 @@
 
 use App\Fee;
 use App\Loan;
+use App\Room;
 use App\User;
 use App\Client;
 use App\Office;
 use App\Cluster;
 use App\Deposit;
+
+use App\Scheduler;
+
 use Carbon\Carbon;
-
 use App\OfficeUser;
-
+use App\LoanAccount;
 use App\PaymentMethod;
+use Faker\Factory as Faker;
 use Illuminate\Support\Str;
 use App\DefaultPaymentMethod;
 use App\Imports\OfficeImport;
-use App\Scheduler;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
-use Faker\Factory as Faker;
+use App\Http\Controllers\LoanAccountController;
 
     function seed($office_id,$count=20,$with_loans=false){
-        $offices = Office::find($office_id)->children;
-        if($offices->count() == 0){
-            $office = Office::find($office_id);
-            for ($x=1; $x<= $count; $x++) {
-                $faker = Faker::create();
-            
-                $gender = $faker->randomElement(['MALE', 'FEMALE']);
-                $civil_status = $faker->randomElement(['SINGLE', 'MARRIED','DIVORCED']);
-                $education = $faker->randomElement(['ELEMENTARY', 'HIGH SCHOOL','COLLEGE','VOCATIONAL']);
-                $barangay = $faker->randomElement(['San Jose', 'Sta. Rita','Gordon Heights','Pag-asa']);
-                $province = $faker->randomElement(['Zambales', 'Pampanga','Bataan']);
-                $dependents = rand(1, 5);
-                $house_type = $faker->randomElement(['RENTED','OWNED']);
-                $mobile_number = '09'.rand(100000000, 199999999);
-                // $office = Office::where('name', '')->first();
-                static $id = 1;
-                $user  = Client::create([
-                    'client_id' => Office::makeClientID($office->id),
-                    'firstname' => $faker->firstName,
-                    'middlename'=>$faker->lastname,
-                    'lastname'  =>$faker->lastname,
-                    'suffix'=>$faker->suffix,
-                    'nickname'=>$faker->firstname,
-                    'gender'=> $gender,
-                    'profile_picture_path' => 'https://via.placeholder.com/150',
-                    'signature_path' => 'https://via.placeholder.com/150',
-                    'birthday' => $faker->dateTimeThisCentury->format('Y-m-d'),
-                    'birthplace' => $faker->city,
-                    'civil_status' => $civil_status,
-                    'education' => $education,
-                    'fb_account' => 'fb.com/primoashbee',
-                    'contact_number'=>$mobile_number,
-                    'street_address'=> $faker->address,
-                    'barangay_address' => $barangay,
-                    'city_address' => $faker->city,
-                    'province_address' => $province,
-                    'zipcode' => $faker->postCode,
-                    'spouse_name' => $faker->name,
-                    'spouse_contact_number' => $mobile_number,
-                    'spouse_birthday' =>  $faker->dateTimeThisCentury->format('Y-m-d'),
-                    'number_of_dependents' => $dependents,
-                    'household_size' =>$dependents +2,
-                    'years_of_stay_on_house' => $dependents + 5,
-                    'house_type' => $house_type,
-                    'tin' => rand(100000, 199999),
-                    'umid' => rand(10000, 19999),
-                    'sss' =>rand(10000, 19999),
-                    'mother_maiden_name' => $faker->firstNameFemale.' '.$faker->lastname,
-                    'notes' => $faker->realText($faker->numberBetween(10, 200)),
-                    'office_id' => $office->id,
-                    'created_by' => 0
-                ]);
-                $application_number = rand(1000000,2);
 
-                $unit_of_plan = rand(1,2);
-                $member_first = $user->firstname;
-                $member_middle = $user->middlename;
-                $member_last = $user->lastname;
-                $birthday= $user->getRawOriginal('birthday');
-                $user->dependents()->create([
-                    'application_number'=>$application_number,
-                    'unit_of_plan'=>$unit_of_plan,
-                    'member_firstname'=>$member_first,
-                    'member_middlename'=>$member_middle,
-                    'member_lastname'=>$member_last,
-                    'created_by'=>2,
-                    'member_birthday'=>$birthday
-                ]);
+        \DB::beginTransaction();
+        try {
+            $offices = Office::find($office_id)->children;
+            $ids = [];
+            if($offices->count() == 0){
+                $office = Office::find($office_id);
+                for ($x=1; $x<= $count; $x++) {
+                    $faker = Faker::create();
+                
+                    $gender = $faker->randomElement(['MALE', 'FEMALE']);
+                    $civil_status = $faker->randomElement(['SINGLE', 'MARRIED','DIVORCED']);
+                    $education = $faker->randomElement(['ELEMENTARY', 'HIGH SCHOOL','COLLEGE','VOCATIONAL']);
+                    $barangay = $faker->randomElement(['San Jose', 'Sta. Rita','Gordon Heights','Pag-asa']);
+                    $province = $faker->randomElement(['Zambales', 'Pampanga','Bataan']);
+                    $dependents = rand(1, 5);
+                    $house_type = $faker->randomElement(['RENTED','OWNED']);
+                    $mobile_number = '09'.rand(100000000, 199999999);
+                    // $office = Office::where('name', '')->first();
+                    static $id = 1;
+                    $user  = Client::create([
+                        'client_id' => Office::makeClientID($office->id),
+                        'firstname' => $faker->firstName,
+                        'middlename'=>$faker->lastname,
+                        'lastname'  =>$faker->lastname,
+                        'suffix'=>$faker->suffix,
+                        'nickname'=>$faker->firstname,
+                        'gender'=> $gender,
+                        'profile_picture_path' => 'https://via.placeholder.com/150',
+                        'signature_path' => 'https://via.placeholder.com/150',
+                        'birthday' => $faker->dateTimeThisCentury->format('Y-m-d'),
+                        'birthplace' => $faker->city,
+                        'civil_status' => $civil_status,
+                        'education' => $education,
+                        'fb_account' => 'fb.com/primoashbee',
+                        'contact_number'=>$mobile_number,
+                        'street_address'=> $faker->address,
+                        'barangay_address' => $barangay,
+                        'city_address' => $faker->city,
+                        'province_address' => $province,
+                        'zipcode' => $faker->postCode,
+                        'spouse_name' => $faker->name,
+                        'spouse_contact_number' => $mobile_number,
+                        'spouse_birthday' =>  $faker->dateTimeThisCentury->format('Y-m-d'),
+                        'number_of_dependents' => $dependents,
+                        'household_size' =>$dependents +2,
+                        'years_of_stay_on_house' => $dependents + 5,
+                        'house_type' => $house_type,
+                        'tin' => rand(100000, 199999),
+                        'umid' => rand(10000, 19999),
+                        'sss' =>rand(10000, 19999),
+                        'mother_maiden_name' => $faker->firstNameFemale.' '.$faker->lastname,
+                        'notes' => $faker->realText($faker->numberBetween(10, 200)),
+                        'office_id' => $office->id,
+                        'created_by' => 0
+                    ]);
+                    $ids[]=  $user->id;
+                    $application_number = rand(1000000,2);
+
+                    $unit_of_plan = rand(1,2);
+                    $member_first = $user->firstname;
+                    $member_middle = $user->middlename;
+                    $member_last = $user->lastname;
+                    $birthday= $user->getRawOriginal('birthday');
+                    $user->dependents()->create([
+                        'application_number'=>$application_number,
+                        'unit_of_plan'=>$unit_of_plan,
+                        'member_firstname'=>$member_first,
+                        'member_middlename'=>$member_middle,
+                        'member_lastname'=>$member_last,
+                        'created_by'=>2,
+                        'member_birthday'=>$birthday
+                    ]);
+                }
             }
+            $offices->map(function($office) use($count, $with_loans){
+                for ($x=1; $x<= $count; $x++) {
+                    $faker = Faker::create();
+                
+                    $gender = $faker->randomElement(['MALE', 'FEMALE']);
+                    $civil_status = $faker->randomElement(['SINGLE', 'MARRIED','DIVORCED']);
+                    $education = $faker->randomElement(['ELEMENTARY', 'HIGH SCHOOL','COLLEGE','VOCATIONAL']);
+                    $barangay = $faker->randomElement(['San Jose', 'Sta. Rita','Gordon Heights','Pag-asa']);
+                    $province = $faker->randomElement(['Zambales', 'Pampanga','Bataan']);
+                    $dependents = rand(1, 5);
+                    $house_type = $faker->randomElement(['RENTED','OWNED']);
+                    $mobile_number = '09'.rand(100000000, 199999999);
+                    // $office = Office::where('name', '')->first();
+                    static $id = 1;
+                    $user  = Client::create([
+                        'client_id' => Office::makeClientID($office->id),
+                        'firstname' => $faker->firstName,
+                        'middlename'=>$faker->lastname,
+                        'lastname'  =>$faker->lastname,
+                        'suffix'=>$faker->suffix,
+                        'nickname'=>$faker->firstname,
+                        'gender'=> $gender,
+                        'profile_picture_path' => 'https://via.placeholder.com/150',
+                        'signature_path' => 'https://via.placeholder.com/150',
+                        'birthday' => $faker->dateTimeThisCentury->format('Y-m-d'),
+                        'birthplace' => $faker->city,
+                        'civil_status' => $civil_status,
+                        'education' => $education,
+                        'fb_account' => 'fb.com/primoashbee',
+                        'contact_number'=>$mobile_number,
+                        'street_address'=> $faker->address,
+                        'barangay_address' => $barangay,
+                        'city_address' => $faker->city,
+                        'province_address' => $province,
+                        'zipcode' => $faker->postCode,
+                        'spouse_name' => $faker->name,
+                        'spouse_contact_number' => $mobile_number,
+                        'spouse_birthday' =>  $faker->dateTimeThisCentury->format('Y-m-d'),
+                        'number_of_dependents' => $dependents,
+                        'household_size' =>$dependents +2,
+                        'years_of_stay_on_house' => $dependents + 5,
+                        'house_type' => $house_type,
+                        'tin' => rand(100000, 199999),
+                        'umid' => rand(10000, 19999),
+                        'sss' =>rand(10000, 19999),
+                        'mother_maiden_name' => $faker->firstNameFemale.' '.$faker->lastname,
+                        'notes' => $faker->realText($faker->numberBetween(10, 200)),
+                        'office_id' => $office->id,
+                        'created_by' => 0
+                    ]);
+                    $application_number = rand(1000000,2);
+
+                    $unit_of_plan = rand(1,2);
+                    $member_first = $user->firstname;
+                    $member_middle = $user->middlename;
+                    $member_last = $user->lastname;
+                    $birthday= $user->getRawOriginal('birthday');
+                    $user->dependents()->create([
+                        'application_number'=>$application_number,
+                        'unit_of_plan'=>$unit_of_plan,
+                        'member_firstname'=>$member_first,
+                        'member_middlename'=>$member_middle,
+                        'member_lastname'=>$member_last,
+                        'created_by'=>2,
+                        'member_birthday'=>$birthday
+                    ]);
+                }
+            });
+
+            if($with_loans){
+                $bulk_disbursement_id = sha1(time());
+                $start = now()->startOfDay()->subDays(6);
+
+                for($x=0;$x<=6;$x++){
+                    $dates[] = $start->copy()->addDays($x);
+                }
+                $disbursement_date =  $dates[rand(0,count($dates)-1)];
+                    $start_date =  $disbursement_date;
+                foreach(Client::whereIn('id',$ids)->get() as $client){
+
+        
+                    
+
+                    createLoan($client, $bulk_disbursement_id, uniqid(),$disbursement_date, $start_date);
+                
+                }
+            }
+            \DB::commit();
+        }catch(Exception $e){
+            return $e->getMessage();
         }
-        $offices->map(function($office) use($count, $with_loans){
-            for ($x=1; $x<= $count; $x++) {
-                $faker = Faker::create();
-            
-                $gender = $faker->randomElement(['MALE', 'FEMALE']);
-                $civil_status = $faker->randomElement(['SINGLE', 'MARRIED','DIVORCED']);
-                $education = $faker->randomElement(['ELEMENTARY', 'HIGH SCHOOL','COLLEGE','VOCATIONAL']);
-                $barangay = $faker->randomElement(['San Jose', 'Sta. Rita','Gordon Heights','Pag-asa']);
-                $province = $faker->randomElement(['Zambales', 'Pampanga','Bataan']);
-                $dependents = rand(1, 5);
-                $house_type = $faker->randomElement(['RENTED','OWNED']);
-                $mobile_number = '09'.rand(100000000, 199999999);
-                // $office = Office::where('name', '')->first();
-                static $id = 1;
-                $user  = Client::create([
-                    'client_id' => Office::makeClientID($office->id),
-                    'firstname' => $faker->firstName,
-                    'middlename'=>$faker->lastname,
-                    'lastname'  =>$faker->lastname,
-                    'suffix'=>$faker->suffix,
-                    'nickname'=>$faker->firstname,
-                    'gender'=> $gender,
-                    'profile_picture_path' => 'https://via.placeholder.com/150',
-                    'signature_path' => 'https://via.placeholder.com/150',
-                    'birthday' => $faker->dateTimeThisCentury->format('Y-m-d'),
-                    'birthplace' => $faker->city,
-                    'civil_status' => $civil_status,
-                    'education' => $education,
-                    'fb_account' => 'fb.com/primoashbee',
-                    'contact_number'=>$mobile_number,
-                    'street_address'=> $faker->address,
-                    'barangay_address' => $barangay,
-                    'city_address' => $faker->city,
-                    'province_address' => $province,
-                    'zipcode' => $faker->postCode,
-                    'spouse_name' => $faker->name,
-                    'spouse_contact_number' => $mobile_number,
-                    'spouse_birthday' =>  $faker->dateTimeThisCentury->format('Y-m-d'),
-                    'number_of_dependents' => $dependents,
-                    'household_size' =>$dependents +2,
-                    'years_of_stay_on_house' => $dependents + 5,
-                    'house_type' => $house_type,
-                    'tin' => rand(100000, 199999),
-                    'umid' => rand(10000, 19999),
-                    'sss' =>rand(10000, 19999),
-                    'mother_maiden_name' => $faker->firstNameFemale.' '.$faker->lastname,
-                    'notes' => $faker->realText($faker->numberBetween(10, 200)),
-                    'office_id' => $office->id,
-                    'created_by' => 0
-                ]);
-                $application_number = rand(1000000,2);
-
-                $unit_of_plan = rand(1,2);
-                $member_first = $user->firstname;
-                $member_middle = $user->middlename;
-                $member_last = $user->lastname;
-                $birthday= $user->getRawOriginal('birthday');
-                $user->dependents()->create([
-                    'application_number'=>$application_number,
-                    'unit_of_plan'=>$unit_of_plan,
-                    'member_firstname'=>$member_first,
-                    'member_middlename'=>$member_middle,
-                    'member_lastname'=>$member_last,
-                    'created_by'=>2,
-                    'member_birthday'=>$birthday
-                ]);
-            }
-        });
     }
-    
+    function createLoan($client , $bulk_disbursement_id, $cv_number,$disbursement_date, $start_date){
+                $client = $client;
+                $loan =  Loan::find(1);
+                $fees = $loan->fees;
+                $total_deductions = 0;
+
+
+                $loan_amount = rand(2,99) * 1000;
+                
+                $number_of_installments = 22;
+                $number_of_months = Loan::rates()->where('code',$loan->code)->first()->rates->where('installments',$number_of_installments)->first()->number_of_months;
+                $fee_repayments = array();
+                
+                $dependents = $client->unUsedDependent()->pivotList();
+                foreach($loan->fees as $fee){
+                    $fee_amount = $fee->calculateFeeAmount($loan_amount, $number_of_installments,$loan,$dependents);
+                    $total_deductions += $fee_amount;
+                    $fee_repayments[] = (object)[
+                        'id'=>$fee->id,
+                        'name'=>$fee->name,
+                        'amount'=>$fee_amount
+                    ];
+                }
+                
+                $disbursed_amount = $loan_amount - $total_deductions;
+                $annual_rate = 0.03 * 12;
+                $start_date = $start_date;
+        
+                //get loan rates via loan and installment length
+                $loan_interest_rate = Loan::rates($loan->id)->where('installments',$number_of_installments)->first()->rate;
+        
+                $data = array(
+                    'principal'=>$loan_amount,
+                    'annual_rate'=>$annual_rate,
+                    'interest_rate'=>$loan_interest_rate,
+                    'interest_interval'=>$loan->interest_interval,
+                    'term'=>$loan->installment_method,
+                    'term_length'=>$number_of_installments,
+                    'disbursement_date'=>$disbursement_date,
+                    'start_date'=>$start_date,
+                    'office_id'=>$client->office->id
+                );
+                
+                
+                $calculator = LoanAccount::calculate($data);
+                
+                //dependent on calculator result.
+        
+                
+                $loan_acc = $client->loanAccounts()->create([
+                    'loan_id'=>$loan->id,
+                    'amount'=>$loan_amount,
+                    'principal'=>$loan_amount,
+                    'interest'=>$calculator->total_interest,
+                    'total_loan_amount'=>$calculator->total_loan_amount,
+                    'interest_rate'=>$loan_interest_rate,
+                    'number_of_months'=>$number_of_months,
+                    'number_of_installments'=>$number_of_installments,
+
+                    'total_deductions'=>$total_deductions,
+                    'disbursed_amount'=>$disbursed_amount, //net disbursement
+                    
+                                
+                    'total_balance'=>$loan_amount + $calculator->total_interest,
+                    'principal_balance'=>$loan_amount,
+                    'interest_balance'=>0,
+
+                    'disbursement_date'=>$calculator->disbursement_date,
+                    'first_payment_date'=>$calculator->start_date,
+                    'last_payment_date'=>$calculator->end_date,
+                    'created_by'=>3,
+                ]);
+            
+                $lac = new LoanAccountController;
+                $lac->createFeePayments($loan_acc,$fee_repayments);
+                
+                $lac->createInstallments($loan_acc,$calculator->installments);
+                $client->unUsedDependent()->update(['status'=>'For Loan Disbursement','loan_account_id'=>$loan_acc->id]);
+                // $account = $loan_acc->account()->create([
+                $account = $loan_acc->update([
+                    // 'client_id'=>$client->client_id,
+                    'status'=>'Pending Approval'
+                ]);
+                $loan_acc->approve(3);
+                $payment_info = [
+                    'disbursement_date'=>$disbursement_date,
+                    'first_repayment_date'=>$start_date,
+                    'payment_method_id'=>2,
+                    'office_id'=>21,
+                    'disbursed_by'=>3,
+                    'cv_number'=>$cv_number
+                ];
+                $loan_acc->disburse($payment_info,true,$bulk_disbursement_id);
+
+
+    }
     function carbon(){
         return new \Carbon\Carbon();
     }
@@ -198,7 +324,9 @@ use Faker\Factory as Faker;
             'password' => Hash::make('sv9h4pld')
         ]);
     
-        $user->offices()->attach(1);
+        $user->assignToOffice(1);
+        // $user->rooms()->attach(1);
+    
         $user = User::create([
             'firstname' => 'BM',
             'lastname' => 'Dagupan',
@@ -209,8 +337,8 @@ use Faker\Factory as Faker;
             'notes'=>'wala lang',
             'password' => Hash::make('sv9h4pld')
         ]);
-
-        
+        $user->assignToOffice(21);
+        // $user->rooms()->attach(21);
 
         $user = User::create([
             'firstname' => 'Ashbee',
@@ -222,8 +350,8 @@ use Faker\Factory as Faker;
             'notes'=>'ajalksdjfdlksafjaldf',
             'password' => Hash::make('sv9h4pld')
         ]);
-        $user->offices()->attach(1);
-        
+        $user->assignToOffice(1);
+        // $user->rooms()->attach(1);
         $user = User::create([
             'firstname' => 'Nelson',
             'lastname' => 'Abilgos',
@@ -235,8 +363,8 @@ use Faker\Factory as Faker;
             'password' => Hash::make('      ')
         ]);
     
-        $user->offices()->attach(1);
-
+        $user->assignToOffice(1);
+        // $user->rooms()->attach(1);
         $user = User::create([
             'firstname' => 'Hannah Arien',
             'lastname' => 'Mangalindan',
@@ -248,7 +376,8 @@ use Faker\Factory as Faker;
             'password' => Hash::make('sv9h4pld')
         ]);
     
-        $user->offices()->attach(21);
+        $user->assignToOffice(21);
+        // $user->rooms()->attach(21);
     }
 
     function createDeposits(){
@@ -693,6 +822,11 @@ use Faker\Factory as Faker;
                 'code'=>$level[1],
                 'created_at'=> Carbon::now(),
                 'updated_at'=> Carbon::now(),
+                'level_in_number'=>$level[5]
+                );
+                $rooms[] = array(
+                    'name'=>$level[3],
+                    'office_id'=>$level[0]
                 );
                 // echo $level[3].' : '.$level[4].'<br>';
             }
@@ -700,6 +834,7 @@ use Faker\Factory as Faker;
         }
      
         Office::insert($data);
+        Room::insert($rooms);
     }
     
     function createUser($branches=5){
@@ -717,11 +852,14 @@ use Faker\Factory as Faker;
         );
 
         $user = User::create($data);
-
-        OfficeUser::create([
+        $user->office()->attach([
             'user_id'=>$user->id,
             'office_id'=>Office::where('name','ANGELES')->first()->id
         ]);
+        // OfficeUser::create([
+        //     'user_id'=>$user->id,
+        //     'office_id'=>Office::where('name','ANGELES')->first()->id
+        // ]);
         
         $data = array(
             'firstname'=>'Ashbee',
@@ -733,11 +871,13 @@ use Faker\Factory as Faker;
             'email'=>'ashbee.morgado@icloud.com',
             'password'=> Hash::make('sv9h4pld'),
             'created_by'=>0
-
         );
 
         $user = User::create($data);
-
+        $user->office()->attach([
+            'user_id'=>$user->id,
+            'office_id'=>Office::where('name','ANGELES')->first()->id
+        ]);
         
 
         $offices = Office::where('level','branch')->get()->random($branches);

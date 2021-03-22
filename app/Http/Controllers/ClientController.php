@@ -623,7 +623,7 @@ class ClientController extends Controller
             $remittance + 
             $pension;
 
-        $client->household_income->update([
+        $client->household_income->updateOrCreate([
                 'is_self_employed'=>$request->is_self_employed,
                 'service_type'=>$request->service_type,
                 'service_type_monthly_gross_income'=>$service_type_monthly_gross_income,
@@ -690,25 +690,28 @@ class ClientController extends Controller
                 ->load([
                     // 'type:id,name,product_id,description,interest_rate',
                     'type'=>function($q){
-                        $q->select('id','name','product_id','description','interest_rate');       
+                        $q->select('id','name','product_id','description','interest_rate');
                     },
                     'client'=>function($q){
                         $q->select('client_id', 'firstname', 'lastname');
                     },
-                    'transactions'=>function($q){
-                        $q->select('*');
-                        $q->with([
-                            'paymentMethod'=>function($q){
-                                $q->select('id','name');
-                            },
-                            'postedBy'=>function($q){
-                                $q->select('id','firstname','lastname');
-                            }
-                        ]);
-                    }
-                ]);
+                ])
+                ->append('transactions');
             return response()->json(['data'=>$data],200);
         }
+        
+        // $data = DepositAccount::find($deposit_account_id)
+        // ->load([
+        //     // 'type:id,name,product_id,description,interest_rate',
+        //     'type'=>function($q){
+        //         $q->select('id','name','product_id','description','interest_rate');
+        //     },
+        //     'client'=>function($q){
+        //         $q->select('client_id', 'firstname', 'lastname');
+        //     },
+        // ])
+        // ->append('transactions');
+    // return response()->json(['data'=>$data],200);
         return view('pages.deposit-dashboard',compact('deposit_account_id','client_id'));
     }
 
@@ -727,7 +730,7 @@ class ClientController extends Controller
     public function listDependents($client_id){
         $client = Client::fcid($client_id);
         if($client!=null){
-            $list = $client->dependents->each->append('pivotList','count','mutated'); 
+            $list = $client->dependents->each->append('pivotList','count'); 
             return response()->json(['msg'=>'Success','list'=>$list],200);
         }
         return response()->json(['msg'=>'Invalid Request'],422);

@@ -19,6 +19,7 @@ class CreateOfficesTable extends Migration
             $table->string('level'); //check if org, regional, area, branch
             $table->string('name')->unique();
             $table->string('code')->unique();
+            $table->unsignedInteger('level_in_number');
             $table->timestamps();
         });
         

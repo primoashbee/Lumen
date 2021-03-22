@@ -86,6 +86,7 @@ class Dependent extends Model
     ];
     public $fields = ['firstname','middlename','lastname','birthday'];
     protected $dates = ['expires_at','activated_at','created_at','updated_at'];
+
     public function client(){
         return $this->belongsTo(Client::class,'client_id');
     }
@@ -211,6 +212,8 @@ class Dependent extends Model
     public function getCountAttribute(){
         return $this->pivotList()->count();
     }
+
+
 
     public function reset(){
         $this->update([

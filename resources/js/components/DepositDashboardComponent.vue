@@ -51,7 +51,7 @@
 		                <p class="text-muted text-lg">Balance</p>
 		            </div>
 		            <div class="d-inline-block">
-		                <p class="title text-lg">Date Created</p>
+		                <p class="title text-lg">{{moment(account.created_at,'LL')}}</p>
 		                <p class="text-muted text-lg">Date Created</p>
 		            </div>
 		        </div>  
@@ -75,6 +75,7 @@
 				                        <td><p class="title">Balance</p></td>
 				                        <td><p class="title">Payment Method</p></td>
 				                        <td><p class="title">Posted By</p></td>
+				                        <td><p class="title">Action</p></td>
 				                    </tr>
 				                </thead>
 				                <tbody>
@@ -83,36 +84,53 @@
 				                        	<p class="title text-lg">{{account.transactions.length - index}}</p>
 				                        </td>
 				                        <td>
-				                        	<p class="title text-lg">{{item.transaction_id}}</p>
+				                        	<p class="title text-lg">{{item.transaction_number}}</p>
 				                        </td>
 				                        <td>
-				                        	<p class="title text-lg">{{moment(item.repayment_date)}}</p>
+				                        	<p class="title text-lg">{{moment(item.repayment_date,'LL')}}</p>
 				                        </td>
 				                        <td>
-				                        	<p class="title text-lg">{{item.created_at}}</p>
+				                        	<p class="title text-lg">{{moment(item.created_at, 'LL')}}</p>
 				                        </td>
 				                        <td>
-				                        	<p class="title text-lg">{{item.transaction_type}}</p>
+				                        	<p class="title text-lg">{{item.type}}</p>
 				                        </td>
 				                        <td>
 				                        	<p class="title text-lg">
-												<span class="badge badge-pill" v-bind:class="rowClass(item)">{{item.amount}}</span>
+												<span class="badge badge-pill" v-bind:class="rowClass(item)">{{item.transactionable.formatted_amount}}</span>
 											</p>
 				                        </td>
 				                        <td>
 				                        	<p class="title text-lg">
 												<span class="badge badge-pill badge-primary">
-													{{item.balance}}
+													{{item.transactionable.formatted_balance}}
 												</span>
 											</p>
 				                        </td>
 				                        <td>
-				                        	<p class="title text-lg">{{item.payment_method.name}}</p>
+				                        	<p class="title text-lg">{{item.transactionable.payment_method_name}}</p>
 				                        </td>
 				                        <td>
-				                        	<p class="title text-lg">{{item.posted_by.fullname}}</p>
+				                        	<p class="title text-lg">{{item.user_name.fullname}}</p>
 				                        </td>
-
+                                        <td>
+                                            <span v-if="!item.reverted && !item.revertion && item.type !='Withdawal - CTLP'">
+                                                <button @click="revert(item.transaction_number)" class="btn btn-danger"><i class="fa fa-undo" aria-hidden="true"></i></button>
+                                            </span>
+                                            <span v-else-if="item.reverted">
+                                                Reverted
+                                            </span>
+                                            <span v-else-if="item.revertion">
+                                                Revert
+                                            </span>
+                                            <span v-else-if="item.type=='Withdawal - CTLP'">
+                                                Reverable only from loan account
+                                            </span>
+                                            <span v-else>
+                                                Disbursement
+                                            </span>
+                                            
+                                        </td>
 				                    </tr>
 									
 				                </tbody>
@@ -153,18 +171,32 @@
                         {{ errors.repayment_date[0]}}
                     </div>
 				</div>
-		        <div class="form-group" v-if="modal.modal_type=='cash'">
+		        <div class="form-group" v-if="payment_type=='for_deposit'">
 		        	<label class="text-lg">OR #</label>
                     <input type="text" class="form-control" v-model="fields.receipt_number" v-bind:class="hasError('receipt_number') ? 'is-invalid' : ''">
 					<div class="invalid-feedback" v-if="hasError('receipt_number')">
                         {{ errors.receipt_number[0]}}
                     </div>
 				</div>
-		        <div class="form-group" v-if="modal.modal_type=='non-cash'">
+		        <div class="form-group" v-if="payment_type=='for_withdrawal'">
+		        	<label class="text-lg">CV #</label>
+                    <input type="text" class="form-control" v-model="fields.cv_number" v-bind:class="hasError('cv_number') ? 'is-invalid' : ''">
+					<div class="invalid-feedback" v-if="hasError('cv_number')">
+                        {{ errors.cv_number[0]}}
+                    </div>
+				</div>
+		        <div class="form-group" v-if="payment_type=='for_interest_posting'">
 		        	<label class="text-lg">JV #</label>
                     <input type="text" class="form-control" v-model="fields.jv_number" v-bind:class="hasError('jv_number') ? 'is-invalid' : ''">
 					<div class="invalid-feedback" v-if="hasError('jv_number')">
                         {{ errors.jv_number[0]}}
+                    </div>
+				</div>
+		        <div class="form-group">
+		        	<label class="text-lg">Notes</label>
+                    <input type="text" class="form-control" v-model="fields.notes" v-bind:class="hasError('notes') ? 'is-invalid' : ''">
+					<div class="invalid-feedback" v-if="hasError('notes')">
+                        {{ errors.notes[0]}}
                     </div>
 				</div>
 		        <button type="submit" class="btn btn-primary">Submit</button>
@@ -228,6 +260,7 @@ import Swal from 'sweetalert2';
 					repayment_date: null,
 					receipt_number:null,
 					jv_number: null,
+					notes: null,
 				},
                 errors:{},
 				account : null
@@ -240,8 +273,43 @@ import Swal from 'sweetalert2';
 			this.fetch()
 		},
 		methods  : {
-			moment(value){
-				return moment(value).format('MMMM DD, Y')
+			revert(transaction_number){
+				var vm = this
+				var deposit_account_id = this.deposit_account_id
+				Swal.fire({
+					title: 'Are you sure?',
+					text: "You won't be able to revert this!",
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonColor: '#3085d6',
+					cancelButtonColor: '#d33',
+					confirmButtonText: 'Yes'
+					}).then((result) => {
+					if (result.isConfirmed) {
+						axios.post('/revert',{
+							transaction_number:transaction_number,
+						})
+						.then(res=>{
+							Swal.fire(
+								'Reverted!',
+								res.data.msg,
+								'success'
+							)
+						})
+						.catch(error=>{
+							var key = Object.keys(error.response.data.errors)[0]
+							
+							Swal.fire(
+								'Alert',
+								error.response.data.errors[key][0],
+								'error'
+							)
+						})
+					}
+				})
+			},
+			moment(value,format){
+				return moment(value).format(format)
 			},
 			fetch(){
 				var config = {
@@ -256,9 +324,9 @@ import Swal from 'sweetalert2';
 				});
 			},
 			rowClass(item){
-				if(item.transaction_type=="Withdraw"){
+				if(item.type=="Withdrawal"){
 					return 'badge-danger';
-				}else if(item.transaction_type=="Deposit"){
+				}else if(item.type=="Deposit"){
 					return 'badge-success';
 				}else{
 					return 'badge-info';
@@ -289,10 +357,9 @@ import Swal from 'sweetalert2';
 					this.modal.modal_type="non-cash"
 					this.fields.type="post_interest"
 					this.fields.deposit_account_id=this.deposit_account_id
-					this.payment_type="for_post_interest"
+					this.payment_type="for_interest_posting"
 					this.fields.amount = this.account.accrued_interest
 				}
-
 			},
 			paymentSelected(value){
 				this.fields.payment_method = value['id']
@@ -375,18 +442,61 @@ import Swal from 'sweetalert2';
 				})
 			},
 			submit(){
-				if(this.modal.modal_type == 'non-cash'){
-					this.submitInterestPosting();
-				}else{
-					this.submitDeposit()
-
+				if(this.payment_type == "for_deposit"){
+					this.submitPayment()
 				}
+				
+				if(this.payment_type == "for_withdrawal"){
+					this.submitWithdrawal()
+				}
+				
+				if(this.payment_type == "for_interest_posting"){
+					this.submitInterestPosting();
+				}
+				
 
 			},
-			submitDeposit(){
+			submitPayment(){
+				var fields = {
+					amount : this.fields.amount,
+					deposit_account_id: this.deposit_account_id,
+					notes: this.fields.notes,
+					office_id: this.fields.office_id,
+					payment_method: this.fields.payment_method,
+					repayment_date: this.fields.repayment_date,
+					type: this.fields.type,
+					receipt_number: this.fields.receipt_number
+				}
+				axios.post('/deposit/'+this.deposit_account_id,fields)
+					.then(res=>{
+						Swal.fire({
+							icon: 'success',
+							title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1em;font-weight:600">Success!</span>',
+							text: res.data.msg,
+							confirmButtonText: 'OK'
+						})
+						.then(res=>{
+							// location.reload();
+						})
+					})
+					.catch(error=>{
+						
+						this.errors = error.response.data.errors || {}
+					})
+			},
+			submitWithdrawal(){
+				var fields = {
+					amount : this.fields.amount,
+					deposit_account_id: this.deposit_account_id,
+					notes: this.fields.notes,
+					office_id: this.fields.office_id,
+					payment_method: this.fields.payment_method,
+					repayment_date: this.fields.repayment_date,
+					type: this.fields.type,
+					check_voucher_number: this.fields.cv_number
+				}
 				axios.post(
-					'/deposit/'+this.deposit_account_id,
-					this.fields)
+					'/withdraw/'+this.deposit_account_id, fields)
 					.then(res=>{
 						Swal.fire({
 							icon: 'success',
@@ -406,13 +516,16 @@ import Swal from 'sweetalert2';
 			submitInterestPosting(){
 				axios.post('/deposit/account/post/interest',{
 					'deposit_account_id':this.fields.deposit_account_id,
-					'jv_number' : this.fields.jv_number
+					'jv_number' : this.fields.jv_number,
+					'office_id':this.fields.office_id,
+					'notes':this.fields.notes
 					}
 				)
 				.then(res=>{
-					swalWithBootstrapButtons.fire(
+					this.modal.modalState = false
+					Swal.fire(
 					'<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1em;font-weight:600">Posted!</span>',
-					'Accrued Interest Posted',
+					res.data.msg,
 					'success'
 					)
 				})

@@ -5,7 +5,9 @@ namespace App;
 use App\User;
 use App\Deposit;
 use Carbon\Carbon;
+use App\DepositPayment;
 use App\Rules\OfficeID;
+use App\DepositWithdrawal;
 use App\DepositTransaction;
 use App\PostedAccruedInterest;
 use App\Rules\TransactionType;
@@ -16,6 +18,7 @@ use Illuminate\Validation\Validator;
 use Illuminate\Database\Eloquent\Model;
 use App\Rules\WithdrawAmountLessThanBalance;
 use App\Rules\PreventLaterThanLastTransactionDate;
+use Exception;
 
 class DepositAccount extends Model
 {
@@ -23,7 +26,7 @@ class DepositAccount extends Model
         'balance_formatted',
         'new_balance',
         'new_balance_formatted',
-        'accrued_interest_formatted'
+        'accrued_interest_formatted',
     ];
     protected $fillable = [
         'client_id',
@@ -53,102 +56,159 @@ class DepositAccount extends Model
     }
     
 
-    public function deposit(array $data){
-        // $rules = [
-        //     'office_id' =>['required', new OfficeID()],
-        //     'amount'=>['required','numeric'],
-        //     'payment_method'=>['required',new PaymentMethodList()],
-        //     'deposit_account_id'=>['required','exists:deposit_accounts,id'],
-        //     'repayment_date'=>['required','date', new PreventFutureDate(), new PreventLaterThanLastTransactionDate($data['deposit_account_id'])],
-        //     'type'=>['required', new TransactionType()],
-        //     'receipt_number'=>['required','unique:receipts,receipt_number']
-        // ];
-        // \Validator::make($data,$rules)->validate();
-        \DB::beginTransaction();
-        try{
+    public function deposit(array $data, $single_payment = false, $for_revertion=false,$from_ctlp=false){
+
+            $transaction_number = uniqid();
             $new_balance = $this->getRawOriginal('balance') + $data['amount'];
-            $transaction = $this->transactions()->create([
-                'transaction_id' => uniqid(),
-                'transaction_type'=>'Deposit',
+            
+            //Create Payment
+            $payment = $this->payments()->create([
                 'amount'=>$data['amount'],
-                'payment_method'=>$data['payment_method'],
-                'repayment_date'=>$data['repayment_date'],
-                'user_id'=> $data['user_id'],
-                'balance' => $new_balance,
-                'receipt_number'=>$data['receipt_number']
+                'balance'=>$new_balance,
+                'payment_method_id'=>$data['payment_method']
+                // 'notes'=>$data['notes'],
             ]);
-            $transaction->receipt()->create(['receipt_number'=>$data['receipt_number']]);
+            
+
+            //Create Transaction
+            if($for_revertion){
+                if($from_ctlp){
+                    $payment->transaction()->create([
+                        'transaction_number'=>$transaction_number,
+                        'transaction_date'=>$data['repayment_date'],
+                        'type'=>'CTLP Revertion',
+                        'office_id'=>$data['office_id'],
+                        'posted_by'=>$data['user_id'],
+                        'revertion'=>true
+                    ]);
+                }else{
+                    $payment->transaction()->create([
+                        'transaction_number'=>$transaction_number,
+                        'transaction_date'=>$data['repayment_date'],
+                        'type'=>'Withdrawal Revertion',
+                        'office_id'=>$data['office_id'],
+                        'posted_by'=>$data['user_id'],
+                        'revertion'=>true
+                    ]);
+                }
+            }else{
+                $payment->transaction()->create([
+                    'transaction_number'=>$transaction_number,
+                    'transaction_date'=>$data['repayment_date'],
+                    'type'=>'Deposit',
+                    'office_id'=>$data['office_id'],
+                    'posted_by'=>$data['user_id']
+                ]);
+                $payment->receipt()->create(['receipt_number'=>$data['receipt_number']]);
+
+            }
+
             $this->balance = $new_balance;
-            $payload = ['date'=>$data['repayment_date'],'amount'=>$data['amount']];
-            event(new \App\Events\DepositTransaction($payload,$data['office_id'],$data['user_id'],$data['payment_method'],'deposit'));
+            if($single_payment){
+                $payload = ['date'=>$data['repayment_date'],'amount'=>$data['amount']];
+                event(new \App\Events\DepositTransaction($payload,$data['office_id'],$data['user_id'],$data['payment_method'],'deposit'));
+            }
+            
             $this->save();
-            \DB::commit();
-        }catch(Exception $e){
-
-        }
-        
-
+            
     }
 
-    public function withdraw(array $data){
-        if($this->getRawOriginal('balance') < $data['amount']){
+    public function withdraw(array $data, $single_withdraw =false, $for_revertion = false){
+        if (!$for_revertion) {
+            if ($this->getRawOriginal('balance') < $data['amount']) {
+                return false;
+            }
+        }
+        $new_balance = $this->getRawOriginal('balance') - $data['amount'];
+
+        // \DB::beginTransaction();
+        // try{
+            $transaction_number = uniqid();
+            $new_balance = $this->getRawOriginal('balance') - $data['amount'];
+            
+            //Create Payment
+            $withdrawal = $this->withdrawals()->create([
+                'amount'=>$data['amount'],
+                'balance'=>$new_balance,
+                'payment_method_id'=>$data['payment_method'],
+                'notes'=>$data['notes']
+            ]);
+
+            // $withdrawal->receipt()->create(['receipt_number'=>$data['receipt_number']]);
+
+            //Create Transaction
+            
+            if($for_revertion){
+                $withdrawal->transaction()->create([
+                    'transaction_number'=>$transaction_number,
+                    'transaction_date'=>$data['repayment_date'],
+                    'type'=>'Deposit Revertion',
+                    'office_id'=>$data['office_id'],
+                    'posted_by'=>$data['user_id'],
+                    'revertion'=>true
+                ]);
+            }else{
+                $withdrawal->transaction()->create([
+                    'transaction_number'=>$transaction_number,
+                    'transaction_date'=>$data['repayment_date'],
+                    'type'=>'Withdrawal',
+                    'office_id'=>$data['office_id'],
+                    'posted_by'=>$data['user_id']
+                ]);
+            }
+
+
+            $this->balance = $new_balance;
+
+
+            $payload = ['date'=>$data['repayment_date'],'amount'=>$data['amount']];
+            if ($single_withdraw && !$for_revertion) {
+                event(new \App\Events\DepositTransaction($payload, $data['office_id'], $data['user_id'], $data['payment_method'], 'withdraw'));
+            }
+            $this->balance = $new_balance;
+            $this->save();
+            \DB::commit();
+
+        // }catch(Exception $e){
+
+        // }
+    }
+
+    public function payCTLP(array $data, $single_payment=false){
+  
+        if ($this->getRawOriginal('balance') < $data['amount']) {
             return false;
         }
         $new_balance = $this->getRawOriginal('balance') - $data['amount'];
 
-        \DB::beginTransaction();
-        try {
-            $transaction = DepositTransaction::create([
-            'transaction_id' => uniqid(),
-            'deposit_account_id' => $this->id,
-            'transaction_type'=>'Withdraw',
+      
+
+        $withdrawal = $this->withdrawals()->create([
             'amount'=>$data['amount'],
-            'payment_method'=>$data['payment_method'],
-            'repayment_date'=>$data['repayment_date'],
-            'user_id'=> $data['user_id'],
-            'balance' => $new_balance,
-            'receipt_number'=>$data['receipt_number']
+            'balance'=>$new_balance,
+            'payment_method_id'=>$data['payment_method'],
+            'notes'=>$data['notes'],
         ]);
 
-            $transaction->receipt()->create(['receipt_number'=>$data['receipt_number']]);
-            $payload = ['date'=>$data['repayment_date'],'amount'=>$data['amount']];
-            event(new \App\Events\DepositTransaction($payload,$data['office_id'],$data['user_id'],$data['payment_method'],'withdraw'));
-            $this->balance = $new_balance;
-            $this->save();
-            \DB::commit();
-
-        }catch(Exception $e){
-
+        $this->balance = $new_balance;
+        $this->save();
+        // DepositTransaction::create([
+        //     'transaction_id' => uniqid(),
+        //     'deposit_account_id' => $this->id,
+        //     'transaction_type'=>'CTLP',
+        //     'amount'=>$data['amount'],
+        //     'payment_method'=>$data['payment_method'],
+        //     'repayment_date'=>$data['repayment_date'],
+        //     'user_id'=> $data['user_id'],
+        //     'balance' => $new_balance
+        // ]);
+    
+        $payload = ['date'=>$data['repayment_date'],'amount'=>$data['amount']];
+        if ($single_payment) {
+            event(new \App\Events\DepositTransaction($payload, $data['office_id'], $data['user_id'], $data['payment_method'], 'CTLP'));
         }
-    }
+        return $withdrawal;
 
-    public function payCTLP(array $data){
-        try {
-            if ($this->getRawOriginal('balance') < $data['amount']) {
-                return false;
-            }
-            $new_balance = $this->getRawOriginal('balance') - $data['amount'];
-
-            DepositTransaction::create([
-                'transaction_id' => uniqid(),
-                'deposit_account_id' => $this->id,
-                'transaction_type'=>'CTLP',
-                'amount'=>$data['amount'],
-                'payment_method'=>$data['payment_method'],
-                'repayment_date'=>$data['repayment_date'],
-                'user_id'=> $data['user_id'],
-                'balance' => $new_balance
-            ]);
-        
-        
-            $this->balance = $new_balance;
-            $this->save();
-            $payload = ['date'=>$data['repayment_date'],'amount'=>$data['amount']];
-            event(new \App\Events\DepositTransaction($payload,$data['office_id'],$data['user_id'],$data['payment_method'],'CTLP'));
-            \DB::commit();
-        } catch (Exeception $e){
-
-        }
     }
     public function revertPayCTLP(array $data){
         
@@ -168,10 +228,27 @@ class DepositAccount extends Model
         $this->balance = $new_balance;
         return $this->save();
     }
+
+
+    
     public function transactions(){
-        return $this->hasMany(DepositTransaction::class)->orderBy('created_at','desc');
+        // Transaction::whereHas('transactionable',function($q){
+        //     $q->
+        // });
+        return Transaction::depositAccountTransactions($this->id);
+        // return $this->hasMany(DepositTransaction::class)->orderBy('created_at','desc');
     }
 
+    public function withdrawals(){
+        return $this->hasMany(DepositWithdrawal::class);
+        // return $this->morphMany(DepositWithdrawal::class,'withdrawalable');
+    }
+    public function payments(){
+        return $this->hasMany(DepositPayment::class);
+    }
+    public function interestPostings(){
+        return $this->hasMany(DepositInterestPost::class);
+    }
     public function client(){
         return $this->belongsTo(Client::class,'client_id','client_id');
     }
@@ -183,6 +260,15 @@ class DepositAccount extends Model
             return $days == 0 ? false : true;
        }
        return false;
+    }
+
+    public function latestTransaction(){
+        $transactions = $this->transactions->where('reverted',0)->where('revertion',false);
+        if($transactions->count() > 0){
+            return $transactions->sortByDesc('id')->first();
+        }
+        return null;
+        
     }
 
     public static function listForAccruingInterestToday(){
@@ -253,73 +339,80 @@ class DepositAccount extends Model
 
     }
 
-    public function postInterest(){
+    // public function postInterest($single_posting = false){
+    //     $current_balance = $this->getRawOriginal('balance');
+    //     $accrued_interest = $this->getRawOriginal('accrued_interest');
+    //     $new_balance = $current_balance + $accrued_interest;
+    //     $this->accrued_interest = 0;
+    //     $this->balance = $new_balance;
+    //     if ($accrued_interest > 0) {
+
+    //         $this->transactions()->create([
+    //             'transaction_id' => uniqid(),
+    //             'transaction_type'=>'Interest Posting',
+    //             'amount'=>$accrued_interest,
+    //             'payment_method'=>$this->branch()->defaultPaymentMethods()['for_deposit'],
+    //             'repayment_date'=>Carbon::now(),
+    //             'user_id'=> 1,
+    //             'balance' => $new_balance
+    //         ]);
+
+    //     }else{
+    //         return false;
+    //     }
         
-       
-        $current_balance = $this->getRawOriginal('balance');
-        $accrued_interest = $this->getRawOriginal('accrued_interest');
-        $new_balance = $current_balance + $accrued_interest;
-        $this->accrued_interest = 0;
-        $this->balance = $new_balance;
-        if ($accrued_interest > 0) {
-
-            $this->transactions()->create([
-                'transaction_id' => uniqid(),
-                'transaction_type'=>'Interest Posting',
-                'amount'=>$accrued_interest,
-                'payment_method'=>$this->branch()->defaultPaymentMethods()['for_deposit'],
-                'repayment_date'=>Carbon::now(),
-                'user_id'=> 1,
-                'balance' => $new_balance
-            ]);
-            
-        }else{
-            return false;
-        }
-        return $this->save();
-    }
-    public function postInterestByUser(array $data, $info=false){   
+    //     $repayment = now()->toDateString();
+    //     $payload = ['date'=>$repayment,'amount'=>$accrued_interest];
+    //     if ($single_posting) {
+    //         event(new \App\Events\DepositTransaction($payload, $data['office_id'], $data['user_id'], $data['payment_method'], 'withdraw'));
+    //     }
+    //     return $this->save();
+    // }
+    public function postInterest(array $data, $single_posting=false){   
         $current_balance = $this->getRawOriginal('balance');
         $accrued_interest = $this->getRawOriginal('accrued_interest');
         $new_balance = $current_balance + $accrued_interest;
         $this->accrued_interest = 0;
         $this->balance = $new_balance;
 
+        $transaction_number = uniqid();
+        $data['payment_method'] = PaymentMethod::interestPosting()->id;
         if ($accrued_interest > 0) {
-            if ($info==false) {
-                $transaction = $this->transactions()->create([
-                    'transaction_id' => uniqid(),
-                    'transaction_type'=>'Interest Posting',
+            $posting = $this->interestPostings()->create([
                     'amount'=>$accrued_interest,
-                    'payment_method'=>PaymentMethod::interestPosting()->id,
-                    'repayment_date'=>Carbon::now(),
-                    'user_id'=> $data['user_id'],
+                    'payment_method_id'=>$data['payment_method'],
+                    // 'repayment_date'=>Carbon::now(),
+                    // 'user_id'=> $data['user_id'],
                     'balance' => $new_balance
                 ]);
-                $transaction->journal()->create([
+            $posting->transaction()->create([
+                    'type'=>'Interest Post',
+                    'office_id'=>$data['office_id'],
+                    'posted_by'=>$data['user_id'],
+                    'transaction_number'=>$transaction_number,
+                    'transaction_date'=>now()
+                ]);
+            $posting->jv()->create([
                     'journal_voucher_number'=>$data['journal_voucher_number'],
-                    'amount'=>$accrued_interest,
                     'transaction_date'=>now(),
-                  
+                    'office_id'=>$data['office_id'],
                     'notes'=>'Interest Posting for Deposit Account'
                 ]);
-            }else{
-                $transaction = $this->transactions()->create([
-                    'transaction_id' => uniqid(),
-                    'transaction_type'=>'Interest Posting',
-                    'amount'=>$accrued_interest,
-                    'payment_method'=>$info['payment_method'],
-                    'repayment_date'=>Carbon::now(),
-                    'user_id'=> auth()->user()->id,
-                    'balance' => $new_balance
-                ]);
-
-                
+            
+        
+        
+  
+            if ($single_posting) {
+                $repayment = now()->toDateString();
+                $payload = ['date'=>$repayment,'amount'=>$accrued_interest];
+                event(new \App\Events\DepositTransaction($payload, $data['office_id'], $data['user_id'], $data['payment_method'], 'interest_posting'));
             }
-        }else{
-            return false;
+            return $this->update([
+                'balance'=>$new_balance,
+                'accrued_interest'=>0
+            ]); 
+
         }
-        return $this->save();
     }
     public function postInterestAll(){
         $list = DepositAccount::listForInterestPosting();
@@ -331,8 +424,6 @@ class DepositAccount extends Model
     public function getAmountAttribute(){
         return 0;
     }
-
-    
 
     public function getAccruedInterestAttribute($value){
         return round($value,4); 
@@ -352,9 +443,12 @@ class DepositAccount extends Model
     }
 
     public function lastTransaction(){
-        return $this->transactions->first();
+        return Transaction::depositAccountTransactions($this->id)->orderBy('created_at','desc')->first();
     }
 
+    public function getTransactionsAttribute(){
+        return Transaction::depositAccountTransactions($this->id)->orderBy('created_at','desc')->get();
+    }
 
     public function branch(){
         return $this->client->office;

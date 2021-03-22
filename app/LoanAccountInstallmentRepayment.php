@@ -8,13 +8,18 @@ use Illuminate\Database\Eloquent\Model;
 class LoanAccountInstallmentRepayment extends Model
 {
     protected $fillable =[
-        'interest_paid',
+        'loan_account_installment_id',
+        'loan_account_repayment_id',
         'principal_paid',
+        'interest_paid',
         'total_paid',
-        'transaction_id',
-        'paid_by'
+        'paid_by',
+        'transaction_id'
     ];
 
+    public function repaymentable(){
+        $this->morphTo();
+    }
     public function installment(){
         return $this->belongsTo(LoanAccountInstallment::class,'loan_account_installment_id');
     }

@@ -2,7 +2,7 @@
 <div>
 <div class="content pl-32 pr-8 mt-4" id="content-full">
     <loading :is-full-page="true" :active.sync="is_loading" ></loading>
-	<div class="row">
+	<div class="row" v-if="account!=null">
 		<div class="col-lg-12">
 			<div class="card">
                 <nav aria-label="breadcrumb">
@@ -14,38 +14,88 @@
                     </ol>
                   </nav>
 				<div class="card-header">
-					<h3 class="h3">Loan Account Information</h3>
-				</div>
-				<div class="card-body">
-                    <button  type="button" class="btn btn-primary" data-toggle="modal" @click="modal.modalState=true">
-                        Pay
-                    </button>
-                    <button  type="button" class="btn btn-primary" data-toggle="modal" @click="preTerm">
-                        PreTerminate
-                    </button>
-    
-                    <button  type="button" class="btn btn-primary" data-toggle="modal" @click="exportDST">
-                        <i class="fas fa-file-invoice"></i> 
-                    </button>
-    
-                    
-                    
-                    <h1> Amortization Schedule </h1>
-                    <h1 v-if="disbursed"> Loan Amount {{account.mutated.amount}}</h1>
-                    <h1 v-if="disbursed"> Interest: {{account.mutated.interest_balance}} </h1>
-                    <h1 v-if="disbursed"> Principal: {{account.mutated.principal_balance}} </h1>
-                    <h1 v-if="disbursed"> Total: {{account.mutated.total_balance}} </h1>
+                    <div class="row px-4">
+                        <div class="x">
+                            <h3 class="h3">Ashbee Morgado - Multi-Purpose Loan</h3>
+                        </div>
+                        <div class="col-lg-6 text-right" v-if="account.disbursed!=0 && account.closed_at==null">
+                            <button  type="button" class="btn btn-primary" data-toggle="modal" @click="modal.modalState=true">
+                                Pay
+                            </button>
+                            <button  type="button" class="btn btn-primary" data-toggle="modal" @click="preTerm">
+                                PreTerminate
+                            </button>
+                            <button  type="button" class="btn btn-primary" data-toggle="modal" @click="exportDST">
+                                <i class="fas fa-file-invoice"></i> 
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row px-4">
+                        <p class="title text-xl mt-4 pb-4">Status: 
+                            <span v-if="account.status=='Pending Approval'" class="badge badge-info"> Pending Approval </span>
+                            <span v-if="account.status=='Approved'" class="badge badge-light"> Approved</span>
+                            <span v-if="account.status=='In Arrears'" class="badge badge-danger"> In Arrears</span>
+                            <span v-if="account.status=='Active'" class="badge badge-success">Active</span>
+                            <span v-if="account.status=='Closed'" class="badge badge-dark">Closed</span>
+                            <span v-if="account.status=='Pre-terminated'" class="badge badge-dark">Pre-terminated</span>
+                        </p>
+                    </div>
+                    <div class="row px-4">
+                        <div class="content-wrapper d-block mb-12 w-100">
+                            <div class="d-inline-block mr-16">
+                                <p class="title text-lg">{{account.mutated.amount}}</p>
+                                <p class="text-muted text-lg">Loan Amount</p>
+                            </div>
+                            <div class="d-inline-block mr-16">
+                                <p class="title text-lg">{{account.mutated.principal}}</p>
+                                <p class="text-muted text-lg">Principal</p>
+                            </div>
+                            <div class="d-inline-block mr-16">
+                                <p class="title text-lg">{{account.mutated.interest}}</p>
+                                <p class="text-muted text-lg">Interest</p>
+                            </div>
+                            <div class="d-inline-block mr-16">
+                                <p class="title text-lg">{{account.mutated.total_balance}}</p>
+                                <p class="text-muted text-lg">Total Loan Amount</p>
+                            </div>
+                        </div>    
 
-                    <h1 v-if="disbursed"> Interest Paid: {{account.total_paid.formatted_interest}} </h1>
-                    <h1 v-if="disbursed"> Principal Paid: {{account.total_paid.formatted_principal}} </h1>
-                    <h1 v-if="disbursed"> Total Paid: {{account.total_paid.formatted_total}} </h1>
-                    
-                    <h1 v-if="disbursed"> Pre-termination Amount: {{account.pre_term_amount.formatted_total}} </h1>
-                    
-                    
-                    <h2 v-if="disbursed"><span v-if="account.status=='In Arrears'" class="badge badge-danger"> In Arrears</span></h2>
-                    <h2 v-if="disbursed"><span v-if="account.status=='Active'" class="badge badge-success">Active</span></h2>
-                    <h2 v-if="disbursed"><span v-if="account.status=='Closed'" class="badge badge-dark">Closed</span></h2>
+                        <div class="content-wrapper d-block mb-12 w-100">
+                            <div class="d-inline-block mr-16">
+                                <p class="title text-lg">{{account.mutated.principal_balance}}</p>
+                                <p class="text-muted text-lg">Principal Balance</p>
+                            </div>
+                            <div class="d-inline-block mr-16">
+                                <p class="title text-lg">{{account.mutated.interest_balance}}</p>
+                                <p class="text-muted text-lg">Interest Balance</p>
+                            </div>
+                            <div class="d-inline-block mr-16">
+                                <p class="title text-lg">{{account.mutated.total_balance}}</p>
+                                <p class="text-muted text-lg">Total Balance</p>
+                            </div>
+                        </div>
+
+                        <div class="content-wrapper d-block mb-12 w-100">
+                            <div class="d-inline-block mr-16">
+                                <p class="title text-lg">{{account.total_paid.formatted_principal}}</p>
+                                <p class="text-muted text-lg">Principal Paid</p>
+                            </div>
+                            <div class="d-inline-block mr-16">
+                                <p class="title text-lg">{{account.total_paid.formatted_interest}}</p>
+                                <p class="text-muted text-lg">Interest Paid</p>
+                            </div>
+                            <div class="d-inline-block mr-16">
+                                <p class="title text-lg">{{account.total_paid.formatted_total}}</p>
+                                <p class="text-muted text-lg">Total Paid</p>
+                            </div>
+                            <div class="d-inline-block mr-16">
+                                <p class="title text-lg">{{account.pre_term_amount.formatted_total}}</p>
+                                <p class="text-muted text-lg">Pre Termination Amount</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+				<div class="card-body">
 
                     <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
                         <li class="nav-item">
@@ -56,6 +106,7 @@
                         </li>
 
                     </ul>
+                    <h3> Amortization Schedule </h3>
                     <div class="tab-content" id="pills-tabContent">
                         <div class="tab-pane fade show active" id="account-installment" role="tabpanel" aria-labelledby="account-installments-tab">
                             <table class="table table-condensed">
@@ -125,18 +176,35 @@
                                         <td ><p class="title">Action</p></td>
                                     </tr>
                                 </thead>
-                                <tbody v-if="loaded && account.disbursed"> 
-                                    <tr v-for="item in activity" :key="item.transaction_id">
-                                        <td>{{item.transaction_id }}</td>
-                                        <td>{{moment(item.repayment_date) }}</td>
-                                        <td>{{moment(item.created_at,true) }}</td>
-                                        <td>{{item.mutated.particulars }}</td>
-                                        <td>{{item.mutated.total_paid }}</td>
-                                        <td>{{item.mutated.payment_method }}</td>
-                                        <td>{{item.mutated.paid_by }}</td>
+                                <tbody v-if="loaded && account.disbursed !=0"> 
+                                    <tr v-for="item in activity" :key="item.id">
+                                        <td>{{item.transaction_number }}</td>
+                                        <td>{{moment(item.created_at) }}</td>
+                                        <td>{{moment(item.transaction_date,true) }}</td>
+                                        
+                                        <td v-if="item.type=='Fee Payment'">
+                                            <span v-if="item.reverted" class="badge badge-danger">{{item.type}} - {{item.transactionable.fee.name}}</span>
+                                            <span v-else class="badge badge-info">{{item.type}} - {{item.transactionable.fee.name}}</span>
+                                        </td>
+                                        <td v-else> 
+                                            <span v-if="item.reverted" class="badge badge-danger">{{item.type}} </span>
+                                            <span v-else class="badge badge-primary">{{item.type}} </span>
+                                        </td>
+                                        <td v-if="item.type=='Fee Payment'">
+                                             <span v-if="item.reverted" class="badge badge-danger">{{item.transactionable.mutated.amount}}</span>    
+                                             <span v-else class="badge badge-info">{{item.transactionable.mutated.amount}}</span>    
+                                            </td>
+                                        <td v-else>
+                                            <span  v-if="item.reverted" class="badge badge-danger">{{item.transactionable.mutated.total_paid}}</span>
+                                            <span v-else class="badge badge-primary">{{item.transactionable.mutated.total_paid}}</span>
+                                        </td>
+                                        <td>{{item.transactionable.payment_method.name}}</td>
+
+                                        <td>{{item.transactionable.paid_by.fullname}}</td>
+                                       
                                         <td>
-                                            <span v-if="revertable(item) && !item.reverted">
-                                                <button @click="revert(item.transaction_id,item.mutated.particulars)" class="btn btn-danger"><i class="fa fa-undo" aria-hidden="true"></i></button>
+                                            <span v-if="!item.reverted">
+                                                <button @click="revert(item.transaction_number)" class="btn btn-danger"><i class="fa fa-undo" aria-hidden="true"></i></button>
                                             </span>
                                             <span v-else-if="item.reverted">
                                                 Reverted
@@ -192,11 +260,18 @@
                 {{ errors.repayment_date[0]}}
             </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" v-if="this.payment_type=='CASH'">
             <label class="text-lg">OR #</label>
             <input type="text" class="form-control" v-model="form.receipt_number" v-bind:class="hasError('receipt_number')  ? 'is-invalid' : ''">
             <div class="invalid-feedback" v-if="hasError('receipt_number') ">
                 {{ errors.receipt_number[0]}}
+            </div>
+        </div>
+        <div class="form-group" v-if="this.payment_type=='NON-CASH'">
+            <label class="text-lg">JV #</label>
+            <input type="text" class="form-control" v-model="form.jv_number" v-bind:class="hasError('jv_number')  ? 'is-invalid' : ''">
+            <div class="invalid-feedback" v-if="hasError('receipt_number') ">
+                {{ errors.jv_number[0]}}
             </div>
         </div>
         <div class="form-group">
@@ -254,8 +329,11 @@ export default {
                 amount:null,
                 repayment_date:null,
                 notes:null,
-                for_pre_term:false
-            }
+                for_pre_term:false,
+                receipt_number: null,
+                jv_number: null,
+            },
+            payment_type : null,
         }
     },
     methods:{
@@ -272,7 +350,7 @@ export default {
                     this.isLoading =false;
                 })
         },
-        revert(transaction_id,type){
+        revert(transaction_number){
         
             var vm = this
             var loan_account_id = this.form.loan_account_id
@@ -287,9 +365,7 @@ export default {
                 }).then((result) => {
                 if (result.isConfirmed) {
                     axios.post('/revert',{
-                        loan_account_id:loan_account_id,
-                        transaction_id:transaction_id,
-                        type:type
+                        transaction_number:transaction_number,
                     })
                     .then(res=>{
                         Swal.fire(
@@ -411,6 +487,12 @@ export default {
         },
         paymentSelected(value){
 			this.form.payment_method = value['id']
+            if(value['name']== 'CTLP'){
+                this.form.receipt_number  = null
+                return this.payment_type = 'NON-CASH';
+            }
+            this.form.jv_number  = null
+            return this.payment_type = 'CASH';
         },
         moment(date,has_time=null){
             if(has_time===null){
@@ -447,9 +529,6 @@ export default {
                 this.is_loading = false;
             });
         
-        },
-        revertable(obj){
-            return !obj.hasOwnProperty('fee');
         }
     
     },

@@ -16,7 +16,6 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 class LoanAccountPayment implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-
     /**
      * Create a new event instance.
      *
@@ -26,7 +25,7 @@ class LoanAccountPayment implements ShouldBroadcast
 
     public $office_id;
     public $msg;
-    
+    public $broadcasts_on;
     public function __construct($payload,$office_id,$user_id,$payment_method_id)
     {
      
@@ -36,7 +35,16 @@ class LoanAccountPayment implements ShouldBroadcast
         $payload['msg'] = 'Repayment '. money($payload['amount'],2) .' at ' . $office .' by ' . $by. ' ['.$payment.'].';
         $this->data = $payload;
         $this->office_id = $office_id;
-        
+        $broadcast_ids = Office::find($office_id)->getUpperOfficeIDS();
+        $broadcasts_on = [];
+        foreach($broadcast_ids as $id){
+            $broadcasts_on[] = new PrivateChannel('dashboard.notifications.' . $id);
+            $broadcasts_on[] = new PrivateChannel('dashboard.charts.repayment.'.$id);
+
+
+        }
+        // $broadcasts_on[] = new PrivateChannel('dashboard.charts.repayment.'.$this->office_id);
+        $this->broadcasts_on = $broadcasts_on;
     }
     
 
@@ -47,10 +55,8 @@ class LoanAccountPayment implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return [
-            new PrivateChannel('dashboard.charts.repayment.'.$this->office_id),
-            new PrivateChannel('dashboard.notifications.'.$this->office_id)
-        ];
+        return $this->broadcasts_on;
+
     }
     public function broadcastAs(){
         return 'loan-payment';

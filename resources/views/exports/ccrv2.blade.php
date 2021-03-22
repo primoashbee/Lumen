@@ -93,7 +93,7 @@
           
           <div class="cs_info">
               <ul class="item_list">
-                  <li class="text-left">Office Level : Angeles</li>
+                  <li class="text-left">Office Level : {{$summary->office}}</li>
                   <li class="text-center">Printed By  : {{auth()->user()->full_name }}</li>
                   <li class="text-right">Collection Date: {{$summary->repayment_date}}</li>
               </ul>

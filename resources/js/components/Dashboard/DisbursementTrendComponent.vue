@@ -1,6 +1,6 @@
 <template>
   <div class="">
-     <canvas ref="myChart" width="100%" height="19%"></canvas>
+     <canvas ref="myChart" width="100%" height="18%"></canvas>
   </div>
 </template>
 

@@ -15,17 +15,16 @@
                 </div>
             </div>
             <div class="col-lg-2">
-            <div class="form-group">
-                <label for="disbursement_date">Disbursement Date</label> 
-                <input type="date" class="form-control" v-model="form.disbursement_date">
+                <div class="form-group">
+                    <label for="disbursement_date">Disbursement Date</label> 
+                    <input type="date" class="form-control" v-model="form.disbursement_date">
+                </div>
+                <div class="form-group">
+                    <label for="repayment_date">First Repayment Date</label> 
+                    <input type="date" class="form-control" v-model="form.first_payment">
+                </div>
             </div>
-            <div class="form-group">
-                <label for="repayment_date">First Repayment Date</label> 
-                <input type="date" class="form-control" v-model="form.first_payment">
-            </div>
-        </div>
-
-        <div class="row pb-4">
+        
   
             
             <div class="d-table-row pl-3 mt-4">
@@ -41,11 +40,15 @@
                     <input type="text" class="form-control" id="Interest" readonly :value="selected_interest">
                 </div>
             </div>
+             <button class="btn btn-primary" @click.prevent="fetch"> Filter </button>
+              
+
             
-        </div>	
-      
- 
         </div>
+
+
+ 
+      
 
         
         <div class="w-100 px-3 mt-6" >
@@ -64,9 +67,20 @@
                     <tr v-for="client in lists.data" :key="client.client_id">
                         <td><input type="checkbox" class="checkbox" :id="client.client_id" @change="checked(client,$event)"></td>
                         <td><label :for="client.client_id">{{client.client_id}}</label></td>
-                        <td class="text-lg"><a class="text-lg" :href="clientLink(client.client_id)">{{client.firstname + ' ' + client.lastname}}</a></td>
+                        <td class="text-lg">
+                            <a class="text-lg" :href="clientLink(client.client_id)">{{client.firstname + ' ' + client.lastname}}</a>
+                            <div class="text-danger" v-if="hasInputError('accounts',client.id,'client_id')">    
+                                {{inputErrorMsg('accounts',client.id,'client_id')}}
+                            </div>
+                        </td>
                         <td class="text-lg">{{client.office.name}}</td>
-                        <td class="text-lg" style="max-width:50px"><amount-input :readonly="inputDisabled(client.id) "@amountEncoded="amountEncoded" :add_class="errorClass(client.id)"  :account_info="client" :tabindex="key+1" ></amount-input></td>
+                        <td class="text-lg" style="max-width:50px">
+                          
+                            <amount-input :readonly="inputDisabled(client.id) "@amountEncoded="amountEncoded" :add_class="errorInputAddClass('accounts',client.id,'amount')"  :account_info="client" :tabindex="key+1" ></amount-input>
+                            <div class="text-danger" v-if="hasInputError('accounts',client.id,'amount')">    
+                                {{inputErrorMsg('accounts',client.id,'amount')}}
+                            </div>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -76,7 +90,7 @@
             <paginator :dataset="lists" @updated="fetch"></paginator>
         </div>
         
-        <button class="btn btn-primary" @click="submit">Create</button>
+        <button class="btn btn-primary" @click.prevent="submit">Create</button>
         <loading :is-full-page="true" :active.sync="isLoading" ></loading>
     </div>
 </template>
@@ -103,7 +117,7 @@ export default {
     data(){
         return {
             code: null,
-            errors: null,
+            errors: {},
             loan_product_id:null,
             office_id: "",
             lists: [],  
@@ -164,7 +178,7 @@ export default {
             .catch(err=>{
                 this.isLoading = false
                 
-                this.errors = err.response.data.errors || {}
+                this.errors = err.response.data.errors
                 Swal.fire(
 					'Error',
 					'Check input errors',
@@ -182,8 +196,12 @@ export default {
             }
             
         },
-        errorClass(){
 
+		errorInputAddClass(array_name,account_id,field){
+            if(this.hasInputError(array_name,account_id,field)){
+                return 'is-invalid'
+            }
+            return;
         },
         selected(e){
             this.code = e.code
@@ -223,9 +241,31 @@ export default {
 
         assignOffice(value){
             this.office_id = value['id']
-            this.fetch()
         },
- 
+        
+        hasInputError(array_name,account_id,field){
+
+            var index = this.form[array_name].findIndex(x=> {return x.id ==account_id});
+            if(index >=0 ){
+                var str =  array_name + '.' + index + '.' + field
+                
+                return this.errors.hasOwnProperty(str);
+                
+            }
+            return false;
+        },
+
+        inputErrorMsg(array_name, account_id, field){
+            var index = this.form[array_name].findIndex(x=> {return x.id ==account_id});
+
+            if(this.hasInputError(array_name,account_id,field)){
+                var errors = this.errors[array_name + '.' + index + '.' + field]
+
+                return errors[0]
+            }
+            
+
+        },
 
         fetch(page){
             this.isLoading = true;
@@ -251,8 +291,10 @@ export default {
             return `/clients/list?office_id=`+this.office_id+`&page=`+page
         },
         
+        
     },
     computed : {
+        
         hasRecords(){
             return this.lists.hasOwnProperty('data');
         },

@@ -191,12 +191,12 @@ class AppServiceProvider extends ServiceProvider
             $deposit = $account['deposit'][$deposit_key];
             
             $payment = $deposit['amount'];
-            $repayment_date = $deposit['repayment_date'];
+            $repayment_date = Carbon::parse($deposit['repayment_date']);
             $lastTransaction  = DepositAccount::find($deposit['deposit_account_id'])->lastTransaction();
             if($lastTransaction == null){
                 return true;
             }
-            $customMessage = "Date should not earlier than  " . $lastTransaction->repayment_date->format('F d, Y');
+            $customMessage = "Date should not earlier than  " . $lastTransaction->transaction_date->format('F d, Y');
             $validator->addReplacer('bulk_prevent_previous_deposit_transaction_date', 
                 function($message, $attribute, $rule, $parameters) use ($customMessage) {
                     return \str_replace(':custom_message', $customMessage, $message);
@@ -204,7 +204,7 @@ class AppServiceProvider extends ServiceProvider
             );
             
   
-            $diff = $lastTransaction->repayment_date->diffInDays($repayment_date,false);
+            $diff = $lastTransaction->transaction_date->diffInDays($repayment_date,false);
             if($diff<0){
                 return false;
             }
@@ -277,7 +277,7 @@ class AppServiceProvider extends ServiceProvider
             if($acc->latestRepayment()==null){
                 return true;
             }
-            $latest_payment = $acc->latestRepayment()->repayment_date;
+            $latest_payment = $acc->latestRepayment()->transaction_date;
             
             $repayment_date = Carbon::parse($value);
             
@@ -304,7 +304,7 @@ class AppServiceProvider extends ServiceProvider
             if($acc->latestRepayment()==null){
                 return true;
             }
-            $latest_payment = $acc->latestRepayment()->repayment_date;
+            $latest_payment = $acc->latestRepayment()->transaction_date;
             
             $repayment_date = Carbon::parse($value);
             
@@ -379,6 +379,35 @@ class AppServiceProvider extends ServiceProvider
             
         },$error);
         
+        Validator::extendDependent('deposit_last_transaction_date',function ($attribute, $value, $parameters, $validator){
+
+            $values = $validator->getData();
+            $method = PaymentMethod::find($values['payment_method']);
+            $repayment_amount = $values['amount'];
+            if($method->isCTLP()){
+                $deposit_account = LoanAccount::find($values['loan_account_id'])->client->ctlpAccount();
+                $code = $deposit_account->type->product_id;
+                $balance = $deposit_account->getRawOriginal('balance');
+                $last_transaction = $deposit_account->lastTransaction();
+            
+                
+                if(is_null($last_transaction)){
+                    return true;
+                }
+                $customMessage = "Cannot make transactions before ". $last_transaction->transaction_date->format('F d, Y') ." - ". $deposit_account->type->product_id . "";
+                $validator->addReplacer('deposit_last_transaction_date', 
+                function($message, $attribute, $rule, $parameters) use ($customMessage) {
+                    return \str_replace(':custom_message', $customMessage, $message);
+                    }
+                );
+                $repayment_date = Carbon::parse($values['repayment_date'])->startOfDay();
+                // $x = $repayment_date->diffInDays($last_transaction->transaction_date,false);
+                return $last_transaction->transaction_date->startOfDay()->diffInDays($repayment_date,false) < 0 ? false : true;
+            }
+
+            return true;
+            
+        },$error);
         Validator::extendDependent('ctlp',function ($attribute, $value, $parameters, $validator){
 
             $values = $validator->getData();
@@ -412,7 +441,7 @@ class AppServiceProvider extends ServiceProvider
             if($account->lastTransaction() == null){
                 return true;
             }
-            $last_transaction_date = $account->lastTransaction()->repayment_date;
+            $last_transaction_date = $account->lastTransaction()->transaction_date;
            
             $customMessage = "Cannot make transaction before " . $last_transaction_date->format('F d, Y');
             $validator->addReplacer('prevent_previous_deposit_transaction_date', 
@@ -429,6 +458,44 @@ class AppServiceProvider extends ServiceProvider
             
         },$error);
         
+        Validator::extendDependent('bulk_with_loanable_amount',function ($attribute, $value, $parameters, $validator){
+
+
+            $values = $validator->getData();
+            $arr = explode('.', $attribute);
+            $_account = $validator->getData()[$arr[0]][$arr[1]];
+            
+            $loan = Loan::select('loan_maximum_amount','loan_minimum_amount')->find($values['loan_id']);
+            $maximum_loanable_amount = $loan->loan_maximum_amount;
+            $minimum_loanable_amount = $loan->loan_minimum_amount;
+            // $customMessage = '';
+            $status = true;
+            if($value < $minimum_loanable_amount){
+                $status = false;
+                $customMessage = "Minimum loanable amount is " . money($minimum_loanable_amount,2);
+                $validator->addReplacer('bulk_with_loanable_amount', 
+                function($message, $attribute, $rule, $parameters) use ($customMessage) {
+                    return \str_replace(':custom_message', $customMessage, $message);
+                }
+            );
+
+            }
+
+            if($value > $maximum_loanable_amount){
+                $status = false;
+                $customMessage = "Maximum loanable amount is " . money($maximum_loanable_amount,2);
+                $validator->addReplacer('bulk_with_loanable_amount', 
+                function($message, $attribute, $rule, $parameters) use ($customMessage) {
+                    return \str_replace(':custom_message', $customMessage, $message);
+                }
+            );
+
+            }
+
+
+            return $status;
+            
+        },$error);
         Validator::extendDependent('bulk_has_no_unused_dependent',function ($attribute, $value, $parameters, $validator){
 
 

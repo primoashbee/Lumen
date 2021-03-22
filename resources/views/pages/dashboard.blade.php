@@ -108,6 +108,7 @@
     </div>	
 
     <actions-notification office_id="{{auth()->user()->office->first()->id}}"></actions-notification>
+    {{-- <actions-notification room_id="{{session('default_room')->id}}" office_id="{{auth()->user()->office->first()->id}}"></actions-notification> --}}
 </div>
 {{-- 
     <div class="row">

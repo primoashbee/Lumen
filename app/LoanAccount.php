@@ -6,11 +6,8 @@ use stdClass;
 use App\Client;
 use App\Scheduler;
 use Carbon\Carbon;
-use App\CheckVoucher;
-use App\LoanInstallment;
 use App\LoanAccountFeePayment;
 use App\Events\LoanAccountPayment;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 
 class LoanAccount extends Model
@@ -75,7 +72,7 @@ class LoanAccount extends Model
         'updated_at'
     ];
 
-    protected $for_mutation =['amount','principal','interest','disbursed_amount','total_balance','interest_balance','principal_balance','total_deductions','disbursed_amount'];
+    protected $for_mutation =['amount','principal','interest','total_loan','disbursed_amount','total_balance','interest_balance','principal_balance','total_deductions','disbursed_amount'];
 
     public function type()
     {
@@ -153,8 +150,17 @@ class LoanAccount extends Model
             // $end_date;
             $late = false;
             $date = 'now';
-            for ($x=0;$x<=$term_length;$x++) {
-                
+            for ($x=0;$x<=$term_length;$x++){
+                if ($x>0){
+                    if ($x==1) {
+                        $date = $start_date;
+                    }else{
+                        $previous_installment_date  = Carbon::parse($installments[$x-1]->date);
+                        $date = Scheduler::getDate($previous_installment_date->addWeek(), $office_id);
+                    }
+                    $days_diff = $current_date->diffInDays($date, false);
+                    $late = $days_diff <= 0; //is due
+                }
                 //first row
                 if ($x == 0) {
                     $interest = 0;
@@ -187,10 +193,6 @@ class LoanAccount extends Model
                     $principal_balance = $installments[$x-1]->principal_balance - $principal;
                     $interest_balance = $installments[$x-1]->interest_balance - $interest;
                     $amortization = $interest + $principal;
-                    
-                    
-                    $previous_installment_date  = Carbon::parse($installments[$x-1]->date);
-                    $date = Scheduler::getDate($previous_installment_date->addWeek(), $office_id);
 
                     $diff_in_days = $date->diffInDays(now()->startOfDay(), false);
                     $interest_days_incurred =  0;
@@ -205,11 +207,7 @@ class LoanAccount extends Model
                     
                     $principal_due = 0;
                     $amount_due = 0;
-                    
-                    $late = false;
-                    if ($date->lt($current_date)) {
-                        $late = true;
-                    }
+                
                     if ($late) {
                         $interest_due = $interest;
                         $principal_due = $principal;
@@ -244,10 +242,7 @@ class LoanAccount extends Model
 
                 //first payment
                 } elseif ($x==1) {
-                    $late = false;
-                    if ($start_date->lt($current_date)) {
-                        $late = true;
-                    }
+
                     $interest = round($principal_balance * $weekly_compounding_rate, 2);
                     $principal = round($amortization - $interest, 2);
                     
@@ -298,12 +293,6 @@ class LoanAccount extends Model
 
                         );
                 } else {
-                    $previous_installment_date  = Carbon::parse($installments[$x-1]->date);
-                    $date = Scheduler::getDate($previous_installment_date->addWeek(), $office_id);
-                    $late = false;
-                    if ($date->lt($current_date)) {
-                        $late = true;
-                    }
                     $interest = round($principal_balance * $weekly_compounding_rate, 2);
                     $principal = round($amortization - $interest, 2);
                     
@@ -443,20 +432,21 @@ class LoanAccount extends Model
     }
     
     public function repayments()
-    {
+    {   
         return $this->hasMany(LoanAccountRepayment::class)->orderBy('created_at', 'DESC');
     }
-    public function successfulRepayments()
+    public function ctlpRepayments()
     {
-        return $this->hasMany(LoanAccountRepayment::class)->where('reverted', false)->orderBy('created_at', 'DESC');
+        return $this->transactions()->where('type','CTLP');
+        return $this->hasMany(DepositToLoanInstallmentRepayment::class)->orderBy('created_at', 'DESC');
     }
-
-    public function allRepayments()
-    {
-        $fee_payments = collect($this->feePayments);
-        $loan_repayments = collect($this->successfulRepayments->sortBy('created_at'));
-
-        return $loan_repayments->merge($fee_payments)->sortByDesc('created_at');
+    public function fromDepositPayments(){
+        return $this->hasMany(DepositToLoanRepayment::class)->orderBy('created_at', 'DESC');
+    }
+    public function successfulRepayments($loan_payment_only = false)
+    {   
+        return $this->transactions($this->id,$loan_payment_only)->where('reverted',false)->orderBy('created_at','desc');
+        // return $this->hasMany(LoanAccountRepayment::class)->where('reverted', false)->orderBy('created_at', 'DESC');
     }
 
     public function outstandingBalance()
@@ -475,18 +465,23 @@ class LoanAccount extends Model
         $minimum_interest_to_be_paid = $amortized_interest / 2; //50%
 
         //if paid the qualified % of interest to be paid
-        if ($total_paid->interest >= $minimum_interest_to_be_paid) {
+        $paid_minimum_interest = $total_paid->interest >= $minimum_interest_to_be_paid;
+        if ($paid_minimum_interest) {
             $interest = 0;
         } elseif ($total_paid->interest < $minimum_interest_to_be_paid) {
             $interest = round($minimum_interest_to_be_paid - $total_paid->interest, 2);
         }
+
         $total = round($interest + $principal, 2);
         $amount_due = $this->amountDue();
-        if ($amount_due->interest > 0) {
-            $interest = $amount_due->interest;
-            $total = round($interest + $principal, 2);
+
+        if ($paid_minimum_interest) {
+            if ($amount_due->interest > 0) {
+                $interest = $amount_due->interest;
+                $total = round($interest + $principal, 2);
+            }
         }
-    
+
         return (object) [
             'interest'=>$interest,
             'formatted_interest'=>money($interest, 2),
@@ -495,6 +490,7 @@ class LoanAccount extends Model
             'total'=>$total,
             'formatted_total'=>money($total, 2)
         ];
+
     }
 
     public function amountDue($date = null)
@@ -528,8 +524,18 @@ class LoanAccount extends Model
     }
     public function totalPaid()
     {
-        $principal =  $this->successfulRepayments->sum('principal_paid');
-        $interest =  $this->successfulRepayments->sum('interest_paid');
+        
+        $principal = 0;
+        $interest = 0;
+        $installments = $this->successfulRepayments(true)->get();
+        if ($installments->count() > 0) {
+            collect($installments)->map(function ($x) use (&$principal, &$interest) {
+                $principal += $x->transactionable->principal_paid;
+                $interest += $x->transactionable->interest_paid;
+            });
+        }
+        // $interest =  $this->successfulRepayments()->sum('interest_paid');
+        // $total = $principal + $interest;
         $total = $principal + $interest;
         return (object) ['principal'=>$principal,'interest'=>$interest,'total'=>$total];
     }
@@ -545,12 +551,14 @@ class LoanAccount extends Model
 
     public function latestRepayment()
     {
-        return $this->successfulRepayments->first();
+        return $this->successfulRepayments()->first();
     }
 
+    public function latestTransaction($parameter=null){
+        return $this->transactions($parameter)->orderBy('id','desc')->where('reverted',0)->where('revertion',false)->first();
+    }
     public function generateRepaymentTransactionNumber($type=null)
     {
-        
         //year + month + day + loan account number + micro
         $now = Carbon::now();
         $year = $now->format('Y');
@@ -563,23 +571,23 @@ class LoanAccount extends Model
         
         $loan_account_id = $this->id;
         
-        
         // $length = strlen($secs);
         // $total = 0;
         // for($x=0;$x<=$length-1;$x++){
         //     $total+= (int) $secs[$x];
         // }
-        
+
         $repayments = $this->repayments->count()+1;
         $last = str_pad($repayments, 3, 0, STR_PAD_LEFT);
         $transaction = 'R'.$year.$month.$day.$loan_account_id.$last;
         if ($type=='ctlp') {
+            $repayments = $this->transactions()->where('type','CTLP')->count()+1;
+            $last = str_pad($repayments, 3, 0, STR_PAD_LEFT);
             $transaction = 'C'.$year.$month.$day.$loan_account_id.$last;
         }
         if ($type=='pretermination') {
             $transaction = 'P'.$year.$month.$day.$loan_account_id.$last;
         }
-        
         return $transaction;
     }
 
@@ -600,8 +608,8 @@ class LoanAccount extends Model
         if ($dues->overdue->total > 0) {
             return $this->update(['status'=>'In Arrears']);
         }
-
-        if ($this->total_balance == 0) {
+        
+        if ($this->getRawOriginal('total_balance') < 1) {
             return $this->update(['status','Closed']);
         }
 
@@ -666,8 +674,11 @@ class LoanAccount extends Model
             'disbursed_at'=>null
         ]);
         $this->dependents->reset();
+        $this->feePayments->each->reset();
         $this->bulkDisbursed()->delete();
+
         $this->updateStatus();
+        $this->activity()->delete();
     }
 
     public function updateBalancesAfterPayment($interest_paid, $principal_paid)
@@ -678,55 +689,140 @@ class LoanAccount extends Model
             'total_balance'=>round($this->total_balance - ($interest_paid + $principal_paid), 2)
         ]);
     }
-    public function pay(array $data)
+    public function pay(array $data,$single_payment=false)
     {
         $payment_amount = round($data['amount'], 2);
-        $amount_due = $this->amountDue();
         $paid_by = $data['paid_by'];
         $payment_method_id = $data['payment_method'];
-        $repayment_date = $data['repayment_date'];
+        $repayment_date = Carbon::parse($data['repayment_date']);
         $notes = $data['notes'];
-        $receipt_number = $data['receipt_number'];
+        
+        
+        if(\Arr::exists($data,'receipt_number')) {
+            $receipt_number = $data['receipt_number'];
+        }
+        if(\Arr::exists($data,'jv_number')){
+            $jv_number = $data['jv_number'];
+        }
+        
+        $office_id = $data['office_id'];
         
         $method = PaymentMethod::find($data['payment_method']);
         $transaction_number= $this->generateRepaymentTransactionNumber();
        
-        \DB::beginTransaction();
-
-        try {
-            if ($method->isCTLP()) {
-                $this->client->ctlpAccount()->payCTLP($data);
-                $transaction_number = $this->generateRepaymentTransactionNumber('ctlp');
-            }
+      
+        $type = 'Loan Payment';
         
-            $repayment = $this->remainingInstallments()->first()->pay($payment_amount, $transaction_number, $paid_by);
-            $this->repayments()->create([
-                'transaction_id'=>$transaction_number,
-                'interest_paid'=>$repayment->interest,
-                'principal_paid'=>$repayment->principal,
-                'total_paid'=> round($repayment->interest + $repayment->principal, 2),
-                'paid_by'=>$paid_by,
-                'payment_method_id'=>$payment_method_id,
-                'repayment_date'=>$repayment_date,
-                'notes'=>$notes,
-                'receipt_number'=>$receipt_number
-            ]);
+            if ($method->isCTLP()) {
+                $type = 'CTLP';
+                $ctlp_account = $this->client->ctlpAccount();
+                $transaction_number = $this->generateRepaymentTransactionNumber('ctlp');
+                $data['transaction_number'] = $transaction_number;
+                $withdrawal = $ctlp_account->payCTLP($data);
 
-            $this->receipts()->create(['receipt_number'=>$receipt_number]);
+                //get withdrawal transcation from deposit account
+                $transaction = $withdrawal->transaction()->create([
+                    'transaction_number'=>$transaction_number,
+                    'type'=>'Withdawal - CTLP',
+                    'office_id'=>$office_id,
+                    'transaction_date'=>$data['repayment_date'],
+                    'posted_by'=>$paid_by
+                ]);
+
+                //create a repayment
+                $deposit_to_loan_repayment = $this->fromDepositPayments()->create([
+                    'interest_paid'=>0,
+                    'principal_paid'=>0,
+                    'total_paid'=>0,
+                    'paid_by'=>$paid_by,
+                    'payment_method_id'=>$payment_method_id,
+                    'for_pretermination'=>false,
+                    'repayment_date'=>$repayment_date,
+                    'notes'=>$notes,
+                    'deposit_account_id'=>$ctlp_account->id
+                  ]);
+
+                $repayments = $this->remainingInstallments()->first()->pay($payment_amount, $paid_by, null,true,$ctlp_account->id,$deposit_to_loan_repayment->id);
+                $deposit_to_loan_repayment->update([
+                    'interest_paid'=>$repayments->interest,
+                    'principal_paid'=>$repayments->principal,
+                    'total_paid' => $repayments->total_paid
+                    ]);
+                $deposit_to_loan_repayment = $deposit_to_loan_repayment->fresh();
+                $transaction = $deposit_to_loan_repayment->transaction()->create([
+                    'transaction_number'=>$transaction_number,
+                    'type'=>$type,
+                    'transaction_date'=>$repayment_date,
+                    'posted_by'=>$paid_by,
+                    'office_id'=>$office_id
+                ]);
+
+                $deposit_to_loan_repayment->jv()->create([
+                    'journal_voucher_number'=>$jv_number,
+                    'transaction_date'=>$repayment_date,
+                    'office_id'=>$office_id,
+                    'notes'=>$notes
+                    ]);
             
+                $total_balance = $this->getRawOriginal('total_balance');
+                if ($total_balance == 0) {
+                    $this->closeAccount($paid_by);
+                }
+                $this->fresh()->updateStatus();
+                $this->updateBalances();
             
-            if ($this->total_balance == 0) {
-                $this->closeAccount($paid_by);
+                // $withdrawal->transaction()->create([
+                //     'transaction_number'=>$data['transaction_number'],
+                //     'transaction_date'=>$data['repayment_date'],
+                //     'type'=>$type,
+                //     'balance'=>$withdrawal->balance,
+                //     'office_id'=>$data['office_id'],
+                //     'posted_by'=>$data['user_id']
+                // ]);
+
+            }else{
+                $loan_account_repayment = $this->repayments()->create([
+                    'interest_paid'=>0,
+                    'principal_paid'=>0,
+                    'total_paid'=>0,
+                    'paid_by'=>$paid_by,
+                    'payment_method_id'=>$payment_method_id,
+                    'for_pretermination'=>false,
+                    'repayment_date'=>$repayment_date,
+                    'notes'=>$notes
+                  ]);
+
+                //pay with the amount
+                $repayments = $this->remainingInstallments()->first()->pay($payment_amount, $paid_by, $loan_account_repayment->id);
+            
+                $loan_account_repayment->update([
+                'interest_paid'=>$repayments->interest,
+                'principal_paid'=>$repayments->principal,
+                'total_paid' => $repayments->total_paid
+                ]);
+
+           
+                $transaction =  $loan_account_repayment->transaction()->create([
+                    'transaction_number'=>$transaction_number,
+                    'type'=>$type,
+                    'transaction_date'=>$repayment_date,
+                    'posted_by'=>$paid_by,
+                    'office_id'=>$office_id
+                ]);
+
+                $loan_account_repayment->receipt()->create(['receipt_number'=>$receipt_number]);
+            
+                $total_balance = $this->getRawOriginal('total_balance');
+                if ($total_balance == 0) {
+                    $this->closeAccount($paid_by);
+                }
+                $this->fresh()->updateStatus();
+                $this->updateBalances();
+
             }
-            $this->fresh()->updateStatus();
-            $this->updateBalances();
-            $loanPayload = ['date'=>$repayment_date,'amount'=>$payment_amount];
 
-            event(new LoanAccountPayment($loanPayload,$data['office_id'],$paid_by,$payment_method_id));
-            \DB::commit();
-        } catch (\Execption $e) {
-            return $e->getMessage();
-        }
+            return $transaction;
+  
     }
 
     public function receipts()
@@ -778,92 +874,95 @@ class LoanAccount extends Model
         ];
     }
     
-    public function preTerminate(array $data)
+    public function preTerminate(array $data,$single_payment=false)
     {
         $amount = $this->preTermAmount();
         $transaction_id = $this->generateRepaymentTransactionNumber('pretermination');
-        $preterm_interest = $amount->interest;
-        $preterm_principal = $amount->principal;
+
         $paid_by = $data['paid_by'];
         $payment_method_id = $data['payment_method'];
         $repayment_date = $data['repayment_date'];
         $notes = $data['notes'];
-        
+        $office_id = $data['office_id'];
+        $jv_number = $data['jv_number'];
+
         $method = PaymentMethod::find($data['payment_method']);
         if ($method->isCTLP()) {
-            $this->client->ctlpAccount()->payCTLP($data);
-        }
-        
-        $installments = $this->remainingInstallments();
-        $interest_paid = 0;
-        $principal_paid = 0;
-        foreach ($installments as $installment) {
-            $is_due = $installment->isDue();
-            $interest = $installment->interest;
-            $principal = $installment->principal_due;
-
-            if ($preterm_interest < $interest) {
-                $interest = $preterm_interest;
-                $preterm_interest = 0;
-            }
-            if ($is_due) {
-                $interest = $installment->interest_due;
-            }
-
-            if ($preterm_interest > $interest) {
-                $preterm_interest = round($preterm_interest - $interest, 2);
-            }
-
-            $preterm_principal = round($preterm_principal - $principal, 2);
-
-            if ($is_due) {
-                $installment->update([
-                    'interest_due'=>round($installment->interest_due - $interest, 2),
-                    'interest'=>0,
-                    'principal_due'=>round($installment->principal_due - $principal, 2),
-                    'amount_due'=>0,
-                    'paid'=>true
+                $type = 'CTLP';
+                $ctlp_account = $this->client->ctlpAccount();
+                $transaction_number = $this->generateRepaymentTransactionNumber('ctlp');
+                $data['transaction_number'] = $transaction_number;
+                $withdrawal = $ctlp_account->payCTLP($data);
+                //get withdrawal transcation from deposit account
+                $transaction = $withdrawal->transaction()->create([
+                    'transaction_number'=>$transaction_number,
+                    'type'=>'Withdawal - CTLP',
+                    'office_id'=>$office_id,
+                    'transaction_date'=>$data['repayment_date'],
+                    'posted_by'=>$paid_by
                 ]);
-            } else {
-                $installment->update([
-                    'interest'=>round($installment->interest - $interest, 2),
-                    'principal_due'=>round($installment->principal_due - $principal, 2),
-                    'paid'=>true
+
+                //create a repayment
+                $deposit_to_loan_repayment = $this->fromDepositPayments()->create([
+                    'interest_paid'=>0,
+                    'principal_paid'=>0,
+                    'total_paid'=>0,
+                    'paid_by'=>$paid_by,
+                    'payment_method_id'=>$payment_method_id,
+                    'for_pretermination'=>true,
+                    'repayment_date'=>$repayment_date,
+                    'notes'=>$notes,
+                    'deposit_account_id'=>$ctlp_account->id
+                  ]);
+
+                    $repayments = $this->remainingInstallments()->first()->pay($amount->total, $paid_by, null,true,$ctlp_account->id,$deposit_to_loan_repayment->id);
+                $deposit_to_loan_repayment->update([
+                    'interest_paid'=>$repayments->interest,
+                    'principal_paid'=>$repayments->principal,
+                    'total_paid' => $repayments->total_paid
+                    ]);
+                $deposit_to_loan_repayment = $deposit_to_loan_repayment->fresh();
+                $deposit_to_loan_repayment->transaction()->create([
+                    'transaction_number'=>$transaction_number,
+                    'type'=>$type,
+                    'transaction_date'=>$repayment_date,
+                    'posted_by'=>$paid_by,
+                    'office_id'=>$office_id
                 ]);
-            }
-            $installment->repayments()->create([
-                'interest_paid'=>$interest,
-                'principal_paid'=>$principal,
-                'total_paid'=>round($interest + $principal, 2),
-                'transaction_id'=>$transaction_id,
-                'paid_by'=>$paid_by,
-            ]);
+
+                $deposit_to_loan_repayment->jv()->create([
+                    'journal_voucher_number'=>$jv_number,
+                    'transaction_date'=>$repayment_date,
+                    'office_id'=>$office_id,
+                    'notes'=>$notes
+                    ]);
+            
+                
+                $this->update([
+                    'status'=>'Pre-terminated',
+                    'closed_at'=>Carbon::now(),
+                    'closed_by'=>$paid_by,
+                    'principal_balance'=>0,
+                    'interest_balance'=>0,
+                    'total_balance'=>0,
+                ]);
+                $this->fresh()->updateStatus();
+                $this->closeAccount($paid_by);
+
+                $loanPayload = ['date'=>$repayment_date,'amount'=>$amount->total];
+                if ($single_payment) {
+                    event(new LoanAccountPayment($loanPayload, $office_id, $paid_by, $payment_method_id));
+                }
+                // return $this->update([
+                //     'status'=>'Pre-terminated',
+                //     'closed_at'=>Carbon::now(),
+                //     'closed_by'=>$paid_by,
+                //     'principal_balance'=>0,
+                //     'interest_balance'=>0,
+                //     'total_balance'=>0,
+                // ]);
         }
 
- 
-        
-    
-
-        $this->repayments()->create([
-            'transaction_id'=>$transaction_id,
-            'interest_paid'=>$amount->interest,
-            'principal_paid'=>$amount->principal,
-            'total_paid'=>$amount->total,
-            'payment_method_id'=>$payment_method_id,
-            'paid_by'=>$paid_by,
-            'for_pretermination'=>true,
-            'repayment_date'=>$repayment_date,
-            'notes'=>$notes
-        ]);
-
-        return $this->update([
-            'status'=>'Pre-terminated',
-            'closed_at'=>Carbon::now(),
-            'closed_by'=>$paid_by,
-            'principal_balance'=>0,
-            'interest_balance'=>0,
-            'total_balance'=>0,
-        ]);
     }
 
     public function remainingInstallments()
@@ -877,13 +976,13 @@ class LoanAccount extends Model
     
     public function activity()
     {
-        $repayments = $this->repayments;
-        $fees = $this->feePayments;
-        $disbursements = $this->disbursement;
+        // $repayments = $this->repayments;
+        // $fees = $this->feePayments;
+        // $disbursements = $this->disbursement;
         
         // dd($disbursements->sortBy('id'));
         // return $repayment_date->merge($fees->merge($disbursements));
-        return $repayments->toBase()->merge($fees->toBase()->merge($disbursements));
+        return Transaction::loanAccountTransactions($this->id)->orderBy('created_at','desc');
     }
 
     public function canRevertDisbursement($transaction_id)
@@ -891,23 +990,34 @@ class LoanAccount extends Model
         if (LoanAccountDisbursement::where('transaction_id', $transaction_id)->first()->reverted) {
             return false;
         }
-        $succesful_transactions = $this->successfulRepayments->count();
+        $succesful_transactions = $this->successfulRepayments()->count();
         return $succesful_transactions > 0 ? false : true;
     }
 
-    public function revertDisbursement($transaction_id, $user_id)
-    {
-        $disbursement = LoanAccountDisbursement::where('transaction_id', $transaction_id)->first();
-        $disbursement->revert($user_id);
-        $this->account()->update(['status'=>'Approved']);
-        return $this->update([
-            'disbursed_by'=>null,
-            'disbursed_at'=>null,
-            'disbursed'=>false,
-            'status'=>'Approved'
-        ]);
-    }
+    // public function revertDisbursement($transaction_id, $user_id)
+    // {
+    //     $disbursement = LoanAccountDisbursement::where('transaction_id', $transaction_id)->first();
+    //     $disbursement->revert($user_id);
+    //     $this->account()->update(['status'=>'Approved']);
+    //     return $this->update([
+    //         'disbursed_by'=>null,
+    //         'disbursed_at'=>null,
+    //         'disbursed'=>false,
+    //         'status'=>'Approved'
+    //     ]);
+    // }
 
+    public function revertTo($status){
+        if($status == 'Approved'){
+            $this->bulkDisbursed->delete();
+            return $this->update([
+                'disbursed_by'=>null,
+                'disbursed_at'=>null,
+                'disbursed'=>false,
+                'status'=>'Approved',
+            ]);
+        }
+    }
     public function getMutatedAttribute()
     {
         $fields = $this->for_mutation;
@@ -922,9 +1032,9 @@ class LoanAccount extends Model
         return $mutated;
     }
 
-    // public function getTotalBalanceAttribute($value){
-    //     return env('CURRENCY_SIGN') . ' ' . number_format($value,2);
-    // }
+    public function getTotalBalanceAttribute($value){
+        return env('CURRENCY_SIGN') . ' ' . number_format($this->getRawOriginal('total_balance'),2);
+    }
     public function getTotalPaidAttribute()
     {
         $paid = $this->totalPaid();
@@ -976,109 +1086,114 @@ class LoanAccount extends Model
     }
     public function disburse(array $payment_info, $bulk = false, $bulk_disbursement_id = null)
     {
-        // $payment_info = [
-        //     'disbursement_date'=>carbon()->now(),
-        //     'first_repayment_date'=>carbon()->now(),
-        //     'payment_method_id'=>1,
-        //     'office_id'=>21,
-        //     'disbursed_by'=>2,
-        //     'cv_number'=>444123123
-        // ];
+       
         $account = $this;
         $fee_payments = $account->feePayments;
         $payment_method_id = $payment_info['payment_method_id'];
         $disbursed_by = $payment_info['disbursed_by'];
         $cv_number = $payment_info['cv_number'];
-        \DB::beginTransaction();
-        try {
-            $transaction_id = $account->generateDisbursementTransactionNumber();
-            
-            
-            $account->payFeePayments($fee_payments, $payment_method_id, $disbursed_by, $transaction_id);
-            
-            $disbursement_date = Carbon::parse($payment_info['disbursement_date'])->startOfDay();
-            $start_date = Carbon::parse($payment_info['first_repayment_date'])->startOfDay();
-            $office_id = $payment_info['office_id'];
-            $original_disbursement_date = $this->disbursement_date;
-            $diff = $original_disbursement_date->diffInDays($disbursement_date, false);
-            if ($diff < 0) {
-                $this->disbursement_date = $disbursement_date;
-                $this->save();
-            }
 
-            //first payment is not the same as created payment
-            $original_start_date_date = $this->installments()->first()->date;
-            $diff = $original_start_date_date->diffInDays($start_date, false);
-            if ($diff < 0) {
-                //create new installments
-                $this->installments()->delete();
-                $annual_rate = 0.03 * 12;
-                $product = $this->product;
-                $loan_interest_rate = Loan::rates($this->product->id)->where('installments', $this->number_of_installments)->first()->rate;
+        $transaction_id = $account->generateDisbursementTransactionNumber();
+        $fee_array = ['fees'=>$fee_payments,'payment_method_id'=>$payment_method_id,'disbursed_by'=>$disbursed_by,'transaction_id'=>$transaction_id,'office_id'=>$payment_info['office_id'],'disbursement_date'=>$payment_info['disbursement_date']];
+        $account->payFeePayments($fee_array);
+        $disbursement_date = Carbon::parse($payment_info['disbursement_date'])->startOfDay();
+        $start_date = Carbon::parse($payment_info['first_repayment_date'])->startOfDay();
+        $office_id = $payment_info['office_id'];
+        $original_disbursement_date = $this->disbursement_date;
+        $diff = $original_disbursement_date->diffInDays($disbursement_date, false);
 
-                $data = array(
-                    'principal'=>$this->amount,
-                    'annual_rate'=>$annual_rate,
-                    'interest_rate'=>$loan_interest_rate,
-                    'interest_interval'=>$product->interest_interval,
-                    'term'=>$product->installment_method,
-                    'term_length'=>$this->number_of_installments,
-                    'disbursement_date'=>$disbursement_date,
-                    'start_date'=>$start_date,
-                    'office_id'=>$office_id
-                );
-                $calculator = LoanAccount::calculate($data);
-                $this->createInstallments($this, $calculator->installments);
-            }
+        if ($diff != 0) {
+            $this->disbursement_date = $disbursement_date;
+            $this->save();
+        }
 
-            
-            $account->update([
-                'disbursed_at'=>Carbon::now(),
-                'disbursed_by'=>$disbursed_by,
-                'status'=>'Active',
-                'disbursed'=>true
-            ]);
-            
-            $_disbursement = $account->disbursement()->create([
-                'transaction_id'=>$transaction_id,
-                'disbursed_amount'=>$account->disbursed_amount,
-                'disbursed_by'=>auth()->user()->id,
-                'payment_method_id'=>$payment_method_id
-            ]);
+        //first payment is not the same as created payment
+        $original_start_date_date = $this->installments()->first()->date;
+        $diff = $original_start_date_date->diffInDays($start_date, false);
+        if ($diff != 0) {
+            //create new installments
+            $this->installments()->delete();
+            $annual_rate = 0.03 * 12;
+            $product = $this->product;
+            $loan_interest_rate = Loan::rates($this->product->id)->where('installments', $this->number_of_installments)->first()->rate;
 
-            $_disbursement->cv()->create([
-                'check_voucher_number'=>$cv_number,
-                'transaction_date'=>$disbursement_date
-            ]);
+            $data = array(
+                'principal'=>$this->amount,
+                'annual_rate'=>$annual_rate,
+                'interest_rate'=>$loan_interest_rate,
+                'interest_interval'=>$product->interest_interval,
+                'term'=>$product->installment_method,
+                'term_length'=>$this->number_of_installments,
+                'disbursement_date'=>$disbursement_date,
+                'start_date'=>$start_date,
+                'office_id'=>$office_id
+            );
+            $calculator = LoanAccount::calculate($data);
+            $this->createInstallments($this, $calculator->installments);
+        }
 
         
-            $account->updateStatus();
+        $account->update([
+            'disbursed_at'=>Carbon::now(),
+            'disbursed_by'=>$disbursed_by,
+            'status'=>'Active',
+            'disbursed'=>true,
+            'interest_balance'=>$this->interest,
+            'total_balance'=>round($this->principal + $this->interest,2)
+        ]);
+        
+        $_disbursement = $account->disbursement()->create([
+            'transaction_id'=>$transaction_id,
+            'disbursed_amount'=>$account->disbursed_amount,
+            'disbursed_by'=>$disbursed_by,
+            'payment_method_id'=>$payment_method_id
+        ]);
 
-            $account->dependents->update([
-                'status'=>'Used',
-                'loan_account_id'=>$account->id,
-                'activated_at'=>Carbon::now(),
-                'expires_at'=>Carbon::now()->addDays(env('INSURANCE_MATURITY_DAYS'))
+        $_disbursement->cv()->create([
+            'check_voucher_number'=>$cv_number,
+            'transaction_date'=>$disbursement_date
+        ]);
+
+        // $account->updateBalance();
+        $account->updateStatus();
+
+        $account->dependents->update([
+            'status'=>'Used',
+            'loan_account_id'=>$account->id,
+            'activated_at'=>Carbon::now(),
+            'expires_at'=>Carbon::now()->addDays(env('INSURANCE_MATURITY_DAYS'))
+        ]);
+        if ($bulk) {
+            
+            $account->bulkDisbursed()->create([
+                'bulk_disbursement_id'=>$bulk_disbursement_id,
+                'office_id'=>$payment_info['office_id'],
+                'disbursement_date'=>$payment_info['disbursement_date'],
+                'first_repayment_date'=>$payment_info['first_repayment_date'],
+                'disbursed_by'=>$disbursed_by,
+                'payment_method_id'=>$payment_method_id,
+                'cv_number'=>$cv_number
             ]);
-            if ($bulk) {
-                
-                $account->bulkDisbursed()->create([
-                    'bulk_disbursement_id'=>$bulk_disbursement_id,
-                    'office_id'=>$payment_info['office_id'],
-                    'disbursement_date'=>$payment_info['disbursement_date'],
-                    'first_repayment_date'=>$payment_info['first_repayment_date'],
-                    'disbursed_by'=>$disbursed_by,
-                    'payment_method_id'=>$payment_method_id,
-                    'cv_number'=>$cv_number
-                ]);
-            }
-            \DB::commit();
-            return true;
-        } catch (\Exeception $e) {
-            Log::alert($e->getMessage());
-            return false;
-            // return $e->getMessage();
         }
+    
+    }
+
+    public function updateBalance(){
+        $repayments = $this->successfulRepayments()->get();
+        $total_paid = $this->totalPaid();
+        $principal_paid =  $total_paid->principal;
+        $interest_paid =  $total_paid->interest;
+        
+
+        $new_principal_balance = round($this->principal - $principal_paid,2);
+        $new_interest_balance = round($this->interest - $interest_paid,2);
+        $new_total_balance = round($new_principal_balance- $interest_paid,2);
+
+        return $this->update([
+            'principal_balance'=>$new_principal_balance,
+            'interest_balance'=>$new_interest_balance,
+            'total_balance'=>$new_total_balance
+        ]);
     }
     public function canBeDisbursed()
     {
@@ -1087,24 +1202,32 @@ class LoanAccount extends Model
         }
         return false;
     }
-       
-    public function payFeePayments($fees, $payment_method_id, $disbursed_by, $transaction_id)
+    
+    // public function payFeePayments($fees, $payment_method_id, $disbursed_by, $transaction_id,$office_id,$transaction_date)
+    public function payFeePayments(array $array)
     {
         $x = 1;
         $now  = Carbon::now();
-        foreach ($fees as $fee) {
-            $res = $fee->update([
-                'loan_account_disbursement_transaction_id'=>$transaction_id,
-                'transaction_id'=>$fee->generateTransactionID($x),
+        foreach ($array['fees'] as $fee) {
+            $fee->update([
+                'loan_account_disbursement_transaction_id'=>$array['transaction_id'],
+                'transaction_id'=>LoanAccountFeePayment::generateTransactionNumber($array['office_id']),
                 'paid_at'=>Carbon::now(),
-                'paid_by'=>$disbursed_by,
-                'payment_method_id'=>$payment_method_id,
+                'paid_by'=>$array['disbursed_by'],
+                'payment_method_id'=>$array['payment_method_id'],
                 'paid'=>true,
                 'created_at'=>$now
             ]);
+            $fee = $fee->transaction()->create([
+                'transaction_number'=>$array['transaction_id'],
+                'office_id'=>$array['office_id'],
+                'posted_by'=>$array['disbursed_by'],
+                'transaction_date'=>$array['disbursement_date'],
+                'type'=>'Fee Payment'
+            ]);
             $x++;
         }
-        return $res;
+        return true;
     }
 
     public function createInstallments($loan_acc, object $installments)
@@ -1228,6 +1351,11 @@ class LoanAccount extends Model
         return $this->feePayments->filter(function($x){
             return $x->fee->finance_charge == false;
         })->sortBy('fee_id');
+    }
+
+    public function transactions($loan_payment_only = false){
+        $id = $this->id;
+        return Transaction::loanAccountTransactions($id, $loan_payment_only);
     }
 
 }

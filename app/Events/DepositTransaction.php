@@ -25,6 +25,7 @@ class DepositTransaction implements ShouldBroadcast
     public $type;
     public $data;
     private $office_id;
+    public $broadcasts_on;
     public function __construct($payload, $office_id, $user_id, $payment_method_id, $type)
     {
         $office = Office::find($office_id)->name;
@@ -36,9 +37,21 @@ class DepositTransaction implements ShouldBroadcast
         if ($type=="withdraw") {
             $payload['msg'] = 'CBU Withdrawal ' . money($payload['amount'], 2) . ' at '. $office  . ' by ' . $by . ' [' . $payment . ']';
         }
+        if ($type=="interest_posting") {
+            $payload['msg'] = 'CBU Interest Posted ' . money($payload['amount'], 2) . ' at '. $office  . ' by ' . $by . ' [' . $payment . ']';
+        }
         $this->office_id = $office_id;
         $this->data = $payload;
         $this->type = $type;
+
+        $broadcast_ids = Office::find($office_id)->getUpperOfficeIDS();
+        $broadcasts_on = [];
+        foreach($broadcast_ids as $id){
+            $broadcasts_on[] = new PrivateChannel('dashboard.notifications.' . $id);
+        }
+        $this->broadcasts_on = $broadcasts_on;
+
+        
     }
 
     /**
@@ -48,7 +61,7 @@ class DepositTransaction implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('dashboard.notifications.'.$this->office_id);
+        return $this->broadcasts_on;
     }
 
     public function broadcastAs(){
@@ -57,6 +70,9 @@ class DepositTransaction implements ShouldBroadcast
         }
         if($this->type=="withdraw"){
            return 'cbu-withdraw';
+        }
+        if($this->type=="interest_posting"){
+           return 'cbu-interest-posting';
         }
     }
 }

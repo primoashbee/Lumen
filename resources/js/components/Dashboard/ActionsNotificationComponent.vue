@@ -1,9 +1,5 @@
 <template>
-    
 </template>
-
-
-
 <script>
 import 'vuejs-noty/dist/vuejs-noty.css'
 export default {
@@ -11,19 +7,47 @@ export default {
     created(){
 
         window.Echo.private('dashboard.notifications.'+this.office_id)
-        .listen('.bulk-loan-disbursed',data =>{
-            this.notify(data.data.msg);
-        })
-        .listen('.loan-payment',data =>{
-            
-            this.notify(data.data.msg)
-        })
-        .listen('.cbu-deposit',data =>{
-            this.notify(data.data.msg)
-        })
-        .listen('.cbu-withdraw',data =>{
-            this.notify(data.data.msg)
-        })
+            .listen('.loan-disbursed',data =>{
+                console.log(data.data.msg);
+                this.notify(data.data.msg);
+            })
+            .listen('.bulk-loan-payment',data =>{
+                this.notify(data.data.msg)
+            })
+            .listen('.loan-payment',data =>{
+                this.notify(data.data.msg)
+            })
+            .listen('.cbu-deposit',data =>{
+                this.notify(data.data.msg)
+            })
+            .listen('.cbu-withdraw',data =>{
+                this.notify(data.data.msg)
+            })
+            .listen('.cbu-interest-posting',data =>{
+                this.notify(data.data.msg)
+            })
+
+        // window.Echo.private('group.channel.'+this.office_id)
+        // .listen('.suntukan-tayo',data=>{
+        //     this.notify(data.msg)
+        // })
+
+        // window.Echo.join(this.channel)
+        // .here((users)=>{
+        //     console.log(users)
+        // })
+        // .joining((user)=>{
+        //     console.log(user)
+        // })
+        // .leaving((user)=>{
+        //     console.log(user)
+        // })
+        // .listen('.suntukan-tayo', data =>{
+        //     this.notify(data.msg)
+        // })
+
+
+
     },
     methods :{
         notify(msg){
@@ -34,7 +58,7 @@ export default {
                 type: 'success',
                 layout: 'topRight',
                 text: msg,
-                timeout: 4500,
+                timeout: 6000,
                 // animation: {
                 //     open : 'animated fadeInRight',
                 //     close: 'animated fadeOutRight'
@@ -43,6 +67,11 @@ export default {
     
             
         }
+    },
+    computed: {
+        // channel(){
+        //     return 'presence.channel.'+this.office_id;
+        // }
     }
 }
 </script>

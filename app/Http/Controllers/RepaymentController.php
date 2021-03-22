@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use App\Account;
+use Carbon\Carbon;
 use App\LoanAccount;
 use App\DepositAccount;
-use App\Events\DepositTransaction;
 use App\Rules\OfficeID;
 use App\Events\LoanPayment;
 use Illuminate\Http\Request;
 use App\LoanAccountRepayment;
 use App\Rules\PaymentMethodList;
 use App\Rules\PreventFutureDate;
+use App\Events\DepositTransaction;
 use App\Events\LoanAccountPayment;
 use App\Rules\AccountMustBeActive;
 use Illuminate\Support\Facades\DB;
@@ -30,14 +32,24 @@ class RepaymentController extends Controller
         $account = LoanAccount::find($request->loan_account_id);
         $request->request->add(['paid_by'=>auth()->user()->id]);
         $request->request->add(['user_id'=>auth()->user()->id]);
-        $account->pay($request->all());
+        // $request->request->add(['jv_number'=>uniqid()]);
         
-        $account->updateBalances();
-    
+        \DB::beginTransaction();
+        try {
+            $account->pay($request->all(), true);
+            $account->updateBalances();
+            $loanPayload = [
+                'date'=>Carbon::parse($request->repayment_date)->format('d-F'),
+                'amount'=>$request->amount
+            ];
+            event(new LoanAccountPayment($loanPayload, $request->office_id, $request->paid_by, $request->payment_method));
+            // \DB::commit();
+            return response()->json(['msg'=>'Payment Successfully Received!'],200);
+        }catch(Exception $e){
+            return response()->json(['msg'=>$e->getMessage()],500);
+        }
         
-        return response()->json(['msg'=>'Payment Successfully Received!'],200);
- 
-
+        
     }
 
     public function distributePayment($payment,$installment){
@@ -61,7 +73,7 @@ class RepaymentController extends Controller
     public function validator(array $data){
         $rules = [
             'office_id' =>['required', new OfficeID()],
-            'repayment_date'=>['required','date', new PreventFutureDate(),'prevent_previous_repayment_date','on_or_before_disbursement_date'],
+            'repayment_date'=>['required','date', new PreventFutureDate(),'prevent_previous_repayment_date','on_or_before_disbursement_date','deposit_last_transaction_date'],
             'payment_method'=>['required', new PaymentMethodList],
             'loan_account_id'=>['required', 'numeric','exists:loan_accounts,id',new AccountMustBeActive],
             'amount' => ['required','gt:0','maximum_loan_repayment','ctlp'],
@@ -86,7 +98,7 @@ class RepaymentController extends Controller
             'office_id' =>['required', new OfficeID()],
             'repayment_date'=>['required','date', new PreventFutureDate(),'prevent_previous_repayment_date'],
             'payment_method'=>['required', new PaymentMethodList],
-            'loan_account_id'=>['required', 'numeric','exists:loan_accounts,id',new AccountMustBeActive],
+            'loan_account_id'=>['required', 'numeric','exists:loan_accounts,id',new AccountMustBeActive, 'ctlp'],
             'amount'=>['ctlp']
         ]);
 
@@ -94,7 +106,7 @@ class RepaymentController extends Controller
         try{
             $request->request->add(['paid_by'=>auth()->user()->id]);
             $request->request->add(['user_id'=>auth()->user()->id]);
-            $acc = LoanAccount::find($request->loan_account_id)->preTerminate($request->all());
+            $acc = LoanAccount::find($request->loan_account_id)->preTerminate($request->all(),true);
             \DB::commit();
             return response()->json(['msg'=>'Transaction Successful'],200);
         }catch(Exception $e){
@@ -130,13 +142,14 @@ class RepaymentController extends Controller
         \DB::beginTransaction();
         try {
             $payment_method = $request->payment_method;
-            $repayment_date = $request->repayment_date;
+            $repayment_date = Carbon::parse($request->repayment_date);
+            // $repayment_date = $request->repayment_date;
             $receipt_number = $request->receipt_number;
             $notes = $request->notes;
             $user = auth()->user()->id;
             $repayment = 0;
             $deposit = 0;
-            $repayment_date = $request->repayment_date;
+            
             foreach($data['accounts'] as $key=>$value){
                 $loan = $value['loans'];
                 $repayment+=$loan['amount'];
@@ -146,7 +159,8 @@ class RepaymentController extends Controller
                     'repayment_date'=>$repayment_date,
                     'notes'=>$notes,
                     'receipt_number'=>$receipt_number,
-                    'paid_by'=>$user
+                    'paid_by'=>$user,
+                    'office_id'=>$data['office_id']
                 ];
                 LoanAccount::find($loan['id'])->pay($payment_info);
                 $deposits = $value['deposit'];
@@ -161,6 +175,7 @@ class RepaymentController extends Controller
                             'repayment_date'=>$repayment_date,
                             'user_id' => $user,
                             'receipt_number' => $receipt_number,
+                            'office_id'=>$data['office_id']
                         ];
                         DepositAccount::find($value['deposit_account_id'])->deposit($deposit_info);
                     }
@@ -171,13 +186,13 @@ class RepaymentController extends Controller
             // $office
             // $msg = 'Repayment '. money($repayment,2) .' at ' . $office .' by ' . $by. ' ['.$payment.'].';
 
-            $loanPayload = ['date'=>$repayment_date,'amount'=>$repayment];
-            $depositPayload = ['date'=>$repayment_date,'amount'=>$deposit];
-            event(new LoanAccountPayment($loanPayload, $request->office_id, $user, $payment_method ));
+            $loanPayload = ['date'=>$repayment_date->format('d-F'),'amount'=>$repayment];
+            $depositPayload = ['date'=>$repayment_date->format('d-F'),'amount'=>$deposit];
+            event(new LoanAccountPayment($loanPayload, $request->office_id, $user, $payment_method));
             if ($has_deposit) {
                 event(new DepositTransaction($depositPayload, $request->office_id, $user, $payment_method, 'deposit'));
             }
-            \DB::commit();
+            // \DB::commit();
             
         return response()->json(['msg'=>'Payment Successful','code'=>200],200);    
         } catch (\Exception $e){
@@ -197,7 +212,7 @@ class RepaymentController extends Controller
             'accounts.*.loans.id' =>['required', 'numeric','exists:loan_accounts,id',new AccountMustBeActive],
             'accounts.*.loans.amount'=>['required','bulk_maximum_loan_repayment:accounts.*.loans.amount'],
             'accounts.*.loans.repayment_date'=>['required','date', new PreventFutureDate(),'bulk_prevent_previous_repayment_date','bulk_on_or_before_disbursement_date'],
-            'payment_method'=>['required', new PaymentMethodList],
+            'payment_method'=>['required', new PaymentMethodList]
         ];
         if($hasDeposit){
             $rules = [

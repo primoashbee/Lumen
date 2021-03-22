@@ -30,11 +30,10 @@ class DepositTransaction extends Model
     public function postedBy(){
         return $this->belongsTo(User::class,'user_id');
     }
-
+    
     public function receipt(){
         return $this->morphOne(Receipt::class, 'receiptable');
     }
-
 
     public function journal(){
         return $this->morphOne(JournalVoucher::class, 'journal_voucherable');

@@ -19,22 +19,37 @@ class Office extends Model
         'name',
     ];
     
-    public static function makeClientID($office_id){
+    public static function makeClientID($office_id,$increment=null){
         $office = Office::find($office_id);
-        
-        if($office->level=="branch"){
-            $code = $office->code;
+
+
+        // check level if branch
+
+        if ($office->level =='branch') {
             $office_ids = $office->getLowerOfficeIDS();
-            $count = Client::whereIn('office_id',$office_ids)->count();
-            return $code . '-PC' . pad($count + 1, 5);
+        } else {
+            $office = $office->getTopOffice('branch');
+            if (is_null($office)) {
+                return null;
+            }
+            $office_ids = $office->getLowerOfficeIDS();
         }
-        
-        $office = $office->getTopOffice('branch');
+        if (is_null($increment)) {
+            $office_ids = $office->getLowerOfficeIDS();
+            $increment = Client::whereIn('office_id', $office_ids)->count()+1;
+        } else {
+            $increment++;
+        }
+       
         $code = $office->code;
-        $office_ids = $office->getLowerOfficeIDS();
-        $count = Client::whereIn('office_id',$office_ids)->count();
-        return $code . '-PC' . pad($count + 1, 5);
+        $client_id = $code . '-PC' . pad($increment, 5);
+        if (Client::where('client_id', $client_id)->count() > 0) {
+            return Office::makeClientID($office_id, $increment);
+        }
+        return $client_id;
     }
+       
+  
     public static function levelCount($level){
         $me = new static;
         return $me->where('level',$level)->count();
@@ -111,6 +126,17 @@ class Office extends Model
                 array_push($ids,$child->id);
                 $ids = array_merge($ids, $child->getAllChildrenIDS());
             }
+        return $ids;
+    }
+    public function getAllParentIDS($with_self=false){
+        $parent = $this->parent;
+        $ids = [];
+
+        if(is_null($parent)){
+            return $ids;
+        }
+        array_push($ids,$parent->id);
+        $ids = array_merge($ids,$parent->getAllParentIDS());
         return $ids;
     }
     //parameters insert_self if we want to add the parent id to the return lower office ids
@@ -419,6 +445,44 @@ class Office extends Model
 
     public function holidays(){
         return $this->hasMany(Holiday::class);
+    }
+
+    public function getLevelInNumberAttribute(){
+        $level = $this->level;
+
+        if($level == 'main_office'){
+            return 1;
+        }
+        if($level == 'region'){
+            return 2;
+        }
+        if($level == 'area'){
+            return 3;
+        }
+        if($level == 'branch'){
+            return 4;
+        }
+        if($level == 'unit'){
+            return 5;
+        }
+        if($level == 'cluster'){
+            return 6;
+        }
+        if($level == 'account_officer'){
+            return 6;
+        }
+        if($level == 'loan_officer'){
+            return 7;
+        }
+    }
+
+    public function getUpperOfficeIDS($insert_self=true){
+        
+        $parent_ids = $this->getAllParentIDS();
+        if ($insert_self) {
+            return array_merge($parent_ids, [$this->id]);
+        }
+        return $parent_ids;
     }
 
    

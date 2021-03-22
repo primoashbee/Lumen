@@ -118,7 +118,7 @@
 		        </div>
 		        <div class="form-group">
 		        	<label class="text-lg">Payment Method</label>
-					<payment-methods payment_type="for_deposit" @paymentSelected="paymentSelected" v-bind:class="hasError('payment_method') ? 'is-invalid' : ''" ></payment-methods>
+					<payment-methods payment_type="for_repayment" @paymentSelected="paymentSelected" v-bind:class="hasError('payment_method') ? 'is-invalid' : ''" ></payment-methods>
 					<div class="invalid-feedback" v-if="hasError('payment_method')">
                         {{ errors.payment_method[0]}}
                     </div>
@@ -181,7 +181,7 @@
                         <tr style="border-bottom:none">
                             <td></td>
                             <td></td>
-                            <td># of Accounts: 4</td>
+                            <td># of Accounts: {{form.accounts.length}}</td>
                             <td>{{format(_total_loan_payment)}}</td>
                             <template v-for="(item,key) in _total_deposit_payment">
                                 <td><p class="title">{{format(item.total)}}</p></td>
@@ -224,6 +224,7 @@ export default {
                 payment_method: null,
                 notes: null,
                 receipt_number: null,
+                jv_number: null,
             },
             list: null,
             isLoading: false,
@@ -288,6 +289,12 @@ export default {
         },
         paymentSelected(value){
             this.form.payment_method = value['id']
+            if(value['name']== 'CTLP'){
+                this.form.receipt_number  = null
+                return this.payment_type = 'NON-CASH';
+            }
+            this.form.jv_number  = null
+            return this.payment_type = 'CASH';
 		},
         submit(e){
             e.preventDefault()
@@ -310,11 +317,23 @@ export default {
                 })
                 
             })
+            this.isLoading = true
             axios.post('/bulk/repayments',this.form)
             .then(res=>{
-                console.log(res)
+                this.isLoading = false
+                if(res.status==200){
+                    Swal.fire(
+                        'Success',
+                        res.data.msg,
+                        'success'
+                    )
+                    .then(()=>
+                        location.reload()
+                    )
+                }
             })
             .catch(err=>{
+                this.isLoading = false
                 this.errors = err.response.data.errors
             })
         },
