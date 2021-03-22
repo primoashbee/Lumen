@@ -38,7 +38,8 @@
 
     <div class="row">
         <div class="col-md-12">
-            <div class="card chart-container" style="height: 450px">
+            <div class="card chart-container" style="height: 600px">
+            {{-- <div class="card chart-container" style="height: 450px"> --}}
                 <div class="card-header">
                     <div class="row">
                         <div class="col-md-12">
@@ -55,7 +56,7 @@
             </div>
         </div>
         <div class="col-md-12">
-            <div class="card chart-container" style="height: 550px">
+            <div class="card chart-container" style="max-height: 550px">
                 <div class="card-header">
                     <div class="row">
                         <div class="col-md-12">

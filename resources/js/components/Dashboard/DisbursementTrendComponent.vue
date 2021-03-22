@@ -1,6 +1,6 @@
 <template>
   <div class="">
-     <canvas ref="myChart" width="100%" height="18%"></canvas>
+     <canvas ref="myChart" width="100%" height="32%"></canvas>
   </div>
 </template>
 
@@ -25,39 +25,54 @@ export default {
                     fontColor: "white",
                     fontSize:15
                 }
+              },
+              scales : {
+                yAxes : [{
+                  ticks : {
+                    fontColor : 'white',
+                    fontSize : 12,
+                    beginAtZero: true
+                  }
+                }],
+                xAxes : [{
+                  ticks : {
+                    fontColor: 'white',
+                    fontSize:12,
+                    beginAtZero: true
+                  }
+                }]
               }
 
             },
-            data: {          
-              labels: ['20-June', '21-June', '22-June', '23-June', '24-June'],
+            data: {
+              labels: null,
               datasets: [
                 { 
                   label:'Disbursement',
                   borderColor: "#3dba9f",
                   backgroundColor: "#3dba9f",
-                  data: [50000, 150000, 100000, 45000, 400000], 
+                  data: null, 
                 },
                 {
                   label:'Repayment (P)',
                   borderColor: "#3e95cd",
                   backgroundColor: "#3e95cd",
-
                   data: [60000, 250000, 65000, 48000, 320000]
                 },
                 {
                   label:'Repayment (I)',
                   borderColor: "#8e5ea2",
                   backgroundColor: "#8e5ea2",
-
                   data: [6000, 25000, 6500, 4800, 32000]
                 },
               ]
             }
-        }
+        },
+        labels : null
     }
   },
   mounted() {
-    // this.getData();
+    this.getData();
     this.chartInit();
   },
 
@@ -68,9 +83,10 @@ export default {
     getData(){
       axios.get(this.url)
         .then(res=>{ 
-            // this.chart_data.data.labels = res.data.labels
-            // this.chart_data.data.datasets[0].data = res.data.expected_repayments
-            // this.chart_data.data.datasets[1].data = res.data.actual_repayments
+            this.chart_options.data.labels = res.data.labels
+            this.chart_options.data.datasets[0].data = res.data.disbursements
+            this.chart_options.data.datasets[1].data = res.data.repayment_interest
+            this.chart_options.data.datasets[2].data = res.data.repayment_principal
             this.chartInit()
         })
     }

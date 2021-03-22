@@ -192,7 +192,7 @@ class RepaymentController extends Controller
             if ($has_deposit) {
                 event(new DepositTransaction($depositPayload, $request->office_id, $user, $payment_method, 'deposit'));
             }
-            // \DB::commit();
+            \DB::commit();
             
         return response()->json(['msg'=>'Payment Successful','code'=>200],200);    
         } catch (\Exception $e){
