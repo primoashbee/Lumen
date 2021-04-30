@@ -327,9 +327,7 @@ export default {
                         res.data.msg,
                         'success'
                     )
-                    .then(()=>
-                        location.reload()
-                    )
+                    this.reset
                 }
             })
             .catch(err=>{

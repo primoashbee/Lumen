@@ -26,8 +26,8 @@ class HasNoPendingLoanAccount implements Rule
      */
     public function passes($attribute, $value)
     {
-        $res = Client::where('client_id',$value)->first()->loanAccounts->where('status','!=','Closed')->count() == 0;
-        return $res;
+        return Client::where('client_id',$value)->first()->activeLoans()->count() > 0 ? false: true;
+        
     }
 
     /**

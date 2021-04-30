@@ -65,7 +65,7 @@
 				<tbody v-else>
 					<tr  v-for="(item, key) in lists.data" :key="item.id">
 
-						<td><input type="checkbox" class="item_checkbox"  :id="item.id" @change="checked(item,$event)" :checked="accountOnList(item.id)"></td>
+						<td><input type="checkbox" class="   00"  :id="item.id" @change="checked(item,$event)" :checked="accountOnList(item.id)"></td>
 						
 						<td><label :for="item.id">{{item.type.name}}</label></td>
 						<td><a :href="clientLink(item.client.client_id)">{{item.client.client_id}}</a></td>
@@ -110,9 +110,9 @@
 		        </div>
 		        <div class="form-group" v-if="transactionType!='post_interest'">
 		        	<label class="text-lg">Payment Method</label>
-					<payment-methods payment_type="for_deposit" @paymentSelected="paymentSelected" v-bind:class="hasError('payment_method') ? 'is-invalid' : ''" ></payment-methods>
-					<div class="invalid-feedback" v-if="hasError('payment_method')">
-                        {{ errors.payment_method[0]}}
+					<payment-methods payment_type="for_deposit" @paymentSelected="paymentSelected" v-bind:class="hasError('payment_method_id') ? 'is-invalid' : ''" ></payment-methods>
+					<div class="invalid-feedback" v-if="hasError('payment_method_id')">
+                        {{ errors.payment_method_id[0]}}
                     </div>
 		        </div>
 		        <div class="form-group" v-if="transactionType!='post_interest'">
@@ -218,7 +218,7 @@ export default {
 			form: {
 				office_id:"",
 				accounts : [],
-				payment_method: null,
+				payment_method_id: null,
 				repayment_date: null,
 				type: null,
 			},
@@ -376,7 +376,7 @@ export default {
 			
 		},
 		paymentSelected(value){
-				this.form.payment_method = value['id']
+				this.form.payment_method_id = value['id']
 		},
 		amountEncoded(value){
 			

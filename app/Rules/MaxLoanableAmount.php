@@ -2,6 +2,7 @@
 
 namespace App\Rules;
 
+use App\Loan;
 use Illuminate\Contracts\Validation\Rule;
 
 class MaxLoanableAmount implements Rule

@@ -10,7 +10,7 @@
 						Approve Loan Accounts - Bulk Transaction </h3>
 				</div>
 				<div class="card-body">
-					<bulk-transaction-loan-accounts type="pending"></bulk-transaction-loan-accounts>
+					<bulk-transaction-loan-accounts type="approve"></bulk-transaction-loan-accounts>
 				</div>
 			</div>
 		</div>

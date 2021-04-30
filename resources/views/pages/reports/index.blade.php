@@ -8,10 +8,12 @@
 						<h4 class="h4 d-inline-block">Filter:</h4>
 						<div class="btn-filter-group ml-4 d-inline-block">
 							<button data-filter="*" class="btn-filters">Show All</button>
-							<button data-filter=".structure" class="btn-filters">Offices</button>
-							<button data-filter=".loans" class="btn-filters">Loan</button>
 							<button data-filter=".deposit" class="btn-filters">Deposit</button>
+							<button data-filter=".loans" class="btn-filters">Loans</button>
+							<button data-filter=".client" class="btn-filters">Clients</button>
 							<button data-filter=".reports" class="btn-filters">Reports</button>
+							<button data-filter=".summary" class="btn-filters">Summary</button>
+							<button data-filter=".detailed" class="btn-filters">Detailed</button>
 							<button data-filter=".user" class="btn-filters">Users</button>
 						</div>
 					</div>
@@ -25,13 +27,49 @@
 				
 				<ul class="settings" id="setting-tabs" role="tablist">
 				
-					<li class="settings-item reports">
-						<a class="nav-link active" id="home-tab" href="{{route('reports.bulk.disbursement.index')}}">
+					<li class="settings-item loans reports detailed">
+						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['detailed','disbursements'])}}">
 							
 							<i class="fas fa-3x fa-sign-out-alt"></i>
-							<p class="title text-center mt-2">Bulk Disbursements</p>
+							<p class="title text-center mt-2">Disbursements - Detailed</p>
 						</a>
 						
+					</li>
+					<li class="settings-item loans reports summary">
+						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['summary','disbursements'])}}">
+							
+							<i class="fas fa-3x fa-sign-out-alt"></i>
+							<p class="title text-center mt-2">Disbursements - Summary </p>
+						</a>
+						
+					</li>
+					<li class="settings-item loans reports detailed">
+						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['detailed','repayments'])}}">
+							
+							<i class="fas fa-3x fa-money-bill-alt"></i>
+							<p class="title text-center mt-2">Repayments - Detailed</p>
+						</a>
+					</li>
+					<li class="settings-item loans reports summary">
+						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['summary','repayments'])}}">
+							
+							<i class="fas fa-3x fa-money-bill-alt"></i>
+							<p class="title text-center mt-2">Repayments - Summary</p>
+						</a>
+					</li>
+					<li class="settings-item deposit reports summary">
+						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['summary','deposit'])}}">
+							
+							<i class="fas fa-3x fa-piggy-bank"></i>
+							<p class="title text-center mt-2">Deposit - Summary</p>
+						</a>
+					</li>
+					<li class="settings-item deposit reports detailed">
+						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['detailed','deposit'])}}">
+							
+							<i class="fas fa-3x fa-piggy-bank"></i>
+							<p class="title text-center mt-2">Deposit - Detailed</p>
+						</a>
 					</li>
 					
 			</div>

@@ -11,7 +11,8 @@
 						Repayment - Bulk Transaction </h3>
 				</div>
 				<div class="card-body">
-					<bulk-repayment></bulk-repayment>
+					{{-- <bulk-repayment></bulk-repayment> --}}
+					<bulk-repayment-v2></bulk-repayment-v2>
 				</div>
 			</div>
 		</div>

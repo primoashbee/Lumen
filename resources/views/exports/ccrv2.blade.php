@@ -117,6 +117,7 @@
                     <th>{{$type}}
                     @endforeach
                     @endif
+                    <th>Signature</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -159,6 +160,7 @@
                         <td></td>
                     @endforeach
                     @endif
+                    <td></td>
                   </tr>
                 </tbody>
           </table>

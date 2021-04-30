@@ -4,8 +4,8 @@
     <div class="">
    
       {{-- <step-form></step-form> --}}
-      <create-client-form></create-client-form>
-  
+      {{-- <create-client-form></create-client-form> --}}
+      <create-client></create-client>
       {{-- <upload-file></upload-file> --}}
     </div>
    </div>

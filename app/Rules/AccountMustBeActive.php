@@ -26,8 +26,8 @@ class AccountMustBeActive implements Rule
      */
     public function passes($attribute, $value)
     {
-        $x = LoanAccount::find($value)->isActive;
-        return LoanAccount::find($value)->isActive;
+        
+        return LoanAccount::find($value)->isActive();
     }
 
     /**

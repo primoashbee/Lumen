@@ -20,7 +20,7 @@ class CreateJournalVouchersTable extends Migration
             $table->unsignedBigInteger('journal_voucherable_id');
             $table->string('journal_voucherable_type');
             $table->string('office_id');
-            $table->string('notes');
+            $table->string('notes')->nullable();
             $table->timestamps();
         });
     }

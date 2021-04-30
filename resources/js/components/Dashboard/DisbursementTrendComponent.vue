@@ -1,6 +1,6 @@
 <template>
-  <div class="">
-     <canvas ref="myChart" width="100%" height="32%"></canvas>
+  <div>
+     <canvas ref="myChart" width="100%" height="25%"></canvas>
   </div>
 </template>
 
@@ -31,8 +31,17 @@ export default {
                   ticks : {
                     fontColor : 'white',
                     fontSize : 12,
-                    beginAtZero: true
-                  }
+                    beginAtZero: true,
+                    callback: function(label, index, labels) {
+                        return moneyFormat(label/1000) + 'k';
+                      }
+                    },
+                    scaleLabel: {
+                      fontColor : 'white',
+                      fontSize : 12,
+                      display: true,
+                      labelString: '1k = 1,000'
+                    }
                 }],
                 xAxes : [{
                   ticks : {
@@ -45,30 +54,31 @@ export default {
 
             },
             data: {
-              labels: null,
+              labels: ['1','2','3','4','5','6','7'],
               datasets: [
                 { 
                   label:'Disbursement',
                   borderColor: "#3dba9f",
                   backgroundColor: "#3dba9f",
-                  data: null, 
+                  data: [0,0,0,0,0,0,0], 
                 },
                 {
                   label:'Repayment (P)',
                   borderColor: "#3e95cd",
                   backgroundColor: "#3e95cd",
-                  data: [60000, 250000, 65000, 48000, 320000]
+                  data: [0,0,0,0,0,0,0]
                 },
                 {
                   label:'Repayment (I)',
                   borderColor: "#8e5ea2",
                   backgroundColor: "#8e5ea2",
-                  data: [6000, 25000, 6500, 4800, 32000]
+                  data: [0,0,0,0,0,0,0]
                 },
               ]
             }
         },
-        labels : null
+        labels : null,
+        chart : null
     }
   },
   mounted() {
@@ -78,23 +88,23 @@ export default {
 
   methods : {
     chartInit(){
-      new Chart(this.$refs.myChart, this.chart_options);
+      this.chart  = new Chart(this.$refs.myChart, this.chart_options);
     },
     getData(){
       axios.get(this.url)
         .then(res=>{ 
-            this.chart_options.data.labels = res.data.labels
-            this.chart_options.data.datasets[0].data = res.data.disbursements
-            this.chart_options.data.datasets[1].data = res.data.repayment_interest
-            this.chart_options.data.datasets[2].data = res.data.repayment_principal
-            this.chartInit()
+            this.chart_options.data.labels = res.data.disbursement_trend.labels
+            this.chart_options.data.datasets[0].data = res.data.disbursement_trend.disbursements
+            this.chart_options.data.datasets[1].data = res.data.disbursement_trend.repayment_interest
+            this.chart_options.data.datasets[2].data = res.data.disbursement_trend.repayment_principal
+            this.chart.update();
         })
     }
   },
 
   computed : {
     url(){
-      return '/dashboard/v1/disbursement_trend/'+this.office_id
+      return '/dashboard/v1/true/'+this.office_id+'/disbursement_trend'
     }
   }
 }

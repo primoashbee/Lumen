@@ -13,15 +13,16 @@ class LoanAccountFeePayment extends Model
     protected $fillable = [
         'loan_account_id',
         'loan_account_disbursement_transaction_id',
-        'transaction_id',
+        'transaction_number',
         'fee_id',
         'amount',
         'payment_method_id',
-        'paid_at',
+        'repayment_date',
         'paid_by',
         'paid',
         'created_at',
         
+        'office_id',
         'reverted',
         'reverted_by',
         'reverted_at'

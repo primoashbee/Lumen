@@ -2,12 +2,14 @@
 
 namespace App\Listeners;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 
-class TestListener
+class TestListener implements ShouldQueue, ShouldBroadcast
 {
+    // use Dispatchable, InteractsWithSockets, SerializesModels;
+
     /**
      * Create the event listener.
      *
@@ -25,8 +27,15 @@ class TestListener
      * @return void
      */
     public function handle($event)
-    {   
+    {
         
-        Log::info('Created client:'. $event->item->client_id);
+    }
+
+    public function broadcastOn()
+    {
+        return new Channel('channel-name');
+    }
+    public function broadcastAs(){
+        return 'bulk-disburse-loan';
     }
 }

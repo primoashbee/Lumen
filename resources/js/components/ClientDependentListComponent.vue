@@ -38,8 +38,9 @@
                         <td>{{item.application_number}}</td>
                         <td>{{item.unit_of_plan}}</td>
                         <td>{{item.count}}</td>
-                        <td>{{item.activated_at}} - {{item._expires_at}}</td>
-                        <td>{{item.expires_at}}</td>
+                        <!-- <td>{{moment(item.activated_at)}} - {{moment(item.expires_at)}}</td> -->
+                        <td>{{periodCovered(item.activated_at, item.expires_at)}}</td>
+                        <td>{{expires(item.expires_at)}}</td>
                         <td>{{item.status}}</td>
                         <td>
                             <button class="btn btn-light" @click="showModal(item.application_number,item.pivotList)"><i class="fa fa-eye"></i></button>
@@ -62,15 +63,23 @@
             <div class="modal-body">
                 <table class="table table-condensed">
                     <thead>
+                        <th></th>
                         <th>Name</th>
                         <th>Age</th>
                         <th>Relationship</th>
                     </thead>
                     <tbody v-if="selected_application_number!=null">
-                        <tr v-for="item in selected_pivot_list" :key="item.id">
-                            <td> {{item.name}}</td>
+                        <tr v-for="(item,key) in selected_pivot_list" :key="key">
+                            <td> {{key+1}}</td>
+                         
+                            <td> {{item.fullname}}</td>
                             <td> {{item.age}}</td>
                             <td> {{item.relationship}}</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td class="text-right"># of Dependents</td>
+                            <td class="text-right">{{key}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -117,7 +126,25 @@ export default {
             this.selected_pivot_list = pivot_list
             $('#dependents_modal').modal('show')
         },
-        
+        periodCovered(start,end){
+            if((start === undefined || start === null || start == 'NULL') && (end === undefined || end === null || end == 'NULL')){
+                return '-';
+            }
+            return this.moment(start).format('LL') + ' - ' +  this.moment(end).format('LL')
+        },
+        moment(date){
+            if(date === undefined || date === null || date == 'NULL'){
+                return 'Unused';
+            }
+            return moment(date);
+        },
+        expires(date){
+
+            if(date === undefined || date === null || date == 'NULL'){
+                return '-'
+            }
+            return this.moment(date).diff(new Date(),'days');
+        }
     },
     computed: {
         linkCreateDependent(){

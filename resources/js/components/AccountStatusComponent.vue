@@ -3,7 +3,7 @@
   <multiselect 
     v-model="value" 
     :options="options" 
-    :multiple="_multiValues" 
+    :multiple="multi_values" 
     @input = "emitToParent"
     :clear-on-select="true"
 
@@ -21,14 +21,19 @@ export default {
   components: {
     Multiselect
   },
-  props: ['multi_values','add_class'],
-  created(){
-
+  props: ['multi_values','add_class','type'],
+  mounted(){
+    if(this.type=='loan_account'){
+      this.options = ["All","Active", "Cancelled", "Closed", "In Arrears", "Inactive", "Matured", "Pending Approval", "Rejected", "Written Off"]
+    }
+    if(this.type=='deposit'){
+      this.options = ['Active','Dormant'];
+    }
   },
   data () {
     return {
         lists: null,
-        options: ["All","Active", "Cancelled", "Closed", "In Arrears", "Inactive", "Matured", "Pending Approval", "Rejected", "Written Off"],
+        options: [],
         value: null
     }
   },
@@ -40,15 +45,7 @@ export default {
       }
     }
   },
-  computed: {
-    _multiValues(){
-      if(this.multi_values != "true" || this.multi_values != "1"){
-        return false;
-      } 
 
-      return true;
-    }
-  }
 }
 </script>
 <style>

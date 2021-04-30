@@ -74,6 +74,7 @@ class Client extends Model
 	    });
     }
 
+    
     public function deposits(){
         
         return $this->hasMany(DepositAccount::class,'client_id','client_id');

@@ -20,7 +20,6 @@ class Fee extends Model
     ];
 
 
-    
     public function loan(){
         return $this->belongsToMany(Loan::class,'loan_fee');
     }
@@ -190,9 +189,11 @@ class Fee extends Model
 
         if ($dependent != null) {
             foreach ($dependent as $item) {
-                $level = $item->level;
-                $amount += $rate->$level;
-                $unit_of_plan = $item->unit_of_plan;
+                if (!$item->is_member) {
+                    $level = $item->level;
+                    $amount += $rate->$level;
+                    $unit_of_plan = $item->unit_of_plan;
+                }
             }
         }
         

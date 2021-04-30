@@ -246,7 +246,7 @@ export default {
         hasInputError(array_name,account_id,field){
 
             var index = this.form[array_name].findIndex(x=> {return x.id ==account_id});
-            if(index >=0 ){
+            if(index >= 0 ){
                 var str =  array_name + '.' + index + '.' + field
                 
                 return this.errors.hasOwnProperty(str);

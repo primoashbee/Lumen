@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DepositPayment extends Model
 {
-    protected $fillable = ['deposit_account_id','amount','balance','payment_method_id','notes'];
+    protected $fillable = ['transaction_number','deposit_account_id','amount','balance','payment_method_id','repayment_date','office_id','reverted','reverted_by','revertion','paid_by','type','notes'];
 
 
     protected $appends = ['payment_method_name','formatted_amount','formatted_balance'];
@@ -38,18 +38,22 @@ class DepositPayment extends Model
 
     public function revert($user_id){
         $data = $this->revertData($user_id);
+        $this->update([
+            'reverted'=>true,
+            'reverted_by'=>$user_id
+        ]);
         return $this->account->withdraw($data,true,true);
     }
 
     public function revertData($user_id){
         
         $data['amount'] = (int) $this->amount;
-        $data['transaction_number'] = uniqid();
-        $data['payment_method'] = (int) $this->payment_method_id;
-        $data['notes'] = 'Revertion for ' . $this->transaction->transaction_number;
-        $data['user_id'] = $user_id;
-        $data['office_id'] = (int) $this->transaction->office_id;
-        $data['repayment_date'] = $this->transaction->transaction_date;
+        $data['transaction_number'] = 'RD'.str_replace('.','',microtime(true));
+        $data['payment_method_id'] = (int) $this->payment_method_id;
+        $data['notes'] = 'Revertion for ' . $this->transaction_number;
+        $data['paid_by'] = (int) $this->paid_by;
+        $data['office_id'] = (int) $this->office_id;
+        $data['repayment_date'] = $this->repayment_date;
         return $data;
 
     }

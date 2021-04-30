@@ -2,15 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use stdClass;
+use App\Office;
 use App\LoanAccount;
 use App\BulkDisbursement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use App\Exports\DisbursementExport;
+use Illuminate\Support\Facades\App;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class DownloadController extends Controller
 {
     
-    public function dst($loan_account_id){
+    public function dst($loan_account_id=1){
+
         $loan_account = LoanAccount::find($loan_account_id);
         $file = public_path('templates/DSTv1.xlsx');
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
@@ -287,4 +295,280 @@ class DownloadController extends Controller
         $headers = ['Content-Type'=> 'application/pdf','Content-Disposition'=> 'attachment;','filename'=>$filename];
         return response()->download($newFile,$filename ,$headers)->deleteFileAfterSend(true);
     }
+
+    public static function ccr($request, $data){
+        $office = Office::find($request['office_id']);
+        $repayment_date = Carbon::parse($request['date']);
+        $printed_by = auth()->user()->fullname;
+
+        $summary = new stdClass;
+        $summary->office = $office->name;
+        $summary->printed_by = $printed_by;
+        $summary->printed_at = \Carbon\Carbon::now()->format('F j, Y, g:i a');
+        $summary->repayment_date = $repayment_date->format('F d, Y');
+        $summary->has_deposit = array_key_exists('deposit_product_ids',$request);
+        $summary->has_loan = array_key_exists('loan_product_id',$request);
+        if ($summary->has_deposit) {
+            $summary->deposit_types = $request['deposit_product_ids'];
+        }
+        $summary->loan_accounts = $data;
+
+        $summary->name = 'Collection Sheet - ' . $summary->office . ' for ' . $summary->repayment_date.'.pdf';
+ 
+        $file = public_path('temp/'). $summary->name;
+        $pdf = App::make('snappy.pdf.wrapper');
+        $headers = ['Content-Type'=> 'application/pdf','Content-Disposition'=> 'attachment;','filename'=>$summary->name];
+    
+        $pdf->loadView('exports.test',compact('summary'))->save($file,true);
+        
+        return ['file'=>$file, 'filename' => $summary->name, 'headers'=>$headers];
+    }
+
+    public static function disbursementReport($data){
+        $id = str_replace('.','',microtime(true));
+
+        if($data['is_summarized']){
+            $filename = 'Disbursement Report - Summarized ('.$id.').xlsx';
+            $file = public_path('templates/Reports/Disbursement Report - Summary.xlsx');
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+            $sheet =$spreadsheet->getSheet(0);
+        
+            $start_row = 3  ;
+            // foreach ($data['data'] as $key=>$value) {
+
+            // }
+            $data['data']->orderBy('office_name','desc')->chunk(1000, function($list) use (&$start_row, &$sheet){
+                foreach($list as $key=>$value){
+                    $sheet->setCellValue('A'.$start_row, $key + 1);
+                    $sheet->setCellValue('B'.$start_row, $value->office_level);
+                    $sheet->setCellValue('C'.$start_row, $value->number_of_disbursements);
+                    $sheet->setCellValue('D'.$start_row, $value->loan_type);
+                    $sheet->setCellValue('E'.$start_row, $value->principal);
+                    $sheet->setCellValue('F'.$start_row, $value->principal);
+                    $sheet->setCellValue('G'.$start_row, $value->interest);
+                    $sheet->setCellValue('H'.$start_row, $value->total_loan_amount);
+                    $sheet->setCellValue('I'.$start_row, $value->disbursed_amount);
+                    $sheet->setCellValue('J'.$start_row, $value->total_deductions);
+                    $start_row++;
+                }
+            });
+            $writer = new Xlsx($spreadsheet);
+            $writer->setPreCalculateFormulas(false);
+            $newFile = public_path('reports/').$filename;
+            $writer->save($newFile);
+        }else{
+            $filename = 'Disbursement Report - Detailed ('.$id.').xlsx';
+            $file = public_path('templates/Reports/Disbursement Report - Detailed.xlsx');
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+            $sheet =$spreadsheet->getSheet(0);
+        
+            $start_row = 3  ;
+            $data['data']->orderBy('id','desc')->chunk(1000, function($list) use (&$start_row, &$sheet) {
+                foreach($list as $key=>$value){
+                    $sheet->setCellValue('A'.$start_row, $key + 1);
+                    $sheet->setCellValue('B'.$start_row, $value->client_id);
+                    $sheet->setCellValue('C'.$start_row, $value->fullname);
+                    $sheet->setCellValue('D'.$start_row, $value->code);
+                    $sheet->setCellValue('E'.$start_row, $value->principal);
+                    $sheet->setCellValue('F'.$start_row, $value->principal);
+                    $sheet->setCellValue('G'.$start_row, $value->interest);
+                    $sheet->setCellValue('H'.$start_row, $value->total_loan_amount);
+                    $sheet->setCellValue('I'.$start_row, $value->interest_rate);
+                    $sheet->setCellValue('J'.$start_row, $value->number_of_months);
+                    $sheet->setCellValue('K'.$start_row, $value->number_of_installments);
+                    $sheet->setCellValue('L'.$start_row, $value->installment_method);
+                    $sheet->setCellValue('M'.$start_row, $value->total_deductions);
+                    $sheet->setCellValue('N'.$start_row, $value->disbursed_amount);
+                    $sheet->setCellValue('O'.$start_row, $value->disbursed_by);
+                    $sheet->setCellValue('P'.$start_row, $value->disbursement_date);
+                    $sheet->setCellValue('Q'.$start_row, $value->first_payment_date);
+                    $sheet->setCellValue('R'.$start_row, $value->last_payment_date);
+                    $sheet->setCellValue('S'.$start_row, $value->notes);
+                    $sheet->setCellValue('T'.$start_row, $value->office_level);
+                    $start_row++;
+                }
+            });
+            $writer = new Xlsx($spreadsheet);
+            $writer->setPreCalculateFormulas(false);
+            $newFile = public_path('reports/').$filename;
+            $writer->save($newFile);
+        }
+        $headers = ['Content-Type'=> 'application/vnd.ms-excel','Content-Disposition'=> 'attachment;','filename'=>$filename];
+        return ['file'=>$newFile, 'filename' => $filename, 'headers'=>$headers];
+        
+    }
+
+    public static function repaymentReport($data){
+        $id = str_replace('.','',microtime(true));
+
+        if($data['is_summarized']){
+                $filename = 'Repayment Report - Summary ('.$id.').xlsx';
+                $file = public_path('templates/Reports/Repayment Report - Summary.xlsx');
+                $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+                $sheet =$spreadsheet->getSheet(0);
+            
+                $start_row = 3;
+       
+                $data['data']->orderBy('office_code')->chunk(1000, function($list) use (&$sheet, &$start_row){
+                    foreach ($list as $key=>$value) {
+                        $sheet->setCellValue('A'.$start_row, $key + 1);
+                        $sheet->setCellValue('B'.$start_row, $value->office_code);
+                        $sheet->setCellValue('C'.$start_row, $value->number_of_repayments);
+                        $sheet->setCellValue('D'.$start_row, $value->payment_method_name);
+                        $sheet->setCellValue('E'.$start_row, $value->loan_code);
+                        $sheet->setCellValue('F'.$start_row, $value->principal_paid);
+                        $sheet->setCellValue('G'.$start_row, $value->interest_paid);
+                        $sheet->setCellValue('H'.$start_row, $value->total_paid);
+
+        
+                        $start_row++;
+                    }
+                });
+
+        }else{
+                $filename = 'Repayment Report - Detailed ('.$id.').xlsx';
+                $file = public_path('templates/Reports/Repayment Report - Detailed.xlsx');
+                $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+                $sheet =$spreadsheet->getSheet(0);
+                $z = $data['data']->get();
+                $start_row = 3  ;
+                $data['data']->orderBy('repayment_date','desc')->chunk(1000, function($list) use (&$sheet, &$start_row){
+                    foreach($list as $key=>$value){
+                        $sheet->setCellValue('A'.$start_row, $key + 1);
+                        $sheet->setCellValue('B'.$start_row, $value->client_id);
+                        $sheet->setCellValue('C'.$start_row, $value->client_name);
+                        $sheet->setCellValue('D'.$start_row, $value->loan_code);
+                        $sheet->setCellValue('E'.$start_row, $value->principal_paid);
+                        $sheet->setCellValue('F'.$start_row, $value->interest_paid);
+                        $sheet->setCellValue('G'.$start_row, $value->total_paid);
+                        $sheet->setCellValue('H'.$start_row, $value->payment_method_name);
+                        $sheet->setCellValue('I'.$start_row, $value->paid_by);
+                        $sheet->setCellValue('J'.$start_row, $value->repayment_date);
+                        // $sheet->setCellValue('K'.$start_row, $value->paid_on);
+                        $sheet->setCellValue('L'.$start_row, $value->timestamp);
+        
+                        $start_row++;
+                    }
+                });
+            }
+
+            $writer = new Xlsx($spreadsheet);
+            $writer->setPreCalculateFormulas(false);
+            $newFile = public_path('reports/').$filename;
+            $writer->save($newFile);
+
+            $headers = 
+            [
+                'Content-Type'=> 'application/vnd.ms-excel',
+                'Content-Disposition'=> 'attachment;',
+                'filename'=>$filename
+            ];
+            return ['file'=>$newFile, 'filename' => $filename, 'headers'=>$headers]; 
+        }
+
+
+    public static function depositReport($data){
+        $id = str_replace('.','',microtime(true));
+
+        if($data['is_summarized']){
+            $filename = 'Deposit Report - Summary ('.$id.').xlsx';
+            // $file = public_path('templates/Reports/Detailed Deposit Report.xlsx');
+            $file = public_path('templates/Reports/Deposit Report - Summary.xlsx');
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+            $sheet =$spreadsheet->getSheet(0);
+        
+            $start_row = 3  ;
+            
+            // foreach ($data['data']->chunk as $key=>$value) {
+            $data['data']->orderBy('office_name')->chunk(200, function ($records) use (&$sheet, &$start_row){
+                foreach($records as $key=>$value){
+                    $sheet->setCellValue('A'.$start_row, $key + 1);
+                    $sheet->setCellValue('B'.$start_row, $value->office_name);
+                    $sheet->setCellValue('C'.$start_row, $value->number_of_payments);
+                    $sheet->setCellValue('D'.$start_row, $value->transaction_type);
+                    $sheet->setCellValue('E'.$start_row, $value->deposit_name);
+                    $sheet->setCellValue('F'.$start_row, $value->transaction_amount);
+                    $sheet->setCellValue('G'.$start_row, $value->balance);
+                    $start_row++;
+                }
+            });
+            // }
+            $writer = new Xlsx($spreadsheet);
+            $writer->setPreCalculateFormulas(false);
+            $newFile = public_path('reports/').$filename;
+            $writer->save($newFile);
+        }else{
+            $filename = 'Deposit Report - Detailed ('.$id.').xlsx';
+            // $file = public_path('templates/Reports/Detailed Deposit Report.xlsx');
+            $file = public_path('templates/Reports/Deposit Report - Detailed.xlsx');
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+            $sheet =$spreadsheet->getSheet(0);
+        
+            $start_row = 3  ;
+            foreach ($data['data'] as $key=>$value) {
+                $sheet->setCellValue('A'.$start_row, $key + 1);
+                $sheet->setCellValue('B'.$start_row, $value->client_id);
+                $sheet->setCellValue('C'.$start_row, $value->client_fullname);
+                $sheet->setCellValue('D'.$start_row, $value->deposit_name);
+                $sheet->setCellValue('E'.$start_row, $value->transaction_amount);
+                $sheet->setCellValue('F'.$start_row, $value->transaction_type);
+                $sheet->setCellValue('G'.$start_row, $value->balance);
+                $sheet->setCellValue('H'.$start_row, $value->user_fullname);
+                $sheet->setCellValue('I'.$start_row, $value->payment_method_name);
+                $sheet->setCellValue('J'.$start_row, $value->transaction_date);
+                $sheet->setCellValue('K'.$start_row, $value->created_at);
+                $sheet->setCellValue('L'.$start_row, $value->notes);
+                $start_row++;
+            }
+            $writer = new Xlsx($spreadsheet);
+            $writer->setPreCalculateFormulas(false);
+            $newFile = public_path('reports/').$filename;
+            $writer->save($newFile);
+        }
+
+        $headers = ['Content-Type'=> 'application/vnd.ms-excel','Content-Disposition'=> 'attachment;','filename'=>$filename];
+        return ['file'=>$newFile, 'filename' => $filename, 'headers'=>$headers];
+    }
+
+    public static function transaction(){
+
+        // $list = \DB::table('transactions')->get();
+
+        $filename = 'Repayment Report - Detailed.xlsx';
+            // $file = public_path('templates/Reports/Detailed Deposit Report.xlsx');
+        $file = public_path('templates/Reports/Deposit Report - Detailed.xlsx');
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+        $sheet =$spreadsheet->getSheet(0);
+    
+        $start_row = 3  ;
+        \DB::table('transactions')->chunkById(200, function($items) use (&$sheet, &$start_row){
+            foreach ($items as $key=>$value) {
+                $sheet->setCellValue('A'.$start_row, $key + 1);
+                $sheet->setCellValue('B'.$start_row, $value->transaction_number);
+                $sheet->setCellValue('C'.$start_row, $value->type);
+                $sheet->setCellValue('D'.$start_row, $value->transactionable_id);
+                $sheet->setCellValue('E'.$start_row, $value->office_id);
+                $sheet->setCellValue('F'.$start_row, $value->transaction_date);
+                $sheet->setCellValue('G'.$start_row, $value->transactionable_type);
+                $sheet->setCellValue('H'.$start_row, $value->reverted);
+                $sheet->setCellValue('I'.$start_row, $value->reverted_by);
+                $sheet->setCellValue('J'.$start_row, $value->reverted_at);
+                $sheet->setCellValue('K'.$start_row, $value->revertion);
+                $sheet->setCellValue('L'.$start_row, $value->posted_by);
+                $sheet->setCellValue('L'.$start_row, $value->created_at);
+                $sheet->setCellValue('L'.$start_row, $value->updated_at);
+                $start_row++;
+            }
+        });
+        
+        $writer = new Xlsx($spreadsheet);
+        $writer->setPreCalculateFormulas(false);
+        $newFile = public_path('reports/').$filename;
+        $writer->save($newFile);
+    
+
+        $headers = ['Content-Type'=> 'application/vnd.ms-excel','Content-Disposition'=> 'attachment;','filename'=>$filename];
+        return ['file'=>$newFile, 'filename' => $filename, 'headers'=>$headers];
+    }
+
 }

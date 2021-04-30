@@ -5,15 +5,16 @@ namespace App\Events;
 use App\User;
 use App\Office;
 use App\PaymentMethod;
-use Illuminate\Broadcasting\Channel;
+
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class LoanAccountPayment implements ShouldBroadcast
+class LoanAccountPayment implements ShouldBroadcast, ShouldQueue
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
     /**
@@ -25,7 +26,7 @@ class LoanAccountPayment implements ShouldBroadcast
 
     public $office_id;
     public $msg;
-    public $broadcasts_on;
+    private $broadcasts_on;
     public function __construct($payload,$office_id,$user_id,$payment_method_id)
     {
      

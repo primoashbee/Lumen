@@ -8,7 +8,7 @@
     group-values="data" 
     group-label="level" 
     :group-select="false" 
-    :allow-empty="false"
+    :allow-empty="true"
     placeholder="Select Level" 
     track-by="name" 
     label="name"
@@ -50,7 +50,6 @@ export default {
   methods: {
     emitToParent(){
       if(this.value!=null){
-        
         this.$emit('officeSelected', this.value);
       }
     },

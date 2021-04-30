@@ -122,10 +122,9 @@ class LoanAccountController extends Controller
         if(!$for_update){
             $rules = [
                 'loan_id'=>'required|exists:loans,id',
-                'client_id'=>['required','exists:clients,client_id',new HasNoUnusedDependent],
-                'client_id'=>['required','exists:clients,client_id',new HasNoPendingLoanAccount],
-                'amount'=>['required','gte:2000',new LoanAmountModulo, new MaxLoanableAmount($data['office_id'])],
-                'disbursement_date'=>['required','date', new DateIsWorkingDay],
+                'client_id'=>['required','exists:clients,client_id',new HasNoUnusedDependent,new HasNoPendingLoanAccount],
+                'amount'=>['required','gte:2000',new LoanAmountModulo, new MaxLoanableAmount($data['loan_id'])],
+                // 'disbursement_date'=>['required','date', new DateIsWorkingDay],
                 
                 'first_payment'=>['required','date','after_or_equal:disbursement_date', new DateIsWorkingDay],
                 'number_of_installments'=>'required|gt:0|integer',
@@ -489,18 +488,46 @@ class LoanAccountController extends Controller
     public function account(Request $request, $client_id,$loan_id){
 
         if($request->wantsJson()){
-            $account  = LoanAccount::find($loan_id)->append('mutated','total_paid','pre_term_amount');
-            $installments = $account->installments->each->append('mutated','status');
+            $account  = LoanAccount::find($loan_id);
+            $activity = $account->transactions()->orderBy('transaction_date','DESC')->get();
+            $pre_term_amount = $account->preTermAmount();
+            $installment_repayments = \DB::table('loan_account_installment_repayments');
+            $installments = \DB::table('loan_account_installments')
+                                ->select('installment','original_principal','original_interest','date','amortization','principal','interest','principal_due','interest_due',
+                                \DB::raw("IF(paid=false, (
+                                    CASE 
+                                        WHEN `date` > DATE(CURRENT_TIMESTAMP) THEN 'Not Due'
+                                        WHEN `date` = DATE(CURRENT_TIMESTAMP) THEN 'Due'
+                                        WHEN `date` < DATE(CURRENT_TIMESTAMP) THEN 'In Arrears'
+                                        END),'Paid') as status"),
+                                \DB::raw('SUM(installment_repayments.interest_paid) as interest_paid'),
+                                \DB::raw('SUM(installment_repayments.principal_paid) as principal_paid'),
+                                \DB::raw('SUM(installment_repayments.total_paid) as total_paid'),
+                            
+                                )
+                                ->leftJoinSub($installment_repayments,'installment_repayments',function($join){
+                                    $join->on('installment_repayments.loan_account_installment_id','loan_account_installments.id');
+                                })
+                                ->where('loan_account_id',$loan_id)
+                                ->orderBy('installment','asc')
+                                ->groupBy('loan_account_installments.id')
+                                ->get();
+            $fees = $account->fresh()->feePayments;
+            $total_paid = $account->fresh()->totalPaid();
+            $amount_due = $account->fresh()->amountDue();
             
             $client = Client::select('firstname','lastname','client_id')->where('client_id',$client_id)->first();
             
             
-            $activity = $account->activity()->orderBy('created_at','desc')->get()->each->transactionable;
             return response()->json([
                 'account'=>$account,
                 'client'=>$client,
                 'installments'=>$installments,
-                'activity'=>$activity
+                'activity'=>$activity,
+                'fees'=>$fees,
+                'total_paid'=>$total_paid,
+                'pre_term_amount'=>$pre_term_amount,
+                'amount_due'=>$amount_due
             ],200);
         }
         
@@ -524,93 +551,110 @@ class LoanAccountController extends Controller
     public function bulkDisburseForm(){
         return view('pages.bulk.disburse-loan-accounts');
     }
-    public function bulkDisburse(Request $request){
+
+
+    
+    public function bulkLoanTransact(Request $request, $type){
+        if($type=='approve'){
+            $rules = [
+                'accounts.*' => ['required', 'exists:loan_accounts,id',new LoanAccountCanBeApproved]
+            ];
+            Validator::make(
+                $request->all(),
+                $rules,
+            )->validate();
+    
+            \DB::beginTransaction();
+            $ctr = 0;
+            try {
+                foreach($request->accounts as $account){
+                    LoanAccount::find($account)->approve(auth()->user()->id);
+                    $ctr++;
+                }
+                \DB::commit();
+                return response()->json(['msg'=>'Account/s ('.$ctr.'/'.count($request->accounts).') Succesfully Approved'],200);
+            }catch(\Exception $e){ 
+                return response()->json(['msg'=>$e->getMessage()],500);
+            }
+        }elseif($type=="disburse"){
+            $rules = [
+                'office_id' =>'required|exists:offices,id',
+                'disbursement_date'=>'required|date',
+                'first_repayment_date'=>'required|after_or_equal:disbursement_date',
+                'cv_number'=>'required|unique:check_vouchers,check_voucher_number',
+                'accounts.*' => ['required', 'exists:loan_accounts,id',new LoanAccountCanBeDisbursed],
+                'payment_method' =>['required',new PaymentMethodList]
+            ];
+            $msgs = [
+                'office_id.required' => 'Branch level is required'
+            ];
+            Validator::make(
+                $request->all(),
+                $rules,
+                $msgs
+            )->validate();
+            \DB::beginTransaction();
+            try {
+                $payment_info = [
+                    'disbursement_date'=>$request->disbursement_date,
+                    'first_repayment_date'=>$request->first_repayment_date,
+                    'payment_method_id'=>$request->payment_method,
+                    'office_id'=>$request->office_id,
+                    'disbursed_by'=>auth()->user()->id,
+                    'cv_number'=>$request->cv_number
+                ];
+                $disbursed_amount = 0;
+                $bulk_disbursement_id = sha1(time());
+                $first_payment = null;
+                foreach ($request->accounts as $account) {
+                    $account =  LoanAccount::find($account);
+                    //get first payment of 1st loan account
+    
+                    $account->disburse($payment_info,true,$bulk_disbursement_id);
+                    if (is_null($first_payment)) {
+                        $first_payment = $account->installments->first()->date->format('d-F');
+                    }
+                    $disbursed_amount+= $account->disbursed_amount;
+                }
+    
+                
+                $office = Office::select('name','level')->find($request->office_id)->name;
+                $by = auth()->user()->fullname;
+                $payment = PaymentMethod::find($request->payment_method)->name;
+                $msg = 'Disbursed '. money($disbursed_amount,2) .' at ' . $office .' by ' . $by. ' ['.$payment.'].';
+                $payload = [
+                    'msg'=>$msg,
+                    'office_id'=>$request->office_id,
+                    'amount'=>$disbursed_amount,
+                    'date'=>$first_payment,
+                ];
+                event(new LoanDisbursed($payload));
+    
+                \DB::commit();
+                return response()->json(['msg'=>'Loan Account successfully created','bulk_disbursement_id'=>$bulk_disbursement_id], 200);
+            } catch (\Exception $e) {
+                return response()->json(['msg'=>$e->getMessage()], 500);
+            }
+        }
+    }
+
+
+    public function preDisbursementList(Request $request){
         $rules = [
             'office_id' =>'required|exists:offices,id',
-            'disbursement_date'=>'required|date',
-            'first_repayment_date'=>'required|after_or_equal:disbursement_date',
-            'cv_number'=>'required|unique:check_vouchers,check_voucher_number',
-            'accounts.*' => ['required', 'exists:loan_accounts,id',new LoanAccountCanBeDisbursed],
-            'payment_method' =>['required',new PaymentMethodList]
-        ];
-        $msgs = [
-            'office_id.required' => 'Branch level is required'
-        ];
-        Validator::make(
-            $request->all(),
-            $rules,
-            $msgs
-        )->validate();
-        \DB::beginTransaction();
-        try {
-            $payment_info = [
-                'disbursement_date'=>$request->disbursement_date,
-                'first_repayment_date'=>$request->first_repayment_date,
-                'payment_method_id'=>$request->payment_method,
-                'office_id'=>$request->office_id,
-                'disbursed_by'=>auth()->user()->id,
-                'cv_number'=>$request->cv_number
-            ];
-            $disbursed_amount = 0;
-            $bulk_disbursement_id = sha1(time());
-            $first_payment = null;
-            foreach ($request->accounts as $account) {
-                $account =  LoanAccount::find($account);
-                //get first payment of 1st loan account
-
-                $account->disburse($payment_info,true,$bulk_disbursement_id);
-                if (is_null($first_payment)) {
-                    $first_payment = $account->installments->first()->date->format('d-F');
-                }
-                $disbursed_amount+= $account->disbursed_amount;
-            }
-
-            
-            $office = Office::select('name','level')->find($request->office_id)->name;
-            $by = auth()->user()->fullname;
-            $payment = PaymentMethod::find($request->payment_method)->name;
-            $msg = 'Disbursed '. money($disbursed_amount,2) .' at ' . $office .' by ' . $by. ' ['.$payment.'].';
-            $payload = [
-                'msg'=>$msg,
-                'office_id'=>$request->office_id,
-                'amount'=>$disbursed_amount,
-                'date'=>$first_payment,
-            ];
-            event(new LoanDisbursed($payload));
-
-            \DB::commit();
-            return response()->json(['msg'=>'Loan Account successfully created','bulk_disbursement_id'=>$bulk_disbursement_id], 200);
-        } catch (\Exception $e) {
-            return response()->json(['msg'=>$e->getMessage()], 500);
-        }
-    }
-
-    public function bulkApprove(Request $request){
-        
-        $rules = [
-            'accounts.*' => ['required', 'exists:loan_accounts,id',new LoanAccountCanBeApproved]
+            'type'=> []
         ];
         Validator::make(
             $request->all(),
             $rules,
         )->validate();
-
-        \DB::beginTransaction();
-        $ctr = 0;
-        try {
-            foreach($request->accounts as $account){
-                LoanAccount::find($account)->approve(auth()->user()->id);
-                $ctr++;
-            }
-            \DB::commit();
-            return response()->json(['msg'=>'Account/s ('.$ctr.'/'.count($request->accounts).') Succesfully Approved'],200);
-        }catch(\Exception $e){ 
-            return response()->json(['msg'=>$e->getMessage()],500);
-        }
         
-
+        $list = LoanAccount::bulkList($request->type,$request->office_id)->get();
+        return response()->json([
+            'msg'=>'Success',
+            'list'=>$list
+        ],200);
     }
-
     public function pendingLoans(Request $request){
 
         $rules = [
@@ -644,13 +688,7 @@ class LoanAccountController extends Controller
             $rules,
         )->validate();
         
-        $office = Office::find($request->office_id);
-
-        if(is_null($request->loan_id)){
-            $list = $office->getLoanAccounts('approved')->each->append('basic_client','mutated');
-        }else{
-            $list = $office->getLoanAccounts('approved',$request->loan_id)->each->append('basic_client','mutated');
-        }
+        $list = LoanAccount::bulkList('Approved',$request->office_id)->get();
         return response()->json([
             'msg'=>'Success',
             'list'=>$list

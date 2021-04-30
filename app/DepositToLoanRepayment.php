@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class DepositToLoanRepayment extends Model
 {
     protected $fillable = [
+        'transaction_number',
         'loan_account_id',
         'interest_paid',
         'principal_paid',
@@ -16,6 +17,10 @@ class DepositToLoanRepayment extends Model
         'payment_method_id',
         'repayment_date',
         'for_pretermination',
+        'office_id',
+        'reverted',
+        'reverted_by',
+        'revertion',
         'notes',
         'deposit_account_id',
         'for_pretermination',
@@ -82,10 +87,14 @@ class DepositToLoanRepayment extends Model
         //update balances
         $this->jv->delete();
 
-        // $this->transaction->revert($user_id);
+        $this->update([
+            'reverted'=>true,
+            'reverted_by'=>$user_id,
+        ]);
         $loan_account =  $this->loanAccount;
         $loan_account->updateStatus();
-        $loan_account->updateBalance();
+        $loan_account->updateBalances();
+
         if($this->for_pretermination){
             $loan_account->update([
                 'closed_by'=>null,

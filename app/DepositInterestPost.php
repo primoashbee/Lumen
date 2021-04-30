@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DepositInterestPost extends Model
 {
-    protected $fillable =['deposit_account_id','amount','balance','payment_method_id','notes'];
+    protected $fillable =['transaction_number','deposit_account_id','amount','balance','payment_method_id','repayment_date','office_id','paid_by','notes'];
     protected $appends = ['payment_method_name','formatted_amount','formatted_balance'];
 
     public function jv(){
@@ -24,6 +24,10 @@ class DepositInterestPost extends Model
     }
     public function getFormattedBalanceAttribute(){
         return money($this->balance,2);
+    }
+
+    public function account(){
+        return $this->belongsTo(DepositAccount::class,'deposit_account_id','id');
     }
 }
 

@@ -7,6 +7,7 @@ use App\Client;
 use App\Office;
 use App\Cluster;
 use App\HouseholdIncome;
+use App\Notification;
 use Illuminate\Support\Str;
 use Faker\Generator as Faker;
 use Illuminate\Support\Facades\Hash;

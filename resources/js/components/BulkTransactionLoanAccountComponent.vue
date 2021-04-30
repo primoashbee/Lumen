@@ -40,11 +40,11 @@
                     <tr v-for="client in lists" :key="client.client_id">
                         <td><input type="checkbox" class="checkbox" :id="client.client_id" @change="checked(client,$event)"></td>
                         <td><label :for="client.client_id">{{client.client_id}}</label></td>
-                        <td class="text-lg"><a class="text-lg" :href="clientLink(client.client_id)">{{client.basic_client.full_name}}</a></td>
+                        <td class="text-lg"><a class="text-lg" :href="clientLink(client.client_id)">{{client.fullname}}</a></td>
                         <td> {{client.number_of_installments}} </td>
-                        <td> {{client.mutated.amount}} </td>
-                        <td> {{client.mutated.total_deductions}} </td>
-                        <td> {{client.mutated.disbursed_amount}} </td>
+                        <td> {{money(client.amount)}} </td>
+                        <td> {{money(client.total_deductions)}} </td>
+                        <td> {{money(client.disbursed_amount)}} </td>
                         
                     </tr>
                 </tbody>
@@ -147,7 +147,7 @@ export default {
                 cv_number: null,
             },
             selected_list : [],
-            url : null,
+            url : '/bulk/predisbursement/loans/list',
             post_url: null,
             modal :{
                 modalState : false,
@@ -163,15 +163,14 @@ export default {
         AmountInputComponent,
     },
     mounted(){
-        if(this.type=="pending"){
-            this.url = '/loans/pending/list'
-            this.post_url ='/bulk/approve/loans'
-        }else if(this.type=='disburse'){
-            this.url = '/loans/approved/list'
-            this.post_url = '/bulk/disburse/loans'
-        }
+        this.post_url = '/bulk/'+this.type+'/loans'
+
+   
     },
     methods :{
+        money(value){
+            return moneyFormat(value)
+        },
         checkAll(e){
             
             if(e.target.checked){
@@ -235,7 +234,7 @@ export default {
         submit(e){
             e.preventDefault()
                 var vm = this;
-                if(this.type=='pending'){
+                if(this.type=='approve'){
                     const swalWithBootstrapButtons = Swal.mixin({
                         customClass: {
                             confirmButton: 'btn btn-success',
@@ -364,7 +363,9 @@ export default {
         fetch(){
             this.isLoading = true
             this.form.accounts = []
-            axios.post(this.url, this.request)
+            var data = Object.assign({}, this.request);
+            data['type'] = this.type
+            axios.post(this.url, data)
             .then(res=>{
                 this.lists = res.data.list
                 this.isLoading=false
@@ -389,8 +390,6 @@ export default {
             }
         },
         summary(){
-            var currency = '₱'
-
             var total_amount = 0;
             this.selected_list.map(x=>{
                 total_amount = total_amount + parseInt(x.amount)
@@ -408,9 +407,9 @@ export default {
             })
             return {
                 accounts: accounts,
-                amount: currency + ' ' +total_amount.toLocaleString(),
-                fees: currency + ' ' +total_fees.toLocaleString(),
-                disbursement: currency + ' ' + disbursement.toLocaleString()
+                amount: this.money(total_amount),
+                fees:this.money(total_fees),
+                disbursement:  this.money(disbursement)
             }
         }
         

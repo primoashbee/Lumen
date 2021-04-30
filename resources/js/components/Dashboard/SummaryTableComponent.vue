@@ -13,141 +13,77 @@
                 <td><p class="title">PAR Ratio</p></td>
             </tr>
         </thead>
-        <tbody class="test">
-            <tr>
+        <tbody class="test" v-if="list.length > 0">
+            <tr v-for="(item,key) in list" :key="key">
                 <td style="text-align:center;">
-                    MPL
+                    {{item.code}}
                 </td>
                 <td>
-                    70,000
+                    {{number(item.number_of_clients)}}
                 </td>
                 <td>
-                    700
+                    {{number(item.without_loans)}}
                 </td>
                 <td>
-                    ₱ 600,000,000.00
+                    {{money(item.loan_receivable)}}
                 </td>
                 <td>
-                    ₱ 30,000,000.00
+                    {{money(item.par_amount)}}
                 </td>
                 <td>
-                    ₱ 250,000,000.00
+                    {{money(item.cbu)}}
                 </td>
                 <td>
-                    41.67%
+                    {{item.cbu_lr_ratio}} %
                 </td>
                 <td>
-                    5%
-                </td>
-            </tr>
-            <tr>
-                <td style="text-align:center;">
-                    AGL
-                </td>
-                <td>
-                    55
-                </td>
-                <td>
-                    100
-                </td>
-                <td>
-                    ₱ 2,000,000.00
-                </td>
-                <td>
-                    ₱ 500,000.00
-                </td>
-                <td>
-                    ₱ 100,000.00
-                </td>
-                <td>
-                    5.00%
-                </td>
-                <td>
-                    25%
-                </td>
-            </tr>
-            <tr>
-                <td style="text-align:center;">
-                    LLP
-                </td>
-                <td>
-                    55
-                </td>
-                <td>
-                    100
-                </td>
-                <td>
-                    ₱ 100,000.00
-                </td>
-                <td>
-                    -
-                </td>
-                <td>
-                    ₱ 10,000.00
-                </td>
-                <td>
-                    10.00%
-                </td>
-                <td>
-                    0
-                </td>
-            </tr>
-            <tr>
-                <td style="text-align:center;">
-                    GML
-                </td>
-                <td>
-                    55
-                </td>
-                <td>
-                    100
-                </td>
-                <td>
-                    ₱ 200,000.00
-                </td>
-                <td>
-                    ₱ 80,000,000.00
-                </td>
-                <td>
-                    ₱ 500,000.00
-                </td>
-                <td>
-                    0.25%
-                </td>
-                <td>
-                    40%
-                </td>
-            </tr>
-            <tr class="last-row">
-                <td style="text-align:center;">
-                   TOTAL
-                </td>
-                <td>
-                    71,165
-                </td>
-                <td>
-                    1,000
-                </td>
-                <td>
-                    ₱ 802,100.00
-                </td>
-                <td>
-                    ₱ 110,500,000.00
-                </td>
-                <td>
-                    ₱ 250,856,000.00
-                </td>
-                <td>
-                    41.67%
-                </td>
-                <td>
-                    40%
+                    {{item.par_ratio}} %
                 </td>
             </tr>
         </tbody>
      </table>
   </div>
 </template>
+
+<script>
+export default {
+    props : ['office_id'],
+    mounted(){
+        this.fetch();
+    },
+    data(){
+        return {
+            list : [],
+            errors : []
+        }
+    },
+    methods : {
+        money(value){
+            return moneyFormat(value);  
+        },
+        number(value){
+            return parseInt(value).toLocaleString();
+        },
+        fetch(){
+            axios.get(this.url)
+                .then(res=>{
+                    console.log(res.data.summary)
+                    this.list  = res.data.summary
+                })
+                .catch(err=>{
+                    this.errors = err.response.data.errors
+                })
+        }
+    },
+    computed : {
+        url(){
+      return '/dashboard/v1/true/'+this.office_id+'/summary'
+        }
+    }
+    
+}
+</script>
+
 
 <style scoped>
     .test tr td {
@@ -160,5 +96,3 @@
         
     }
 </style>
-<script>
-</script>

@@ -139,8 +139,9 @@
                   <div class="cs_info">
                       <ul class="item_list">
                             <li class="text-left">Office Level : {{$summary->office}}</li>
-                            <li class="text-center">Printed By  : {{auth()->user()->full_name }}</li>
-                            <li class="text-center">Printed At: {{\Carbon\Carbon::now()->format('F j, Y, g:i a')}}</li>
+                            <li class="text-center">Printed By  : {{$summary->printed_by}}</li>
+                            {{-- <li class="text-center">Printed At: {{$summary->printed_at}}</li> --}}
+                            <li class="text-center"></li>
                             <li class="text-right">Collection Date: {{$summary->repayment_date}}</li>
                       </ul>
                   </div>
@@ -162,8 +163,8 @@
                             @endif
                             @if($summary->has_deposit)
                             @foreach($summary->deposit_types as $type)
-                            <th rowspan="2">{{$type}} - Bal.</th>
-                            <th rowspan="2">{{$type}}
+                            <th rowspan="2">{{$type['code']}} - Bal.</th>
+                            <th rowspan="2">{{$type['code']}}
                             @endforeach
                             @endif
                           </tr>
@@ -173,26 +174,54 @@
                           </tr>
                         </thead>
                         <tbody>
-                          <?php $ctr = 1;?>
+                          <?php $ctr = 1;
+                                $total_loan_balance = 0;
+                                $total_overdue = 0;
+                                $total_installment_due = 0;
+                                $total_total_due = 0;
+                                $deposit_summary = [];
+                                if($summary->has_deposit){
+                                    foreach($summary->deposit_types as $deposit){
+                                        $item = $deposit;
+                                        $item['total'] = 0;
+                                        $deposit_summary[] = $item;
+                                    }
+                                }
+                          ?>
                           @foreach ($summary->loan_accounts as $item)
                             <tr>
                               <td>{{$ctr}}</td>
-                              <td>{{$item->client->client_id}}</td>
-                              <td>{{$item->client->full_name}}</td>
+                              <td>{{$item->client_id}}</td>
+                              <td>{{$item->fullname}}</td>
                               @if($summary->has_loan)
-                              <td>{{$item->product->code}}</td>
+                              <?php 
+                                $total_loan_balance +=$item->total_balance; 
+                                $total_overdue +=$item->overdue_due; 
+                                $total_installment_due +=$item->installment_due; 
+                                $total_total_due +=$item->due_due; 
+                              ?>
+                              <td>{{$item->loan_code}}</td>
                               <td>{{$item->number_of_months}}</td>
-                              <td>{{$item->number_of_installments}} ({{$item->product->installment_method}})</td>
-                              <td>{{$item->_total_balance}}</td>
-                              <td>{{$item->overdue->_total}}</td>
-                              <td>{{$item->due->_total}}</td>
-                              <td>{{$item->total_due->formatted_total}}</td>
+                              <td>{{$item->number_of_installments}}</td>
+                              <td>{{money($item->total_balance,2)}}</td>
+                              <td>{{money($item->overdue_due,2)}}</td>
+                              <td>{{money($item->installment_due,2)}}</td>
+                              <td>{{money($item->due_due,2)}}</td>
                               <td></td>
                               <td></td>
                               @endif
                               @if($summary->has_deposit)
-                                @foreach($item->client->deposits as $deposit)
-                                <td>{{$deposit->balance_formatted}}</td>
+                                @foreach($summary->deposit_types as $deposit)
+                                {{-- <td>{{$item[$deposit->code]}}</td> --}}
+                                {{-- <td>{{$item->$deposit['code']}}</td> --}}
+                                {{-- <td>{{$deposit['code']}}</td>
+                                <td>{{$item->RCBU}}</td> --}}
+                                <?php $code = $deposit['code']; ?>
+                                <?php 
+                                    $index = array_search($deposit['id'], array_column($deposit_summary,'id'));
+                                    $deposit_summary[$index]['total'] += $item->$code;
+                                ?>
+                                <td>{{money($item->$code,2)}}</td>
                                 <td></td>
                                 @endforeach
                               @endif
@@ -201,22 +230,22 @@
                           @endforeach
                           <tr>
                             <td></td>
-                            <td></td>
-                            <td></td>
+                            <td style="text-align: right"><b># of Accounts</b></td>
+                            <td style="text-align: left"><b><?=$ctr?></b></td>
                             <td></td>
                             @if($summary->has_loan)
                             <td></td>
                             <td></td>
-                            <td>{{$summary->total['loan']['_loan_balance']}}</td>
-                            <td>{{$summary->total['loan']['overdue']['_total_amount_due']}}</td>
-                            <td>{{$summary->total['loan']['due']['_total_amount_due']}}</td>
-                            <td>{{$summary->total['loan']['total_due']['_total_amount_due']}}</td>
+                            <td><b>{{money($total_loan_balance,2)}}</b></td>
+                            <td><b>{{money($total_overdue,2)}}</b></td>
+                            <td><b>{{money($total_installment_due,2)}}</b></td>
+                            <td><b>{{money($total_total_due,2)}}</b></td>
                             <td></td>
                             <td></td>
                             @endif
                             @if($summary->has_deposit)
-                            @foreach($summary->total['deposits'] as $dep)
-                                <td>{{$dep['_total_balance']}}</td>
+                            @foreach($deposit_summary as $dep)
+                                <td><b>{{money($dep['total'],2)}}</b></td>
                                 <td></td>
                             @endforeach
                             @endif

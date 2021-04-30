@@ -5,10 +5,10 @@ namespace App;
 use App\PaymentMethod;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use App\LoanAccountInstallmentRepayment;
 
 class LoanAccountRepayment extends Model
 {
-    // use MoneyMutator;
 
     protected $fillable = [
         'loan_account_id',
@@ -21,9 +21,11 @@ class LoanAccountRepayment extends Model
         'repayment_date',
         'for_pretermination',
         'notes',
-        // 'transaction_id',
-        // 'reverted',
-        // 'reverted_by',
+        'office_id',
+        'transaction_number',
+        'reverted',
+        'reverted_by',
+        'revertion',
     ];
     
     protected $dates = ['created_at','updated_at','repayment_date','mutated'];
@@ -76,24 +78,34 @@ class LoanAccountRepayment extends Model
             return false;
         }
 
-
         //get installment repayments
         $installments = $this->repayments()->orderBy('id','desc')->get();
         //revert installment repayments
         $total = $installments->count();
         $ctr = 0;
+
         foreach($installments as $item){
             $item->revert();
             $item->delete();
             $ctr++;
         }
+
+        $this->update([
+            'reverted'=>true,
+            'reverted_by'=>$user_id,
+        ]);
+        
         //update balances
         $this->receipt->delete();
+        $this->loanAccount->updateBalances();
+        
+        $this->loanAccount->update([
+            'closed_by'=>null,
+            'closed_at'=>null
+        ]);
+        
         $this->loanAccount->updateStatus();
         return $total == $ctr;
-       
-       
-       
     }
     
    

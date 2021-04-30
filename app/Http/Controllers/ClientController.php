@@ -686,32 +686,48 @@ class ClientController extends Controller
     }
     public function depositAccount(Request $request, $client_id,$deposit_account_id){
         if($request->wantsJson()){
-            $data = DepositAccount::find($deposit_account_id)
-                ->load([
-                    // 'type:id,name,product_id,description,interest_rate',
-                    'type'=>function($q){
-                        $q->select('id','name','product_id','description','interest_rate');
-                    },
-                    'client'=>function($q){
-                        $q->select('client_id', 'firstname', 'lastname');
-                    },
-                ])
-                ->append('transactions');
+            // $data = DepositAccount::find($deposit_account_id)
+            //     ->load([
+            //         // 'type:id,name,product_id,description,interest_rate',
+            //         'type'=>function($q){
+            //             $q->select('id','name','product_id','description','interest_rate');
+            //         },
+            //         'client'=>function($q){
+            //             $q->select('client_id', 'firstname', 'lastname');
+            //         },
+            //     ]);
+            //     $data['transactions'] = 'ggwp';
+            $space = ' ';
+            $clients = \DB::table('clients');
+            $deposits = \DB::table('deposits');
+            $deposit = \DB::table('deposit_accounts')
+                        ->select(
+                            'deposits.name as deposit_name',
+                            'deposits.product_id as deposit_type',
+                            'deposits.description as deposit_description',
+                            'deposits.interest_rate as deposit_interest_rate',
+                            'deposit_accounts.accrued_interest as accrued_interest',
+                            'deposit_accounts.status as status',
+                            'deposit_accounts.balance as balance',
+                            'deposit_accounts.created_at as created_at',
+                            \DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
+                            'clients.client_id as client_id',
+                        )
+                        ->where('deposit_accounts.id',$deposit_account_id)
+                        ->joinSub($clients,'clients',function($join){
+                            $join->on('clients.client_id','deposit_accounts.client_id');
+                        })
+                        ->joinSub($deposits,'deposits',function($join){
+                            $join->on('deposits.id','deposit_accounts.deposit_id');
+                        })
+                        ->first();
+
+            $data['summary'] = $deposit;
+            $data['transactions'] = DepositAccount::find($deposit_account_id)->transactions()->get();
             return response()->json(['data'=>$data],200);
         }
         
-        // $data = DepositAccount::find($deposit_account_id)
-        // ->load([
-        //     // 'type:id,name,product_id,description,interest_rate',
-        //     'type'=>function($q){
-        //         $q->select('id','name','product_id','description','interest_rate');
-        //     },
-        //     'client'=>function($q){
-        //         $q->select('client_id', 'firstname', 'lastname');
-        //     },
-        // ])
-        // ->append('transactions');
-    // return response()->json(['data'=>$data],200);
+
         return view('pages.deposit-dashboard',compact('deposit_account_id','client_id'));
     }
 

@@ -48,24 +48,21 @@ export default {
     props : ['mode'],
     created(){
         this.asyncFind = debounce(this.asyncFind.bind(this), 500);
-        
-
     },
     data(){
         return {
             lists: null,
+            list: ['users','clients'],
             options: [],
             selected:null,
             value: [],
         }
     },
     methods : {
-        search(){
-
-        },
-        asyncFind(query){        
+        asyncFind(query){
             axios.post('/search',{
-                keyword: query 
+                keyword: query,
+                list: this.list
             })
             .then(res=>{
                 this.options = res.data

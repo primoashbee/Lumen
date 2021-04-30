@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\LoanAccountController;
 
-    function seed($office_id,$count=20,$with_loans=false){
+    function seed($office_id,$count=20,$with_loans=false, $start_date = null){
 
         \DB::beginTransaction();
         try {
@@ -169,21 +169,20 @@ use App\Http\Controllers\LoanAccountController;
             });
 
             if($with_loans){
-                $bulk_disbursement_id = sha1(time());
-                $start = now()->startOfDay()->subDays(6);
-
-                for($x=0;$x<=6;$x++){
-                    $dates[] = $start->copy()->addDays($x);
-                }
-                $disbursement_date =  $dates[rand(0,count($dates)-1)];
-                    $start_date =  $disbursement_date;
-                foreach(Client::whereIn('id',$ids)->get() as $client){
-
-        
-                    
-
-                    createLoan($client, $bulk_disbursement_id, uniqid(),$disbursement_date, $start_date);
                 
+                $bulk_disbursement_id = sha1(time());
+                if(is_null($start_date)){
+                    $start = now()->startOfDay()->subDays(6);
+                    for($x=0;$x<=6;$x++){
+                        $dates[] = $start->copy()->addDays($x);
+                    }
+                    $disbursement_date =  $dates[rand(0,count($dates)-1)];
+                }else {
+                    $disbursement_date = $start_date;
+                }
+
+                foreach(Client::whereIn('id',$ids)->get() as $client){
+                    createLoan($client, $bulk_disbursement_id, uniqid(),$disbursement_date, $start_date);
                 }
             }
             \DB::commit();

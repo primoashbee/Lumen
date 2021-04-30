@@ -1,12 +1,16 @@
 <?php
 
 namespace App;
+use App\Client;
 use App\Holiday;
 use App\LoanAccount;
 use App\PaymentMethod;
 use App\DepositAccount;
+use Faker\Factory as Faker;
 use App\DefaultPaymentMethod;
 use Illuminate\Support\Facades\Schema;
+
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -19,12 +23,216 @@ class Office extends Model
         'name',
     ];
     
+    public static function lowerOffices($office_id, $id_only=true, $include_self = false){
+        $query = \DB::table('offices')
+                ->select('id','code','name','parent_id','level')
+                ->where('id',$office_id)
+                ->unionAll(
+                    \DB::table('offices as o')
+                        ->select('o.id','o.code','o.name','o.parent_id','o.level')
+                        ->join('tree','tree.id','=','o.parent_id')
+                );
+        $tree = \DB::table('tree')
+                ->withRecursiveExpression('tree',$query)
+                ->when($include_self, function($q, $data) use ($office_id){
+                    if(!$data){
+                        $q->where('id','!=', $office_id);
+                    }
+                });
+                // ->get();
+                // ->when($id_only, function($q,$data){
+                //     if($data){
+                //         $q->get();
+                //         $q->pluck('id');
+                //     }else{
+                //         $q->get();
+                //     }
+                // });
+        $offices = [];    
+        if($id_only){
+            $tree = $tree->pluck('id');
+            $tree->map(function($value, $key) use (&$offices){
+                $offices[] = (int) $value;
+
+            })->all();
+        }else{
+            $offices = $tree->get();
+        }
+        
+        
+        return $offices;
+    }
+    public function seed($count, $with_loans, $start_date = null){
+        $office_id = $this->id;
+        \DB::beginTransaction();
+        try {
+            $offices = Office::find($office_id)->children;
+            $ids = [];
+            if($offices->count() == 0){
+                $office = Office::find($office_id);
+                for ($x=1; $x<= $count; $x++) {
+                    $faker = Faker::create();
+                
+                    $gender = $faker->randomElement(['MALE', 'FEMALE']);
+                    $civil_status = $faker->randomElement(['SINGLE', 'MARRIED','DIVORCED']);
+                    $education = $faker->randomElement(['ELEMENTARY', 'HIGH SCHOOL','COLLEGE','VOCATIONAL']);
+                    $barangay = $faker->randomElement(['San Jose', 'Sta. Rita','Gordon Heights','Pag-asa']);
+                    $province = $faker->randomElement(['Zambales', 'Pampanga','Bataan']);
+                    $dependents = rand(1, 5);
+                    $house_type = $faker->randomElement(['RENTED','OWNED']);
+                    $mobile_number = '09'.rand(100000000, 199999999);
+                    // $office = Office::where('name', '')->first();
+                    static $id = 1;
+                    $user  = Client::create([
+                        'client_id' => Office::makeClientID($office->id),
+                        'firstname' => $faker->firstName,
+                        'middlename'=>$faker->lastname,
+                        'lastname'  =>$faker->lastname,
+                        'suffix'=>$faker->suffix,
+                        'nickname'=>$faker->firstname,
+                        'gender'=> $gender,
+                        'profile_picture_path' => 'https://via.placeholder.com/150',
+                        'signature_path' => 'https://via.placeholder.com/150',
+                        'birthday' => $faker->dateTimeThisCentury->format('Y-m-d'),
+                        'birthplace' => $faker->city,
+                        'civil_status' => $civil_status,
+                        'education' => $education,
+                        'fb_account' => 'fb.com/primoashbee',
+                        'contact_number'=>$mobile_number,
+                        'street_address'=> $faker->address,
+                        'barangay_address' => $barangay,
+                        'city_address' => $faker->city,
+                        'province_address' => $province,
+                        'zipcode' => $faker->postCode,
+                        'spouse_name' => $faker->name,
+                        'spouse_contact_number' => $mobile_number,
+                        'spouse_birthday' =>  $faker->dateTimeThisCentury->format('Y-m-d'),
+                        'number_of_dependents' => $dependents,
+                        'household_size' =>$dependents +2,
+                        'years_of_stay_on_house' => $dependents + 5,
+                        'house_type' => $house_type,
+                        'tin' => rand(100000, 199999),
+                        'umid' => rand(10000, 19999),
+                        'sss' =>rand(10000, 19999),
+                        'mother_maiden_name' => $faker->firstNameFemale.' '.$faker->lastname,
+                        'notes' => $faker->realText($faker->numberBetween(10, 200)),
+                        'office_id' => $office->id,
+                        'created_by' => 0
+                    ]);
+                    $ids[]=  $user->id;
+                    $application_number = rand(1000000,2);
+
+                    $unit_of_plan = rand(1,2);
+                    $member_first = $user->firstname;
+                    $member_middle = $user->middlename;
+                    $member_last = $user->lastname;
+                    $birthday= $user->getRawOriginal('birthday');
+                    $user->dependents()->create([
+                        'application_number'=>$application_number,
+                        'unit_of_plan'=>$unit_of_plan,
+                        'member_firstname'=>$member_first,
+                        'member_middlename'=>$member_middle,
+                        'member_lastname'=>$member_last,
+                        'created_by'=>2,
+                        'member_birthday'=>$birthday
+                    ]);
+                }
+            }
+            $offices->map(function($office) use($count, $with_loans){
+                for ($x=1; $x<= $count; $x++) {
+                    $faker = Faker::create();
+                
+                    $gender = $faker->randomElement(['MALE', 'FEMALE']);
+                    $civil_status = $faker->randomElement(['SINGLE', 'MARRIED','DIVORCED']);
+                    $education = $faker->randomElement(['ELEMENTARY', 'HIGH SCHOOL','COLLEGE','VOCATIONAL']);
+                    $barangay = $faker->randomElement(['San Jose', 'Sta. Rita','Gordon Heights','Pag-asa']);
+                    $province = $faker->randomElement(['Zambales', 'Pampanga','Bataan']);
+                    $dependents = rand(1, 5);
+                    $house_type = $faker->randomElement(['RENTED','OWNED']);
+                    $mobile_number = '09'.rand(100000000, 199999999);
+                    // $office = Office::where('name', '')->first();
+                    static $id = 1;
+                    $user  = Client::create([
+                        'client_id' => Office::makeClientID($office->id),
+                        'firstname' => $faker->firstName,
+                        'middlename'=>$faker->lastname,
+                        'lastname'  =>$faker->lastname,
+                        'suffix'=>$faker->suffix,
+                        'nickname'=>$faker->firstname,
+                        'gender'=> $gender,
+                        'profile_picture_path' => 'https://via.placeholder.com/150',
+                        'signature_path' => 'https://via.placeholder.com/150',
+                        'birthday' => $faker->dateTimeThisCentury->format('Y-m-d'),
+                        'birthplace' => $faker->city,
+                        'civil_status' => $civil_status,
+                        'education' => $education,
+                        'fb_account' => 'fb.com/primoashbee',
+                        'contact_number'=>$mobile_number,
+                        'street_address'=> $faker->address,
+                        'barangay_address' => $barangay,
+                        'city_address' => $faker->city,
+                        'province_address' => $province,
+                        'zipcode' => $faker->postCode,
+                        'spouse_name' => $faker->name,
+                        'spouse_contact_number' => $mobile_number,
+                        'spouse_birthday' =>  $faker->dateTimeThisCentury->format('Y-m-d'),
+                        'number_of_dependents' => $dependents,
+                        'household_size' =>$dependents +2,
+                        'years_of_stay_on_house' => $dependents + 5,
+                        'house_type' => $house_type,
+                        'tin' => rand(100000, 199999),
+                        'umid' => rand(10000, 19999),
+                        'sss' =>rand(10000, 19999),
+                        'mother_maiden_name' => $faker->firstNameFemale.' '.$faker->lastname,
+                        'notes' => $faker->realText($faker->numberBetween(10, 200)),
+                        'office_id' => $office->id,
+                        'created_by' => 0
+                    ]);
+                    $application_number = rand(1000000,2);
+
+                    $unit_of_plan = rand(1,2);
+                    $member_first = $user->firstname;
+                    $member_middle = $user->middlename;
+                    $member_last = $user->lastname;
+                    $birthday= $user->getRawOriginal('birthday');
+                    $user->dependents()->create([
+                        'application_number'=>$application_number,
+                        'unit_of_plan'=>$unit_of_plan,
+                        'member_firstname'=>$member_first,
+                        'member_middlename'=>$member_middle,
+                        'member_lastname'=>$member_last,
+                        'created_by'=>2,
+                        'member_birthday'=>$birthday
+                    ]);
+                }
+            });
+
+            if($with_loans){
+                $bulk_disbursement_id = sha1(time());
+                if(is_null($start_date)){
+                    $start = now()->startOfDay()->subDays(6);
+                    for($x=0;$x<=6;$x++){
+                        $dates[] = $start->copy()->addDays($x);
+                    }
+                    $disbursement_date =  $dates[rand(0,count($dates)-1)];
+                }else {
+                    $disbursement_date = $start_date;
+                }
+
+                foreach(Client::whereIn('id',$ids)->get() as $client){
+                    createLoan($client, $bulk_disbursement_id, uniqid(),$disbursement_date, $start_date);
+                }
+            }
+            \DB::commit();
+        }catch(Exception $e){
+            return $e->getMessage();
+        }
+    }
     public static function makeClientID($office_id,$increment=null){
         $office = Office::find($office_id);
 
 
         // check level if branch
-
         if ($office->level =='branch') {
             $office_ids = $office->getLowerOfficeIDS();
         } else {
@@ -80,7 +288,18 @@ class Office extends Model
         return $this->belongsToMany(User::class);
     }
 
+    public function clusters(){
+        $children = $this->children;
+        $ids = [];
+        foreach($children as $child){
+            if($child->level =='cluster'){
+                array_push($ids,$child->id);
+            }
+            $ids = array_merge($ids, $child->clusters());
 
+        }
+        return $ids;
+    }
     public function getChildIDS(){
         $children = $this->children;
         
@@ -110,21 +329,43 @@ class Office extends Model
 
         return $result;
     }
-    public function getAllChildren(){
+    public function getAllChildren($level=false){
         $children = $this->children;
         $ids = [];
             foreach ($children as $child) {
-                array_push($ids,$child);
-                $ids = array_merge($ids, $child->getAllChildren());
+                if($level != false){
+                    if($child->level==$level){
+                        array_push($ids, $child);
+                        // return ($ids);
+                        $child->getAllChildren($level);
+                        // $ids = array_merge($ids, $child->getAllChildren($level));    
+                        
+                        // dd($ids);
+
+                    }else{
+                        $child->getAllChildren($level);
+
+                    }
+                }else{
+                    array_push($ids, $child);
+                    $ids = array_merge($ids, $child->getAllChildren());
+                }
             }
         return $ids;
     }
-    public function getAllChildrenIDS(){
+    public function getAllChildrenIDS($level=false){
         $children = $this->children;
         $ids = [];
             foreach ($children as $child) {
-                array_push($ids,$child->id);
-                $ids = array_merge($ids, $child->getAllChildrenIDS());
+                if ($level != false) {
+                    if ($child->level==$level) {
+                        array_push($ids, $child->id);
+                        $child->getAllChildrenIDS($level);
+                    }
+                }else{
+                    array_push($ids, $child->id);
+                    $ids = array_merge($ids, $child->getAllChildrenIDS());
+                }
             }
         return $ids;
     }
@@ -163,6 +404,69 @@ class Office extends Model
         return $parents;
     
                 
+    }
+
+    public static function getUpperOfficesV2($office_id, $level=false, $id_only=true, $include_self = false){
+        if($level != false){
+            $office = Office::find($office_id);
+            if($office->level == $level){
+                return $office;
+            }
+            
+        }
+        $query = \DB::table('offices')
+                ->select('id','code','name','parent_id','level')
+                ->where('id',$office_id)
+
+                ->unionAll(
+                    \DB::table('offices as o')
+                        ->select('o.id','o.code','o.name','o.parent_id','o.level')
+                        ->join('tree','tree.parent_id','=','o.id')
+                )
+                ->when($level, function($q, $data) use ($office_id){
+                    if($data){
+                        $q->where('level',$data);
+                    }
+                });
+        $tree = \DB::table('tree')
+                ->withRecursiveExpression('tree',$query)
+                ->when($include_self, function($q, $data) use ($office_id){
+                    if(!$data){
+                        $q->where('id','!=', $office_id);
+                    }
+                });
+                // ->get();
+                // ->when($id_only, function($q,$data){
+                //     if($data){
+                //         $q->get();
+                //         $q->pluck('id');
+                //     }else{
+                //         $q->get();
+                //     }
+                // });
+        $offices = [];    
+        if($id_only){
+            $tree = $tree->pluck('id');
+            $tree->map(function($value, $key) use (&$offices){
+                $offices[] = (int) $value;
+
+            })->all();
+        }else{
+            if ($level != false) {
+                $offices = $tree->where('level', $level)->get();
+            }else{
+                $offices = $tree->get();
+            }
+        }
+        
+        
+        return $offices;
+    }
+    public static function getTopOfficeV2($office_id){
+        $office = Office::find($office_id);
+        if($office->level=="branch"){
+            return $office;
+        }
     }
 
     function getTopOffice($level="main_office"){
@@ -485,5 +789,7 @@ class Office extends Model
         return $parent_ids;
     }
 
-   
+//    public function parMovement(){
+
+//    }
 }

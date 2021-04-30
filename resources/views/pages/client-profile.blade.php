@@ -70,11 +70,9 @@
 									  <i class="star-5">★</i>
 								</div>
 								<div class="p-details mt-4">
-									<p class="title text-xl">Created at</p>
-									<p class="text-muted text-lg">{{$client->created_at->format('F, j Y')}} - {{$client->created_at->diffForHumans()}}</p>
+									<p class="title text-xl">{{$client->office->name}}</p>
 								</div>
 								<div class="p-details mt-2">
-									
 									<p class="title text-xl">Status: <span class="badge badge-pill badge-success">Active</span></h1></p>
 								</div>
 							</div>

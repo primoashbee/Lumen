@@ -17,7 +17,6 @@
 
 <script defer>
         window.addEventListener('DOMContentLoaded', function() {
-                console.log('wassup');
                 setTimeout(()=>{
                         $('#sidebar-toggle').click()
                 },100)

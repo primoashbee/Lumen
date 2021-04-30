@@ -27,7 +27,8 @@
         "maatwebsite/excel": "^3.1",
         "phpoffice/phpspreadsheet": "^1.16",
         "pusher/pusher-php-server": "~4.0",
-        "spatie/laravel-permission": "^3.11"
+        "spatie/laravel-permission": "^3.11",
+        "staudenmeir/laravel-cte": "^1.0"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.5",

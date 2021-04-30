@@ -14,8 +14,8 @@ class DependentCreateRequest extends FormRequest
      *
      * @return bool
      */
-    protected $adult_max_age = 71;
-    protected $young_max_age = 22;
+    protected $adult_max_age = 70;
+    protected $young_max_age = 21;
     public function authorize()
     {
         return true;
@@ -104,35 +104,35 @@ class DependentCreateRequest extends FormRequest
             "application_number.unique"=>"Application number already exists",
             "mother.firstname.required_with" => 'Firstname is required',
             "mother.lastname.required_with" => 'Lastname is required',
-            "mother.birthday.after_or_equal" => 'Max age for mother is '.$this->adult_max_age,
+            "mother.birthday.after_or_equal" => 'Max age for mother is: '.$this->adult_max_age,
 
             "father.firstname.required_with" => 'Firstname is required',
             "father.lastname.required_with" => 'Lastname is required',
-            "father.birthday.after_or_equal" => 'Max age for father'.$this->adult_max_age,
+            "father.birthday.after_or_equal" => 'Max age for father is: '.$this->adult_max_age,
 
             "sibling_1.firstname.required_with" => 'Firstname is required',
             "sibling_1.lastname.required_with" => 'Lastname is required',
-            "sibling_1.birthday.after_or_equal" => 'Max age for sibling'.$this->young_max_age,
+            "sibling_1.birthday.after_or_equal" => 'Max age for sibling is: '.$this->young_max_age,
 
             "sibling_2.firstname.required_with" => 'Firstname is required',
             "sibling_2.lastname.required_with" => 'Lastname is required',
-            "sibling_2.birthday.after_or_equal" => 'Max age for sibling'.$this->young_max_age,
+            "sibling_2.birthday.after_or_equal" => 'Max age for sibling is: '.$this->young_max_age,
 
             "sibling_3.firstname.required_with" => 'Firstname is required',
             "sibling_3.lastname.required_with" => 'Lastname is required',
-            "sibling_3.birthday.after_or_equal" => 'Max age for sibling'.$this->young_max_age,
+            "sibling_3.birthday.after_or_equal" => 'Max age for sibling is: '.$this->young_max_age,
 
             "child_1.firstname.required_with" => 'Firstname is required',
             "child_1.lastname.required_with" => 'Lastname is required',
-            "child_1.birthday.after_or_equal" => 'Max age for child is '.$this->young_max_age,
+            "child_1.birthday.after_or_equal" => 'Max age for child is: '.$this->young_max_age,
 
             "child_2.firstname.required_with" => 'Firstname is required',
             "child_2.lastname.required_with" => 'Lastname is required',
-            "child_2.birthday.after_or_equal" => 'Max age for child is '.$this->young_max_age,
+            "child_2.birthday.after_or_equal" => 'Max age for child is: '.$this->young_max_age,
             
             "child_3.firstname.required_with" => 'Firstname is required',
             "child_3.lastname.required_with" => 'Lastname is required',
-            "child_3.birthday.after_or_equal" => 'Max age for child is '.$this->young_max_age,
+            "child_3.birthday.after_or_equal" => 'Max age for child is: '.$this->young_max_age,
 
 
         ];

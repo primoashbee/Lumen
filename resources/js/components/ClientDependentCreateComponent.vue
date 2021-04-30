@@ -311,6 +311,105 @@
 
 
 						</div>
+						<div id="s_package_4" v-if="selected==104">
+														<div class="row py-4">
+								<div class="col-lg-12">
+									<div class="form-check p0">
+										<label class="form-check-label" for="mother">
+											<input class="form-check-input cb-type" id="mother" type="checkbox" v-model="form.mother.exists" @change="toggleForm($event,'mother')">
+											<span class="form-check-sign">
+											<span class="check"></span>
+											</span>
+											<label class="t-white text-xl" for="mother">Mother</label>
+										</label>
+									</div>
+								</div>
+							</div>
+							<div class="row py-4" v-if="showForm('mother')">
+								<h5 class="h5 col-lg-12">Mothers Information</h5>
+								<div class="form-group col-lg-4">
+									<label for="mother_firstname">First Name</label>
+									<input type="text" class="form-control" id="mother_firstname" v-model="form.mother.firstname">
+								</div>
+								<div class="form-group col-lg-4">
+									<label for="mother_middlename">Middle Name</label>
+									<input type="text" class="form-control" id="mother_middlename" v-model="form.mother.middlename">
+								</div>
+								<div class="form-group col-lg-4">
+									<label for="mother_lastname">Last Name</label>
+									<input type="text" class="form-control" id="mother_lastname" v-model="form.mother.lastname">
+								</div>
+								<div class="form-group col-lg-4">
+									<label for="mother_birthday">Birthday</label>
+									<input type="date" class="form-control" id="mother_birthday" v-model="form.mother.birthday">
+								</div>
+							</div>
+							<div class="row py-4">
+								<div class="col-lg-12">
+									<div class="form-check p0">
+										<label class="form-check-label" for="father">
+											<input class="form-check-input cb-type" id="father" type="checkbox" v-model="form.father.exists" @change="toggleForm($event,'father')">
+											<span class="form-check-sign">
+											<span class="check"></span>
+											</span>
+											<label class="t-white text-xl" for="father">Father</label>
+										</label>
+									</div>
+								</div>
+							</div>
+
+							<div class="row py-4" v-if="showForm('father')">
+								<h5 class="h5 col-lg-12">Fathers Information</h5>
+								<div class="form-group col-lg-4">
+									<label for="father_firstname">First Name</label>
+									<input type="text" class="form-control" id="father_firstname" v-model="form.father.firstname">
+								</div>
+								<div class="form-group col-lg-4">
+									<label for="father_middlename">Middle Name</label>
+									<input type="text" class="form-control" id="father_middlename" v-model="form.father.middlename">
+								</div>
+								<div class="form-group col-lg-4">
+									<label for="father_lastname">Last Name</label>
+									<input type="text" class="form-control" id="father_lastname" v-model="form.father.lastname">
+								</div>
+								<div class="form-group col-lg-4">
+									<label for="father_birthday">Birthday</label>
+									<input type="date" class="form-control" id="father_birthday" v-model="form.father.birthday">
+								</div>
+							</div>
+							<div class="row py-4">
+								<div class="col-lg-12 pb-4">
+									<div class="form-check p0">
+										<label class="form-check-label" for="sibling_1">	
+											<input class="form-check-input cb-type" id="sibling_1" type="checkbox" :disabled="nextLevelExists('sibling_2')" v-model="form.sibling_1.exists" @change="toggleForm($event,'sibling_1')">
+											<span class="form-check-sign">
+											<span class="check"></span>
+											</span>
+											<label class="t-white text-xl" for="sibling_1">Sibling 1 Information</label>
+										</label>
+									</div>
+								</div>
+								<div class="col-lg-12 row"  v-if="showForm('sibling_1')">
+									<div class="form-group col-lg-4">
+										<label for="sibling1_firstname">First Name</label>
+										<input type="text" class="form-control" id="sibling1_firstname" v-model="form.sibling_1.firstname">
+									</div>
+									<div class="form-group col-lg-4">
+										<label for="sibling1_middlename">Middle Name</label>
+										<input type="text" class="form-control" id="sibling1_middlename" v-model="form.sibling_1.middlename">
+									</div>
+									<div class="form-group col-lg-4">
+										<label for="sibling1_lastname">Last Name</label>
+										<input type="text" class="form-control" id="sibling1_lastname" v-model="form.sibling_1.lastname">
+									</div>
+									<div class="form-group col-lg-4">
+										<label for="sibling1_birthday">Birthday</label>
+										<input type="date" class="form-control" id="sibling1_birthday" v-model="form.sibling_1.birthday">
+									</div>
+								</div>
+							</div>
+
+						</div>
 						<div id="m_package_1" v-if="selected==201">
 							<div class="row py-4">
 								<h5 class="h5 col-lg-12">Spouse Information</h5>
@@ -559,6 +658,7 @@ export default {
 				single: [
 					{'id':100,'description':'Single - No Dependent'},
 					{'id':101,'description':'Single - Parents (Mother / Father or Both)'},
+					{'id':104,'description':'Single - Parents & Sibling'},
 					{'id':102,'description':'Single - Siblings (Max of 3)'},
 					{'id':103,'description':'Single - Single Parent - Children (Max of 3)'},
 				],
@@ -610,6 +710,13 @@ export default {
 				this.form.child_1 = {}
 				this.form.child_2 = {}
 				this.form.child_3 = {}
+				return
+			}
+			if(value==104){
+				this.form.father = {}
+				this.form.mother = {}
+				this.form.sibling_1 = {}
+				return
 			}
 			if(value==201){
 				this.form.spouse = {}

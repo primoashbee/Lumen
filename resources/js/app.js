@@ -12,6 +12,11 @@ global.$ = global.jQuery = require('jquery');
 global.round = (x)=>{
     return Math.round((x + Number.EPSILON) * 100) / 100
 }
+
+global.moneyFormat = (number, locale='fil-PH', style='currency', currency='php')=>{
+    var input = isNaN(number) ? 0 : number;
+    return new Intl.NumberFormat(locale, { style: style, currency: currency }).format(input).replace(/^(\D+)/, '$1 ');
+}
 import { VueMaskDirective } from 'v-mask';
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
 window.numeral = require('numeral');
@@ -47,23 +52,26 @@ Vue.use(IconsPlugin)
 
 Vue.directive('mask', VueMaskDirective);
 Vue.component('products', require('./components/ProductsComponent.vue').default);
+Vue.component('notifications', require('./components/NotificationsComponent.vue').default);
 Vue.component('step-form',require('./components/StepperComponent.vue').default);
 Vue.component('org-structure', require('./components/OfficeStructureComponent.vue').default);
 Vue.component('structure-filter', require('./components/StructureFilterComponent.vue').default);
 Vue.component('date-picker', require('./components/DatePickerComponent.vue').default);
 Vue.component('v2-select', require('./components/SelectComponentV2.vue').default);
 
-Vue.component('create-client-form', require('./components/ClientCreateFormComponent.vue').default);
+Vue.component('create-client', require('./components/CreateClientComponent.vue').default);
+// Vue.component('create-client-form', require('./components/ClientCreateFormComponent.vue').default);
 Vue.component('update-client-form', require('./components/ClientUpdateFormComponent.vue').default);
 Vue.component('client-list', require('./components/ClientListComponent.vue').default);
-Vue.component('paginator', require('./components/PaginatorComponent.vue').default);
+// Vue.component('paginator', require('./components/PaginatorComponent.vue').default);
+Vue.component('paginator', require('./components/PaginatorComponentV2.vue').default);
 Vue.component('upload-file', require('./components/UploadSampleComponent.vue').default);
 Vue.component('create-office', require('./components/CreateOfficeComponent.vue').default);
 Vue.component('light-modal', require('./components/ModalComponent.vue').default);
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('office-list', require('./components/OfficeListComponent.vue').default);
 
-Vue.component('deposit-dashboard', require('./components/DepositDashboardComponent.vue').default);
+Vue.component('deposit-dashboard', require('./components/DepositAccountDashboardComponent.vue').default);
 Vue.component('payment-methods', require('./components/PaymentMethodComponent.vue').default);
 Vue.component('payment-methods-dashboard', require('./components/PaymentMethodDashboardComponent.vue').default);
 Vue.component('product-component', require('./components/ProductSelectComponent.vue').default);
@@ -71,6 +79,7 @@ Vue.component('bulk-deposit-transaction', require('./components/BulkDepositTrans
 Vue.component('bulk-create-loan-account', require('./components/BulkCreateLoanAccountComponent.vue').default);
 Vue.component('bulk-transaction-loan-accounts', require('./components/BulkTransactionLoanAccountComponent.vue').default);
 
+Vue.component('bulk-repayment-v2', require('./components/BulkRepaymentComponentV2.vue').default);
 Vue.component('bulk-repayment', require('./components/BulkRepaymentComponent.vue').default);
 
 Vue.component('amount-input', require('./components/AmountInputComponent.vue').default);
@@ -98,7 +107,7 @@ Vue.component('client-dependents-list', require('./components/ClientDependentLis
 Vue.component('client-create-loan-account', require('./components/ClientCreateLoanAccountComponent.vue').default);
 
 
-Vue.component('loan-profile', require('./components/LoanAccountcomponent.vue').default);
+Vue.component('loan-profile', require('./components/LoanAccountDashboardComponent.vue').default);
 Vue.component('status', require('./components/AccountStatusComponent.vue').default);
 // Vue.component('account-list', require('./components/VueTable.vue').default);
 Vue.component('account-list', require('./components/AccountListComponent.vue').default);
@@ -106,6 +115,12 @@ Vue.component('account-list', require('./components/AccountListComponent.vue').d
 
 Vue.component('random-picker', require('./components/RandomPickerComponent.vue').default);
 
+//Reports
+Vue.component('report-disbursement', require('./components/Reports/DisbursementsComponent.vue').default);
+Vue.component('report-repayment', require('./components/Reports/RepaymentsComponent.vue').default);
+Vue.component('report-deposit', require('./components/Reports/DepositsComponent.vue').default);
+Vue.component('user-list', require('./components/UserListComponent.vue').default);
+Vue.component('transaction-method', require('./components/TransactionMethodComponent.vue').default);
 
 
 

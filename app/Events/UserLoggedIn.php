@@ -31,6 +31,7 @@ class UserLoggedIn
         
         $user->setSessions($user->id);
         
+        
     }
 
     /**

@@ -159,27 +159,41 @@ class Dependent extends Model
         
         
         foreach($relationships as $relationship){
-            
+
             $name =$this[$relationship.'_lastname'].', '.$this[$relationship.'_firstname'].', '.$this[$relationship.'_middlename'].'.';
             if($relationship =="spouse" || $relationship =="father" || $relationship =="mother"){
                 $level="adult";
             }else{
                 $level="young";
             }
+
+            if($this[$relationship.'_middlename'] === '' || is_null($this[$relationship.'_middlename'])){
+                $fullname = $this[$relationship.'_lastname'] . ', ' . $this[$relationship.'_firstname'];
+            }else{
+                $fullname = $this[$relationship.'_lastname'] . ', ' . $this[$relationship.'_firstname'] . ', ' . $this[$relationship.'_middlename'];
+            }
+            $is_member = false;
+        
+            if($relationship == 'member'){
+                $is_member=true;
+            }
+           
+            $age = Carbon::parse($this[$relationship.'_birthday'])->age;
             $list[] = (object) array(
                 'application_number'=>$this->application_number,
                 // 'firstname'=>$this->pluck($relationship.'_firstname')->first(),
                 'firstname'=>$this[$relationship.'_firstname'],
                 'middlename'=>$this[$relationship.'_middlename'],
-                'mi'=>$this[$relationship.'_middlename'][0],
+                'mi'=>$this[$relationship.'_middlename'],
                 'lastname'=>$this[$relationship.'_lastname'],
                 'birthday'=>$this[$relationship.'_birthday'],
                 'name'=>$name,
                 'relationship'=>ucfirst(str_replace('_', ' ',$relationship)),
-                'age'=>Carbon::parse($this[$relationship.'_birthday'])->age,
+                'age'=>$age,
                 'unit_of_plan'=>$this['unit_of_plan'],
-                'level'=>$level
-                
+                'level'=>$level,
+                'fullname'=>$fullname,
+                'is_member'=>$is_member
             );
         }
 
@@ -206,7 +220,8 @@ class Dependent extends Model
         if($value==null){
             return 'NULL';
         }
-        return Carbon::parse($value)->diffInDays() .' days left'; 
+        return $value;
+        // return Carbon::parse($value)->diffInDays() .' days left'; 
     }
     
     public function getCountAttribute(){

@@ -21,6 +21,9 @@ class CreateDepositAccountsTable extends Migration
             $table->unsignedDouble('balance')->default(0);
             $table->unsignedDouble('accrued_interest')->default(0);
             $table->string('status')->default('Active');
+            $table->dateTime('last_transaction_date')->nullable();
+            $table->dateTime('closed_at')->nullable();
+            $table->unsignedDouble('closed_by')->nullable();
             $table->timestamps();
         });
         // Schema::create('client_deposit', function (Blueprint $table) {

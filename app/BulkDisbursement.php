@@ -15,4 +15,5 @@ class BulkDisbursement extends Model
     public function loanAccount(){
         return $this->belongsTo(LoanAccount::class);
     }
+
 }

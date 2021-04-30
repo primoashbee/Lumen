@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use Exception;
+use App\Client;
 use App\Account;
 use Carbon\Carbon;
 use App\LoanAccount;
+use App\PaymentMethod;
 use App\DepositAccount;
 use App\Rules\OfficeID;
 use App\Events\LoanPayment;
@@ -15,39 +17,45 @@ use App\Rules\PaymentMethodList;
 use App\Rules\PreventFutureDate;
 use App\Events\DepositTransaction;
 use App\Events\LoanAccountPayment;
+use App\Events\LoanAccountPaymentEvent;
 use App\Rules\AccountMustBeActive;
 use Illuminate\Support\Facades\DB;
 use App\Rules\DepositAccountActive;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\CollectionSheetExport;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\DownloadController;
 
 class RepaymentController extends Controller
 {
     
     public function accountPayment(Request $request){
         
-        $this->validator($request->all())->validate();
-        
-        $account = LoanAccount::find($request->loan_account_id);
-        $request->request->add(['paid_by'=>auth()->user()->id]);
-        $request->request->add(['user_id'=>auth()->user()->id]);
-        // $request->request->add(['jv_number'=>uniqid()]);
-        
-        \DB::beginTransaction();
-        try {
-            $account->pay($request->all(), true);
-            $account->updateBalances();
-            $loanPayload = [
-                'date'=>Carbon::parse($request->repayment_date)->format('d-F'),
-                'amount'=>$request->amount
-            ];
-            event(new LoanAccountPayment($loanPayload, $request->office_id, $request->paid_by, $request->payment_method));
-            // \DB::commit();
-            return response()->json(['msg'=>'Payment Successfully Received!'],200);
-        }catch(Exception $e){
-            return response()->json(['msg'=>$e->getMessage()],500);
+        if($request->has('payment_method_id')){
+            $isCTLP = PaymentMethod::find($request->payment_method_id)->isCTLP();
+            $this->validator($request->all(),$isCTLP)->validate();
+            $account = LoanAccount::find($request->loan_account_id);
+            $request->request->add(['paid_by'=>auth()->user()->id]);
+            $request->request->add(['user_id'=>auth()->user()->id]);
+            \DB::beginTransaction();
+            try {
+                
+                $account->payV2($request->all(), true);
+                
+                $account->updateBalances();
+                $loanPayload = [
+                    'date'=>Carbon::parse($request->repayment_date)->format('d-F'),
+                    'amount'=>$request->amount
+                ];
+                event(new LoanAccountPayment($loanPayload, $request->office_id, $request->paid_by, $request->payment_method_id));
+                \DB::commit();
+                return response()->json(['msg'=>'Payment Successfully Received!'],200);
+            }catch(Exception $e){
+                return response()->json(['msg'=>$e->getMessage()],500);
+            }
         }
+        
         
         
     }
@@ -70,26 +78,48 @@ class RepaymentController extends Controller
         return $distributed;
     }
 
-    public function validator(array $data){
-        $rules = [
-            'office_id' =>['required', new OfficeID()],
-            'repayment_date'=>['required','date', new PreventFutureDate(),'prevent_previous_repayment_date','on_or_before_disbursement_date','deposit_last_transaction_date'],
-            'payment_method'=>['required', new PaymentMethodList],
-            'loan_account_id'=>['required', 'numeric','exists:loan_accounts,id',new AccountMustBeActive],
-            'amount' => ['required','gt:0','maximum_loan_repayment','ctlp'],
-            'receipt_number'=>['required','unique:receipts,receipt_number']
-            
-        ];
-        $messages =[
-            'office_id.required'=>'Level is required',
-            'repayment_date.required'=>'Repayment Date is required',
-            'repayment_date.date'=>'Repayment Date must be a date',
-            'loan_account_id.required'=>'Loan is invalid',
-            'loan_account_id.exists'=>'Loan is invalid',
-            'amount.required'=>'Amount is required',
-            'amount.gt'=>'Amount must be greater than 0',
-            'amount.numeric'=>'Invalid Amount Data Type',
-        ];
+    public function validator(array $data,$is_ctlp = false){
+        if($is_ctlp){
+            $rules = [
+                'office_id' =>['required', new OfficeID()],
+                'repayment_date'=>['required','date', new PreventFutureDate(),'prevent_previous_repayment_date','on_or_before_disbursement_date','deposit_last_transaction_date'],
+                'payment_method_id'=>['required', new PaymentMethodList],
+                'loan_account_id'=>['required', 'numeric','exists:loan_accounts,id',new AccountMustBeActive],
+                'amount' => ['required','gt:0','maximum_loan_repayment','ctlp'],
+                'jv_number'=>['required','unique:journal_vouchers,journal_voucher_number']
+                
+            ];
+            $messages =[
+                'office_id.required'=>'Level is required',
+                'repayment_date.required'=>'Repayment Date is required',
+                'repayment_date.date'=>'Repayment Date must be a date',
+                'loan_account_id.required'=>'Loan is invalid',
+                'loan_account_id.exists'=>'Loan is invalid',
+                'amount.required'=>'Amount is required',
+                'amount.gt'=>'Amount must be greater than 0',
+                'amount.numeric'=>'Invalid Amount Data Type',
+            ];
+        }else{
+            $rules = [
+                'office_id' =>['required', new OfficeID()],
+                'repayment_date'=>['required','date', new PreventFutureDate(),'prevent_previous_repayment_date','on_or_before_disbursement_date','deposit_last_transaction_date'],
+                'payment_method_id'=>['required', new PaymentMethodList],
+                'loan_account_id'=>['required', 'numeric','exists:loan_accounts,id',new AccountMustBeActive],
+                'amount' => ['required','gt:0','maximum_loan_repayment','ctlp'],
+                'receipt_number'=>['required','unique:receipts,receipt_number']
+                
+            ];
+            $messages =[
+                'office_id.required'=>'Level is required',
+                'repayment_date.required'=>'Repayment Date is required',
+                'repayment_date.date'=>'Repayment Date must be a date',
+                'loan_account_id.required'=>'Loan is invalid',
+                'loan_account_id.exists'=>'Loan is invalid',
+                'amount.required'=>'Amount is required',
+                'amount.gt'=>'Amount must be greater than 0',
+                'amount.numeric'=>'Invalid Amount Data Type',
+            ];
+        }
         return Validator::make($data,$rules,$messages);
     }
 
@@ -97,16 +127,22 @@ class RepaymentController extends Controller
         $request->validate([
             'office_id' =>['required', new OfficeID()],
             'repayment_date'=>['required','date', new PreventFutureDate(),'prevent_previous_repayment_date'],
-            'payment_method'=>['required', new PaymentMethodList],
+            'payment_method_id'=>['required', new PaymentMethodList],
             'loan_account_id'=>['required', 'numeric','exists:loan_accounts,id',new AccountMustBeActive, 'ctlp'],
             'amount'=>['ctlp']
         ]);
 
         \DB::beginTransaction();
         try{
-            $request->request->add(['paid_by'=>auth()->user()->id]);
-            $request->request->add(['user_id'=>auth()->user()->id]);
+            $user_id = auth()->user()->id;
+            $request->request->add(['paid_by'=>$user_id]);
+            $request->request->add(['user_id'=>$user_id]);
             $acc = LoanAccount::find($request->loan_account_id)->preTerminate($request->all(),true);
+            
+            $loanPayload = ['date'=>Carbon::parse($request->repayment_date),'amount'=>$request->amount];
+
+            event(new LoanAccountPayment($loanPayload, $request->office_id, $user_id, $request->payment_method_id));
+            
             \DB::commit();
             return response()->json(['msg'=>'Transaction Successful'],200);
         }catch(Exception $e){
@@ -117,6 +153,26 @@ class RepaymentController extends Controller
         return view('pages.bulk.repayments');
     }   
 
+    public function scheduledListV2(Request $request){
+        $this->scheduledListValidator($request->all());
+        $data = [
+            'office_id'=>$request->office_id,
+            'date'=>$request->date,
+            'loan_product_id'=>$request->loan_product_id,
+            'deposit_product_ids'=>collect($request->deposit_product_ids)->pluck('id')
+        ];
+
+        $list = Account::ccrFromDate($data);
+        $for_ccr = $request->has('ccr') ? true : false;
+        if($for_ccr){
+            
+            $file = DownloadController::ccr($request->all(), $list);
+            return response()->download($file['file'],$file['filename'],$file['headers']);
+
+        }
+        return response()->json(['list'=>$list], 200);
+
+    }
     public function scheduledList(Request $request){
         $this->scheduledListValidator($request->all());
         $data = [
@@ -126,12 +182,21 @@ class RepaymentController extends Controller
             'deposit_product_ids'=>collect($request->deposit_products)->pluck('id')
         ];
         $list = Account::repaymentsFromDate($data,true);
-        session(['ccr'=>$list]);
+        
         return response()->json(['list'=>$list,'msg'=>'success'],200);
     }
 
     public function scheduledListValidator(array $array){
-
+        return Validator::make($array,
+            [
+                'office_id'=>['required','exists:offices,id'],
+                'date'=>['required','date'],
+                'loan_product_id'=>['required','exists:loans,id'],
+                'deposit_product_ids'=>['sometimes']
+            ],
+            [
+                'office_id.required'=>'Office level is required'
+            ])->validate();
     }
     public function bulkRepayment(Request $request){
       
@@ -173,7 +238,7 @@ class RepaymentController extends Controller
                             'amount'=>$amount,
                             'payment_method'=>$payment_method,
                             'repayment_date'=>$repayment_date,
-                            'user_id' => $user,
+                            'posted_by' => $user,
                             'receipt_number' => $receipt_number,
                             'office_id'=>$data['office_id']
                         ];
@@ -203,37 +268,89 @@ class RepaymentController extends Controller
         
     }
 
+    public function bulkRepaymentV2(Request $request){
+
+        $this->validateBulk($request->all())->validate();
+        $repayment_date = Carbon::parse($request->repayment_date);
+        $user = auth()->user()->id;
+        $payment_method_id = $request->payment_method_id;
+        $payment_info_template = [
+            'payment_method_id'=>$payment_method_id,
+            'repayment_date'=>$repayment_date,
+            'notes'=> $request->notes,
+            'receipt_number'=>$request->receipt_number,
+            'paid_by'=>$user,
+            'office_id'=>$request->office_id
+        ]; 
+        \DB::beginTransaction();
+        try{
+            $total_loan_payment = 0;
+            $total_deposit_payment = 0;
+            foreach($request->accounts as $item){
+                $payment_info = $payment_info_template;
+                $payment_info['amount'] = (float) $item['loan']['amount'];
+                $total_loan_payment += $payment_info['amount'];
+                $account = LoanAccount::find( (int) $item['loan']['loan_account_id'])->payV2($payment_info);
+                
+                if (array_key_exists('deposits', $item)) {
+                    $dep_accounts = Client::fcid($item['client_id'])->deposits;
+                    foreach ($item['deposits'] as $deps) {
+                        $payment_info = $payment_info_template;
+                        $payment_info['amount'] = (float) $deps['amount'];
+                        $payment_info['user_id'] = $user;
+                        $total_deposit_payment += (float) $deps['amount'];
+                        $deposit_account = $dep_accounts->where('deposit_id',$deps['deposit_id'])->first();
+                        $deposit_account->deposit($payment_info);
+                    }
+                }
+            }
+
+            $loanPayload = ['date'=>$repayment_date->format('d-F'),'amount'=>$total_loan_payment];
+            event(new LoanAccountPayment($loanPayload, $request->office_id, $user , $payment_method_id));
+            $has_deposit = $total_deposit_payment > 0;
+            if ($has_deposit) {
+                $depositPayload = ['date'=>$repayment_date->format('d-F'),'amount'=>$total_deposit_payment];
+                event(new DepositTransaction($depositPayload, $request->office_id, $user, $payment_method_id, 'deposit'));
+            }
+
+            \DB::commit();
+            return response()->json(['msg'=>'Payments Successfully Posted'],200);
+        }catch(Exception $e){
+            Log::alert($e->getMessage());
+            return response()->json(['msg'=>'Something went wrong'],500);
+        }
+
+    }
+
     public function validateBulk(array $array){
-        $hasDeposit = count($array['accounts'][0]['deposit']) > 0;
+        $hasDeposit = count($array['accounts'][0]['deposits']) > 0;
         $rules = [
             'office_id' => ['required','exists:offices,id'],
             'receipt_number'=>['required','unique:receipts,receipt_number'],
             'repayment_date'=>['required','date','before:tomorrow'],
-            'accounts.*.loans.id' =>['required', 'numeric','exists:loan_accounts,id',new AccountMustBeActive],
-            'accounts.*.loans.amount'=>['required','bulk_maximum_loan_repayment:accounts.*.loans.amount'],
-            'accounts.*.loans.repayment_date'=>['required','date', new PreventFutureDate(),'bulk_prevent_previous_repayment_date','bulk_on_or_before_disbursement_date'],
-            'payment_method'=>['required', new PaymentMethodList]
+            'accounts.*.loan.loan_account_id' =>['required', 'numeric','exists:loan_accounts,id',new AccountMustBeActive],
+            'accounts.*.loan.amount'=>['required','gt:0','bulk_maximum_loan_repayment:accounts.*.loan.amount'],
+            'accounts.*.loan.repayment_date'=>['required','date', new PreventFutureDate(),'bulk_prevent_previous_loan_repayment_date','bulk_on_or_before_disbursement_date'],
+            'payment_method_id'=>['required', new PaymentMethodList]
         ];
         if($hasDeposit){
             $rules = [
                 'office_id' => ['required','exists:offices,id'],
                 'receipt_number'=>['required','unique:receipts,receipt_number'],
                 'repayment_date'=>['required','date','before:tomorrow'],
-                'accounts.*.loans.id' =>['required', 'numeric','exists:loan_accounts,id',new AccountMustBeActive],
-                'accounts.*.loans.amount'=>['required','bulk_maximum_loan_repayment:accounts.*.loans.amount'],
-                'accounts.*.loans.repayment_date'=>['required','date', new PreventFutureDate(),'bulk_prevent_previous_repayment_date','bulk_on_or_before_disbursement_date'],
-                'payment_method'=>['required', new PaymentMethodList],
+                'accounts.*.loan.loan_account_id' =>['required', 'numeric','exists:loan_accounts,id',new AccountMustBeActive],
+                'accounts.*.loan.amount'=>['required','bulk_maximum_loan_repayment:accounts.*.loan.amount'],
+                'accounts.*.loan.repayment_date'=>['required','date', new PreventFutureDate(),'bulk_prevent_previous_loan_repayment_date','bulk_on_or_before_disbursement_date'],
+                'payment_method_id'=>['required', new PaymentMethodList],
 
-                'accounts.*.deposit.*.deposit_account_id'=>['required','exists:deposit_accounts,id', new DepositAccountActive],
-                'accounts.*.deposit.*.amount'=>['required','gte:0','bulk_below_minimum_deposit_amount:accounts.*.deposit.*.amount'],
-                'accounts.*.deposit.*.repayment_date'=>['required','date', new PreventFutureDate,'bulk_prevent_previous_deposit_transaction_date:accounts.*.deposit.*.repayment_date'],
+                'accounts.*.deposits.*.amount'=>['sometimes','nullable','gte:0','bulk_below_minimum_deposit_amount:accounts.*.deposit.*.amount'],
+                'accounts.*.deposits.*.repayment_date'=>['required_with:accounts.*.deposits.*.amount','nullable','date', new PreventFutureDate,'bulk_prevent_previous_deposit_transaction_date:accounts.*.deposit.*.repayment_date'],
 
             ];
         }
 
         $messages = [
-            'accounts.*.loans.amount.required'=>'Payment amount is required',
-            'accounts.*.deposit.*.amount.required'=>'Deposit amount is required',
+            'accounts.*.loan.amount.required'=>'Payment amount is required',
             'accounts.*.deposit.*.amount.gte'=>'Deposit must be greater than 0',
             
             

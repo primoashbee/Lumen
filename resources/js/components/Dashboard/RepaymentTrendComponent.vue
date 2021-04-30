@@ -35,7 +35,16 @@ export default {
                     ticks : {
                       fontColor : 'white',
                       fontSize : 12,
-                      beginAtZero: true
+                      beginAtZero: true,
+                      callback: function(label, index, labels) {
+                        return moneyFormat(label/1000) + 'k';
+                      },
+                    },
+                    scaleLabel: {
+                      fontColor : 'white',
+                      fontSize : 12,
+                      display: true,
+                      labelString: '1k = 1,000'
                     }
                   }],
                   xAxes : [{
@@ -45,7 +54,9 @@ export default {
                       beginAtZero: true
                     }
                   }]
-                }
+                },
+
+
               },
               data: {
                 labels: [],
@@ -54,33 +65,33 @@ export default {
                     label: 'Expected Repayment',
                     fill:false,
                     borderColor: "#0000FF",
-                    data: []
+                    data: [0,0,0,0,0,0,0]
                   },
                   {
                     label: 'Actual Repayment',
                     fill:false,
                     borderColor: "#faa26d",
-
-                    data: []
+                    data: [0,0,0,0,0,0,0]
                   },
                 ]
               }
-      }
+      },
+
+      chart : null,
 
  
     }
   },
   mounted() {
       this.getData();    
-      //repayment
+      
       window.Echo.private(this.repaymentChannel)
         .listen('.loan-payment',data =>{
-          console.log('lp',data);
+          console.log('meron')
           this.paymentMade(data.data);
       })
       window.Echo.private(this.expectedChannel)
         .listen('.loan-disbursed',data =>{
-          console.log('ld,',data);
           this.disbursementMade(data.data);
       })
 
@@ -88,18 +99,17 @@ export default {
   },
   methods : {
     chartInit(){
-    
-      new Chart(this.$refs.myChart, this.chart_data);
+      this.chart = new Chart(this.$refs.myChart, this.chart_data);
     },
     getData(){
+      this.chartInit();
        axios.get(this.url)
         .then(res=>{
             
-            this.chart_data.data.labels = res.data.labels
-            this.chart_data.data.datasets[0].data = res.data.expected_repayment
-            this.chart_data.data.datasets[1].data = res.data.actual_repayment
-            
-            this.chartInit()
+            this.chart_data.data.labels = res.data.repayment_trend.labels
+            this.chart_data.data.datasets[0].data = res.data.repayment_trend.expected_repayment
+            this.chart_data.data.datasets[1].data = res.data.repayment_trend.actual_repayment
+            this.chart.update();
         })
 
     },
@@ -111,13 +121,13 @@ export default {
       
       //actual repayment index is 1
       var curr_value = this.chart_data.data.datasets[1].data[index];
-      console.log('New Value' , curr_value);
+      
 
       var new_value = parseInt(curr_value) + parseInt(data.amount);
-      console.log('New Value' , new_value);
-      this.chart_data.data.datasets[1].data[index] = parseInt(curr_value) + parseInt(data.amount)
+      
+      this.chart_data.data.datasets[1].data[index] = new_value
 
-      this.chartInit();
+      this.chart.update();
     },
     disbursementMade(){
       return;
@@ -132,52 +142,12 @@ export default {
 
       this.chartInit();
     },
-    updateChart(){
-          this.chart_data = {
-              type: 'line',
-              options: {
-                title: {
-                  display: true,
-                  text: 'Repayment Trend',
-                  fontSize: 20,
-                  fontColor: 'white',
-                },
-                legend:{
-                  labels:{
-                      fontColor: "white",
-                      fontSize:15
-                  }
-                }
-              },
-              data: {
-                labels: ["2021-03-01", "2021-03-02", "2021-03-03", "2021-03-04", "2021-03-05", "2021-03-08"],
-                datasets: [
-                  {
-                    label: 'Expected Repayment',
-                    fill:false,
-                    borderColor: "#0000FF",
 
-                    data:[6000,5000,4000,3000,2000,1000]
-                  },
-                  {
-                    label: 'Actual Repayment',
-                    fill:false,
-                    borderColor: "#faa26d",
-
-                    // data: res.data.actual_repayments
-                    data: [1000,2000,3000,4000,5000,6000]
-                  },
-                ]
-              }
-          }
-
-          this.chartInit()
-    }
     
   },
   computed : {
     url(){
-      return '/dashboard/v1/repayment_trend/'+this.office_id
+      return '/dashboard/v1/true/'+this.office_id+'/repayment_trend'
     },
     repaymentChannel(){
       return 'dashboard.charts.repayment.'+this.office_id

@@ -29,47 +29,40 @@ class LatestTransaction implements Rule
      */
     public function passes($attribute, $value)
     {   
-        $transactions = Transaction::where('transaction_number',$value)->orderBy('id','desc')->get();
        
-       
-        foreach ($transactions as $transaction) {
-            $type  = $transaction->transactionType();
-            if ($type=='Loan') {
-                $latest  = LoanAccount::find((int) $transaction->transactionable->loan_account_id)->latestTransaction();
-                if (is_null($latest)) {
-                    return true;
+        // $transaction = Transaction::getAccount($value);
+        $transaction = Transaction::getAccount($value);
+        if(is_array($transaction)){
+            $loan_passes = false;
+            $deposit_passes = false;
+            collect($transaction)->each(function($item, $key) use ($value, &$loan_passes, &$deposit_passes){
+                $model = get_class($item);
+                $last = $item->lastTransaction(true)->transaction_number;
+                if ($model == "App\LoanAccount") {
+                   
+                    if ($item->lastTransaction(true)->transaction_number == $value) {
+                        $loan_passes = true;
+                    }else{
+                        $this->recent_transaction = $item->lastTransaction(true)->transaction_number. ' - Loan';
+                    }
                 }
-
-                $latest  = $latest->created_at;
-                $t_date = $transaction->created_at;
-                $this->recent_transaction =  $transaction->transaction_number;
-                $diff = $t_date->equalTo($latest);
-                if ($diff) {
-                    return true;
+                if ($model== "App\DepositAccount") {
+                    if ($item->lastTransaction(true)->transaction_number == $value) {
+                        $deposit_passes = true;
+                    }else{
+                        $this->recent_transaction = $item->lastTransaction(true)->transaction_number. ' - Deposit Account';
+                    }
                 }
-
-                return $latest->gt($t_date) ? false : true;
-
+            });
+            if($loan_passes && $deposit_passes){
+                return true;
             }
-            if ($type=='Deposit') {
-                $deposit_account_id = (int) $transaction->transactionable->deposit_account_id;
-                $latest_transaction = DepositAccount::find($deposit_account_id)->latestTransaction();
-                if (is_null($latest_transaction)) {
-                    return true;
-                }
-            
-                $latest  = $latest_transaction->created_at;
-                $t_date = $transaction->created_at;
-                $this->recent_transaction =  $latest_transaction->transaction_number;
-                $diff = $t_date->equalTo($latest);
-                if ($diff) {
-                    return true;
-                }
-
-                return $latest->gt($t_date) ? false : true;
-            }
+            return false;
+        }else{
+            $transaction = Transaction::getAccount($value)->lastTransaction(true);
+            $this->recent_transaction = $transaction->transaction_number;
+            return $transaction->transaction_number == $value ? true : false;
         }
-        return false;
     }
 
     /**
