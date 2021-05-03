@@ -49,6 +49,7 @@
 					<div class="col-lg-8 profile-wrapper">
 						<a href="/edit/client/{{$client->client_id}}" type="submit" class="btn btn-primary float-right mr-4">Edit Client</a>
 						<div class="p-details">
+							
 							<p class="title text-2xl">{{$client->name()}}</p>
 							<p class="text-light text-base">Nickname: {{$client->nickname}}</p>
 						</div>

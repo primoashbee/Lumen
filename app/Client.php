@@ -306,4 +306,7 @@ class Client extends Model
     public function loanCycle(){
         return $this->loanAccounts->whereIn('status',['Closed','Pre-terminated'])->count();
     }
+
+
+    
 }

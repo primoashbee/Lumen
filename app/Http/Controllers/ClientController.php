@@ -194,7 +194,8 @@ class ClientController extends Controller
     }
 
     
-    public function view(Client $client){
+    public function view($client_id){
+        $client = Client::fcid($client_id);
         if($client===null){
             abort(503);
             return response()->route('client.list');

@@ -22,8 +22,8 @@ class CreateClientsTable extends Migration
             $table->string('suffix')->nullable();
             $table->string('nickname')->nullable();
             $table->string('gender');
-            $table->string('profile_picture_path')->nullable();
-            $table->string('signature_path')->nullable();
+            $table->string('profile_picture_path')->nullable()->default('https://via.placeholder.com/150');
+            $table->string('signature_path')->nullable()->default('https://via.placeholder.com/220x110?text=Signature%20Here');
             $table->date('birthday');
             $table->string('birthplace');
             $table->string('civil_status');
