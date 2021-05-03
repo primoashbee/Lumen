@@ -62,6 +62,9 @@ Vue.component('v2-select', require('./components/SelectComponentV2.vue').default
 Vue.component('create-client', require('./components/CreateClientComponent.vue').default);
 // Vue.component('create-client-form', require('./components/ClientCreateFormComponent.vue').default);
 Vue.component('update-client-form', require('./components/ClientUpdateFormComponent.vue').default);
+Vue.component('create-client-form', require('./components/CreateClientFormComponent.vue').default);
+// Vue.component('create-client-form', require('./components/ClientCreateFormComponent.vue').default);
+Vue.component('update-client-form', require('./components/UpdateClientFormComponent.vue').default);
 Vue.component('client-list', require('./components/ClientListComponent.vue').default);
 // Vue.component('paginator', require('./components/PaginatorComponent.vue').default);
 Vue.component('paginator', require('./components/PaginatorComponentV2.vue').default);
