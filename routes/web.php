@@ -113,7 +113,7 @@ Route::get('/download/dst/{loan_account_id}','DownloadController@dst');
 
 // Route::post('/download/dst/{id}','DownloadController@dst');
 Route::get('/download/dst/bulk/{bulk_transaction_id}','DownloadController@dstBulk');
-Route::get('/download/ccr',function(Request $request){
+Route::get('/ccrdebug',function(Request $request){
 
 
     $summary = session('ccr');
