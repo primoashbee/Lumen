@@ -110,12 +110,13 @@ Route::get('/transactions', function(Request $request){
     return response()->json($data,200);
 });
 Route::get('/download/dst/{loan_account_id}','DownloadController@dst');
+
 // Route::post('/download/dst/{id}','DownloadController@dst');
 Route::get('/download/dst/bulk/{bulk_transaction_id}','DownloadController@dstBulk');
 Route::get('/download/ccr',function(Request $request){
 
 
-    $summary = session('bee');
+    $summary = session('ccr');
     
     $file = public_path('temp/').$summary->office.' - '.$summary->repayment_date.'.pdf';            
     $pdf = App::make('snappy.pdf.wrapper');

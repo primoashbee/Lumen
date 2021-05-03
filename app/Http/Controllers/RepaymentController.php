@@ -163,6 +163,7 @@ class RepaymentController extends Controller
         ];
 
         $list = Account::ccrFromDate($data);
+        session(['ccr'=>$list]);
         $for_ccr = $request->has('ccr') ? true : false;
         if($for_ccr){
             
