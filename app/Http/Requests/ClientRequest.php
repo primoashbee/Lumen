@@ -74,8 +74,8 @@ class ClientRequest extends FormRequest
             'total_businesses_net_income'=>'required|gt:0',
 
 
-            // 'profile_picture_path' =>'sometimes|required|image|mimes:jpeg,png,jpg|max:9000',
-            // 'signature_path' =>'sometimes|required|image|mimes:jpeg,png,jpg|max:5000',
+            // 'profile_picture_path' =>'sometimes|image|mimes:jpeg,png,jpg|max:9000',
+            // 'signature_path' =>'sometimes|image|mimes:jpeg,png,jpg|max:5000',
             'businesses'=>[new Businesses],
             'businesses.*.business_address'=>['required'],
             'businesses.*.service_type'=>['required', new ServiceType],

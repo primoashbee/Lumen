@@ -74,6 +74,11 @@ class Client extends Model
 	    });
     }
 
+    public function getRouteKeyName()
+    {
+        return 'client_id';
+    }
+
     public function deposits(){
         
         return $this->hasMany(DepositAccount::class,'client_id','client_id');
@@ -261,9 +266,9 @@ class Client extends Model
         return $this->dependents->where('status','Unused')->first();
     }
 
-    public function getBirthdayAttribute($value){
-        return Carbon::parse($value)->format('F d, Y');
-    }
+    // public function getBirthdayAttribute($value){
+    //     return Carbon::parse($value)->format('F d, Y');
+    // }
 
 
 

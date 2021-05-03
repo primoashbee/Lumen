@@ -153,9 +153,9 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/usr/branches','UserController@branches');
     Route::get('/clients','ClientController@list')->name('client.list');
     Route::get('/clients/list','ClientController@getList')->name('get.client.list');
-    Route::get('/client/{client_id}','ClientController@view')->name('client.profile');
-    Route::get('/edit/client/{client_id}','ClientController@editClient');
-    Route::post('/edit/client','ClientController@update');
+    Route::get('/client/{client}','ClientController@view')->name('client.profile');
+    Route::get('/edit/client/{client}','ClientController@editClient');
+    Route::post('/edit/client/{client}','ClientController@update');
     
     Route::post('/create/office/', 'OfficeController@createOffice');
 

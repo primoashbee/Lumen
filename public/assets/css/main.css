@@ -59,6 +59,7 @@ td,tr{
 }
 hr{
     background-color: #fff;
+    clear: both;
 }
 /*Color Utilities*/
 
@@ -744,6 +745,7 @@ body.dark-mode .navbar.fixed-top{
     border-bottom: 1px solid #fdad7d;
     background: #1e1e2f;
     transition: all ease 0.3s;
+    position: fixed!important;
 }
 body.dark-mode #search::placeholder{
     color:#fff;
@@ -752,7 +754,7 @@ body.dark-mode #search::placeholder{
 body.dark-mode .card{
 	background-color: #27293d;
 	box-shadow: 0 1px 20px 0px rgba(0, 0, 0, 0.1);
-    margin-bottom: 30px;
+    padding-bottom: 30px;
 }
 
 body.dark-mode a.l-text,.sidebar-nav ul.main-nav li:not(.sub-list):hover a:not(.sub-nav):not(.second-sub-nav),
@@ -933,6 +935,10 @@ a.btn-create{
 }
 a.btn-create:hover{
     transform: translateY(-1.5px);
+}
+
+.text-light{
+    color: #fff;
 }
 
 .text-muted{
@@ -1238,7 +1244,8 @@ textarea.form-control{
     outline: none;
     transition: color .3s ease-in-out,border-color .3s ease-in-out,background-color .3s ease-in-out;
 }
-input[type=number].form-control:focus{
+input[type=number].form-control:focus,
+input[type=date].form-control:focus{
     color: #fff;
 }
 input[type=text].form-control:focus,input[type=text].form-control:hover,
@@ -1351,6 +1358,104 @@ button.btn-primary:hover{
 /*END BUTTONS*/
 /*FILES*/
 
+.img-parent{
+    width: 220px;
+    height: 240px;
+    margin: 0 auto;
+    max-width: 220px;
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background: #fff;
+    box-shadow: 0 40px 50px rgb(255 255 255 12%);
+    right: 10px;
+    border-radius: 5px;
+    overflow:hidden;
+}
+
+.img-container{
+    width: 200px;
+    height: 150px;
+    
+    /* border-radius: 50%; */
+    border: 1px solid #ef823f;
+    border-style: dashed;
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+}
+
+.img-container label{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 2px;
+    padding-top: 60%;
+    font-weight: 800;
+    z-index: 1;
+}
+
+.img-signature{
+    width: 220px;
+    height: 70px;
+    bottom: 0;
+    padding: 10px;
+}
+
+.img-signature-box{
+    height: 100%;
+    border-radius: 5px;
+    background: transparent;
+    border: 1px solid #ef823f;
+    border-style: dashed;
+}
+.img-signature-wrapper{
+    position: relative;
+    height: 100%;
+}
+.img-signature-wrapper label.img-title{
+    font-weight: 800;
+}
+.img-signature-wrapper label.img-title{
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    z-index: 1;
+}
+.img-signature-wrapper:hover label.img-title{
+    opacity: 1;
+    transition: ease-in 0.3s;
+}
+.img-photo-wrapper img,
+.img-signature-wrapper img{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;    
+}   
+.img-photo-wrapper img.active:hover,
+.img-signature-wrapper:hover img{
+    opacity: 0.5;
+}
+div.img-photo-wrapper.active label.img-title,
+.img-signature-wrapper.active label.img-title{
+    visibility: hidden;
+
+}
+div.img-photo-wrapper.active:hover label.img-title, 
+.img-signature-wrapper.active:hover label.img-title{
+    visibility: visible;
+    transition: ease-in .4s;
+}
+div.img-photo-wrapper.active:hover img.active, 
+div.img-signature-wrapper:hover img.img-active{
+    opacity: 0.5;
+    transition: ease-in .4s;
+}
 
 .file-input-signature img.img-thumbnail{
     height:100% !important;

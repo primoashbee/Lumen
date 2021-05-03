@@ -3664,7 +3664,7 @@ $(document).ready(function(){
   $(window).scroll(function(){
     // console.log($('#lastname').val());
     var scroll = $(window).scrollTop();
-    if (scroll >= 80) {
+    if (scroll - 10 >= 120) {
       $('.navbar').addClass('fixed-top');
     }else{
       $('.navbar').removeClass('fixed-top');

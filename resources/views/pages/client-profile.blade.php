@@ -21,27 +21,27 @@
 			            	<h5 class="title text-2xl">Personal Details</h5>
 			            	<div class="p-details mt-4">
 			            		<p class="title text-lg">Birthday</p>
-				                <p class="text-muted text-lg">{{$client->birthday}}</p>
+				                <p class="text-light text-lg">{{$client->birthday}}</p>
 				            </div>
 				            <div class="p-details mt-4">
 			            		<p class="title text-lg">Birthplace</p>
-				                <p class="text-muted text-lg">{{$client->birthplace}}</p>
+				                <p class="text-light text-lg">{{$client->birthplace}}</p>
 				            </div>
 				            <div class="p-details mt-4">
 			            		<p class="title text-lg">Gender</p>
-				                <p class="text-muted text-lg">{{$client->gender}}</p>
+				                <p class="text-light text-lg">{{$client->gender}}</p>
 				            </div>
 				            <div class="p-details mt-4">
 			            		<p class="title text-lg">Civil Status</p>
-				                <p class="text-muted text-lg">{{$client->civil_status}}</p>
+				                <p class="text-light text-lg">{{$client->civil_status}}</p>
 				            </div>
 				            <div class="p-details mt-4">
 			            		<p class="title text-lg">Educational Attainment</p>
-				                <p class="text-muted text-lg">{{$client->education}}</p>
+				                <p class="text-light text-lg">{{$client->education}}</p>
 				            </div>
 				            <div class="p-details mt-4">
 			            		<p class="title text-lg">Facebook Account </p>
-				                <p class="text-muted text-lg">{{$client->fb_account}}</p>
+				                <p class="text-light text-lg">{{$client->fb_account}}</p>
 				            </div>
 			            </div>
 					</div>
@@ -50,7 +50,7 @@
 						<a href="/edit/client/{{$client->client_id}}" type="submit" class="btn btn-primary float-right mr-4">Edit Client</a>
 						<div class="p-details">
 							<p class="title text-2xl">{{$client->name()}}</p>
-							<p class="text-muted text-base">Nickname: {{$client->nickname}}</p>
+							<p class="text-light text-base">Nickname: {{$client->nickname}}</p>
 						</div>
 
 						<div class="row">
@@ -71,7 +71,7 @@
 								</div>
 								<div class="p-details mt-4">
 									<p class="title text-xl">Created at</p>
-									<p class="text-muted text-lg">{{$client->created_at->format('F, j Y')}} - {{$client->created_at->diffForHumans()}}</p>
+									<p class="text-light text-lg">{{$client->created_at->format('F, j Y')}} - {{$client->created_at->diffForHumans()}}</p>
 								</div>
 								<div class="p-details mt-2">
 									
@@ -96,41 +96,45 @@
                             </ul>
                             <div class="tab-content py-3 px-3 px-sm-0" id="nav-tabContent">
 			                    <div class="tab-pane fade show active" id="personal" role="tabpanel" aria-labelledby="nav-home-tab">
-			                 		<div class="p-details">
-			                 			<span class="title text-xl mr-8">Address:</span>
-										<span class="text-muted text-lg">{{$client->business_address}}</span>
-			                 		</div>
-			                 		<div class="p-details mt-4">
-			                 			<span class="title text-xl mr-8">Business Type:</span>
-										{{-- <span class="text-muted text-lg"> {{$client->household_income->service_type}}</span> --}}
-			                 		</div>
+			                    	@if($client->businesses)
+			                    		@foreach($client->businesses as $business)
+					                 		<div class="p-details">
+					                 			<span class="title text-xl mr-8">Address:</span>
+												<span class="text-light text-lg">{{$business->business_address}}</span>
+					                 		</div>
+					                 		<div class="p-details mt-4">
+					                 			<span class="title text-xl mr-8">Business Type:</span>
+												<span class="text-light text-lg"> {{$business->service_type}}</span> 
+					                 		</div>
+			                 			@endforeach
+			                 		@endif
 			                 		
 
 			                    </div>
 			                    <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="nav-profile-tab">
 			                      	<div class="p-details mt-4">
 			                 			<span class="title text-xl mr-8">Phone Number:</span>
-										<span class="text-muted text-lg">{{$client->contact_number}}</span>
+										<span class="text-light text-lg">{{$client->contact_number}}</span>
 			                 		</div>
 			                 		<div class="p-details mt-4">
 			                 			<span class="title text-xl mr-8">Street Address:</span>
-										<span class="text-muted text-lg">{{$client->street_address}}</span>
+										<span class="text-light text-lg">{{$client->street_address}}</span>
 			                 		</div>
 			                 		<div class="p-details mt-4">
 			                 			<span class="title text-xl mr-8">Barangay:</span>
-										<span class="text-muted text-lg">{{$client->barangay_address}}</span>
+										<span class="text-light text-lg">{{$client->barangay_address}}</span>
 			                 		</div>
 			                 		<div class="p-details mt-4">
 			                 			<span class="title text-xl mr-8">City:</span>
-										<span class="text-muted text-lg">{{$client->city_address}}</span>
+										<span class="text-light text-lg">{{$client->city_address}}</span>
 			                 		</div>
 			                 		<div class="p-details mt-4">
 			                 			<span class="title text-xl mr-8">Province:</span>
-										<span class="text-muted text-lg">{{$client->province_address}}</span>
+										<span class="text-light text-lg">{{$client->province_address}}</span>
 			                 		</div>
 			                 		<div class="p-details mt-4">
 			                 			<span class="title text-xl mr-8">Zipcode:</span>
-										<span class="text-muted text-lg">{{$client->zipcode}}</span>
+										<span class="text-light text-lg">{{$client->zipcode}}</span>
 			                 		</div>
 			                    </div>
 			                 </div>
