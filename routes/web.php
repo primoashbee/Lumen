@@ -116,13 +116,37 @@ Route::get('/download/dst/bulk/{bulk_transaction_id}','DownloadController@dstBul
 Route::get('/ccrdebug',function(Request $request){
 
 
-    $summary = session('ccr');
+    $data = session('ccr');
+    $request = session('request');
     
-    $file = public_path('temp/').$summary->office.' - '.$summary->repayment_date.'.pdf';            
+
+    $office = Office::find($request['office_id']);
+    $repayment_date = \Carbon\Carbon::parse($request['date']);
+    $printed_by = auth()->user()->fullname;
+
+    $summary = new stdClass;
+    $summary->office = $office->name;
+    $summary->printed_by = $printed_by;
+    $summary->printed_at = \Carbon\Carbon::now()->format('F j, Y, g:i a');
+    $summary->repayment_date = $repayment_date->format('F d, Y');
+    $summary->has_deposit = array_key_exists('deposit_product_ids',$request);
+    $summary->has_loan = array_key_exists('loan_product_id',$request);
+    if ($summary->has_deposit) {
+        $summary->deposit_types = $request['deposit_product_ids'];
+    }
+    $summary->loan_accounts = $data;
+
+    $summary->name = 'Collection Sheet - ' . $summary->office . ' for ' . $summary->repayment_date.'.pdf';
+
+    $file = public_path('temp/'). $summary->name;
     $pdf = App::make('snappy.pdf.wrapper');
     $headers = ['Content-Type'=> 'application/pdf','Content-Disposition'=> 'attachment;','filename'=>$summary->name];
-    // return view('exports.test',compact('summary'));
-    $pdf->loadView('exports.test',compact('summary'))->save($file,true);
+
+    return $pdf->loadView('exports.test',compact('summary'))->stream();
+    
+    
+    
+    
     return $pdf->stream();
     return response()->download($file,$summary->name,$headers);
 
