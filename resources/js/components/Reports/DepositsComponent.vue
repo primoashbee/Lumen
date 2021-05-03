@@ -195,7 +195,10 @@ export default {
                 .then(res=>{
                     this.list = res.data.data
                     this.summary = res.data.summary
-                    this.exportable = true;
+                    this.exportable = false;
+                    if(this.list.data.length > 0){
+                        this.exportable = true;
+                    }
                 })
         },
         userSelected(value){

@@ -35,7 +35,7 @@ class Dashboard
                 ->whereExists(function ($q) use ($client_ids) {
                     $q->select('id', 'closed_at', 'client_id');
                     $q->from('loan_accounts');
-                    $q->whereNull('closed_at');
+                    // $q->whereNull('closed_at');
                     $q->whereNotNull('disbursed_at');
                     $q->whereNotNull('approved_at');
                     $q->whereColumn('loan_accounts.id', 'loan_account_installments.loan_account_id');
@@ -50,13 +50,14 @@ class Dashboard
                 ->pluck('total')->toArray();
                 
             $loan_repayments = DB::table('loan_account_repayments')
+
             ->select(DB::raw('IFNULL(ROUND(SUM(interest_paid+principal_paid),2),0) as total'))
             ->where('reverted',false)
             ->whereDate('repayment_date', \DB::raw("DATE('{$date}')"))
             ->whereExists(function ($q) use ($client_ids) {
                 $q->select('id', 'closed_at', 'client_id');
                 $q->from('loan_accounts');
-                $q->whereNull('closed_at');
+                // $q->whereNull('closed_at');
                 $q->whereNotNull('disbursed_at');
                 $q->whereNotNull('approved_at');
                 $q->whereColumn('loan_accounts.id', 'loan_account_repayments.loan_account_id');
@@ -75,7 +76,7 @@ class Dashboard
             ->whereExists(function ($q) use ($client_ids) {
                 $q->select('id', 'closed_at', 'client_id');
                 $q->from('loan_accounts');
-                $q->whereNull('closed_at');
+                // $q->whereNull('closed_at');
                 $q->whereNotNull('disbursed_at');
                 $q->whereNotNull('approved_at');
                 $q->whereColumn('loan_accounts.id', 'deposit_to_loan_repayments.loan_account_id');
@@ -124,7 +125,7 @@ class Dashboard
                     ->whereExists(function ($q) use ($client_ids) {
                         $q->select('id', 'closed_at', 'client_id');
                         $q->from('loan_accounts');
-                        $q->whereNull('closed_at');
+                        // $q->whereNull('closed_at');
                         $q->whereNotNull('disbursed_at');
                         $q->whereNotNull('approved_at');
                         $q->whereColumn('loan_accounts.id', 'loan_account_installments.loan_account_id');
@@ -142,7 +143,7 @@ class Dashboard
                     ->where('reverted',false)
                     ->whereExists(function ($q) use ($client_ids) {
                         $q->from('loan_accounts');
-                        $q->whereNull('closed_at');
+                        // $q->whereNull('closed_at');
                         $q->whereNotNull('disbursed_at');
                         $q->whereNotNull('approved_at');
                         $q->whereColumn('loan_accounts.id', 'deposit_to_loan_repayments.loan_account_id');
@@ -159,7 +160,7 @@ class Dashboard
                     ->whereDate('repayment_date', \DB::raw("DATE('{$date}')"))
                     ->whereExists(function ($q) use ($client_ids) {
                         $q->from('loan_accounts');
-                        $q->whereNull('closed_at');
+                        // $q->whereNull('closed_at');
                         $q->whereNotNull('disbursed_at');
                         $q->whereNotNull('approved_at');
                         $q->whereColumn('loan_accounts.id', 'loan_account_repayments.loan_account_id');
@@ -181,7 +182,7 @@ class Dashboard
                 ->whereExists(function ($q) use ($client_ids) {
                     $q->select('id', 'closed_at', 'client_id');
                     $q->from('loan_accounts');
-                    $q->whereNull('closed_at');
+                    // $q->whereNull('closed_at');
                     $q->whereNotNull('disbursed_at');
                     $q->whereNotNull('approved_at');
                     $q->whereColumn('loan_accounts.id', 'loan_account_installments.loan_account_id');
@@ -206,7 +207,7 @@ class Dashboard
             ->where('reverted',false)
             ->whereExists(function ($q) use ($client_ids) {
                 $q->from('loan_accounts');
-                $q->whereNull('closed_at');
+                // $q->whereNull('closed_at');
                 $q->whereNotNull('disbursed_at');
                 $q->whereNotNull('approved_at');
                 $q->whereColumn('loan_accounts.id', 'deposit_to_loan_repayments.loan_account_id');
@@ -224,7 +225,7 @@ class Dashboard
                 ->whereExists(function ($q) use ($client_ids) {
                     $q->select('id', 'closed_at', 'client_id');
                     $q->from('loan_accounts');
-                    $q->whereNull('closed_at');
+                    // $q->whereNull('closed_at');
                     $q->whereNotNull('disbursed_at');
                     $q->whereNotNull('approved_at');
                     $q->whereColumn('loan_accounts.id', 'loan_account_repayments.loan_account_id');
@@ -297,7 +298,7 @@ class Dashboard
                 ->whereDate('repayment_date', \DB::raw("DATE('{$first_date}')"))
                 ->whereExists(function ($q) use ($client_ids) {
                     $q->from('loan_accounts');
-                    $q->whereNull('closed_at');
+                    // $q->whereNull('closed_at');
                     $q->whereNotNull('disbursed_at');
                     $q->whereNotNull('approved_at');
                     $q->whereColumn('loan_accounts.id', 'loan_account_repayments.loan_account_id');
@@ -498,12 +499,8 @@ class Dashboard
         
         $office = Office::find($office_id);
         $ids = Office::lowerOffices($office_id,true,true);
-        // $ids = session('office_list_ids');
-        // $client_ids = Client::select('client_id')
-        //     ->whereIn('office_id',$ids)
-        //     ->pluck('client_id')
-        //     ->toArray();
         $date = now();
+
         $installments_without_par = \DB::table('loan_account_installments')
                             ->select(
                                 'loan_account_id',
@@ -522,34 +519,34 @@ class Dashboard
 
         //without par
         $client_without_par = \DB::table('loan_accounts')
-        ->select(\DB::raw('count(*) as total'))
-        ->joinSub($installments_without_par,'installments',function($join){
-            $join->on('installments.loan_account_id','=','loan_accounts.id');
-        })
-        ->whereExists(function($q) use($ids){
-            $q->from('clients')
-            ->whereIn('office_id',$ids)
-            ->whereColumn('clients.client_id','loan_accounts.client_id');
-        })
-        ->where('installments.rowno','=',1)
-        ->whereNull('loan_accounts.closed_at')
-        ->get()->pluck('total');
+            ->select(\DB::raw('count(*) as total'))
+            ->joinSub($installments_without_par,'installments',function($join){
+                $join->on('installments.loan_account_id','=','loan_accounts.id');
+            })
+            ->whereExists(function($q) use($ids){
+                $q->from('clients')
+                ->whereIn('office_id',$ids)
+                ->whereColumn('clients.client_id','loan_accounts.client_id');
+            })
+            ->where('installments.rowno','=',1)
+            ->whereNull('loan_accounts.closed_at')
+            ->get()->pluck('total');
 
 
         //with par
         $client_with_par = \DB::table('loan_accounts')
-        ->select(\DB::raw('count(*) as total'))
-        ->joinSub($installments_with_par,'installments',function($join){
-            $join->on('installments.loan_account_id','=','loan_accounts.id');
-        })
-        ->whereExists(function($q) use($ids){
-            $q->from('clients')
-            ->whereIn('office_id',$ids)
-            ->whereColumn('clients.client_id','loan_accounts.client_id');
-        })
-        ->where('installments.rowno','=',1)
-        ->whereNull('loan_accounts.closed_at')
-        ->get()->pluck('total');
+            ->select(\DB::raw('count(*) as total'))
+            ->joinSub($installments_with_par,'installments',function($join){
+                $join->on('installments.loan_account_id','=','loan_accounts.id');
+            })
+            ->whereExists(function($q) use($ids){
+                $q->from('clients')
+                ->whereIn('office_id',$ids)
+                ->whereColumn('clients.client_id','loan_accounts.client_id');
+            })
+            ->where('installments.rowno','=',1)
+            ->whereNull('loan_accounts.closed_at')
+            ->get()->pluck('total');
 
 
         $client_without_loan = \DB::table('clients')
@@ -567,9 +564,9 @@ class Dashboard
                     ->get()->pluck('total');
         
         $total = $client_with_par[0] + $client_without_par[0] + $client_without_loan[0];
-        $percentages[] = round($client_with_par[0] / $total,2);
-        $percentages[] = round($client_without_par[0] / $total,2);
-        $percentages[] = round($client_without_loan[0] / $total,2);
+        $percentages[] = round($client_with_par[0] / $total,2) * 100;
+        $percentages[] = round($client_without_par[0] / $total,2) * 100;
+        $percentages[] = round($client_without_loan[0] / $total,2) * 100;
 
         return compact('client_with_par','client_without_par','client_without_loan','percentages');
         
@@ -728,7 +725,7 @@ class Dashboard
                     ->whereColumn('clients.client_id', 'deposit_accounts.client_id');
                 })
                 ->where('status','!=','Active')
-                ->where(\DB::raw('MONTHNAME(last_transaction_date)'), $date->format('F'));  
+                ->where(\DB::raw('MONTHNAME(closed_at)'), $date->format('F'));  
             
             
         }
@@ -762,7 +759,7 @@ class Dashboard
             ->whereColumn('clients.client_id', 'deposit_accounts.client_id');
         })
         ->where('status','!=','Active')
-        ->where(\DB::raw('MONTHNAME(last_transaction_date)'), $now)
+        ->where(\DB::raw('MONTHNAME(closed_at)'), $now)
 
         ->when($sub_resigned, function($q,$data){
             foreach($data as $table){

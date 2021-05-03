@@ -59,7 +59,7 @@ class DashboardController extends Controller
             $disbursement_trend['repayment_principal'][6] = $data['repayment_principal'][0];
             return response()->json(compact('disbursement_trend'),200);
         }
-        $disbursement_trend = clonesession('dashboard.disbursement_trend');
+        $disbursement_trend = session('dashboard.disbursement_trend');
         return response()->json(compact('disbursement_trend'),200);
     }
     public function parMovement($office_id,$reload){
@@ -68,12 +68,12 @@ class DashboardController extends Controller
             $data =Dashboard::parMovement(now()->subDays(6),now()->subDay(),$office_id,$reload);
             
           
-            $par_movement['labels'][6] = $data['labels'][0];
-            $par_movement['par_amount']['1-30'][6] = $data['par_amount']['1-30'][0];
-            $par_movement['par_amount']['31-60'][6] = $data['par_amount']['31-60'][0];
-            $par_movement['par_amount']['61-90'][6] = $data['par_amount']['61-90'][0];
-            $par_movement['par_amount']['91-180'][6] = $data['par_amount']['91-180'][0];
-            $par_movement['par_amount']['181'][6] = $data['par_amount']['181'][0];
+            $par_movement['labels'][6] = $data['labels'];
+            $par_movement['par_amount']['1-30'][6] = $data['par_amount']['1-30'];
+            $par_movement['par_amount']['31-60'][6] = $data['par_amount']['31-60'];
+            $par_movement['par_amount']['61-90'][6] = $data['par_amount']['61-90'];
+            $par_movement['par_amount']['91-180'][6] = $data['par_amount']['91-180'];
+            $par_movement['par_amount']['181'][6] = $data['par_amount']['181'];
             
             return response()->json(compact('par_movement'),200);
         }

@@ -64,6 +64,7 @@ class SeedBranch extends Command
         if($level->level == 'cluster'){
             $this->info('Seeding .... ' . $level->name);
             $start_date = Carbon::today()->subDays(rand(0, 190));
+            // $start_date = now();
             $level->seed(20, true, $start_date);
             $this->info('Done  ' . $level->name);
 

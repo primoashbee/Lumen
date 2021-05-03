@@ -723,7 +723,12 @@ class ClientController extends Controller
                         ->first();
 
             $data['summary'] = $deposit;
-            $data['transactions'] = DepositAccount::find($deposit_account_id)->transactions()->get();
+            $account = DepositAccount::find($deposit_account_id);
+            $data['transactions'] = [];
+            if(count($account->transactions()->get()) > 0){
+                $data['transactions'] = DepositAccount::find($deposit_account_id)->transactions()->get();    
+            }
+            
             return response()->json(['data'=>$data],200);
         }
         

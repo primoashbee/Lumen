@@ -602,23 +602,24 @@ class Report extends Model
         $x;
 
         $tables = [];
-        if(count($type) == 0){
+        if($type->count() == 0){
             $list = $payments
                         ->unionAll($withdrawals)
                         ->unionAll($interest_posting)
                         ->unionAll($ctlp_withdrawals)
                         ->orderBy('timestamp','desc');
         }else{
-            if(in_array('Payment',$type)){
+            if($type->contains('Payment')){
                 $tables[] = $payments;
             }
-            if(in_array('Withdrawal',$type)){
+            
+            if($type->contains('Withdrawal')){
                 $tables[] = $withdrawals;
             }
-            if(in_array('Interest Posting',$type)){
+            if($type->contains('Interest Posting')){
                 $tables[] = $interest_posting;
             }
-            if(in_array('CTLP Withdrawal',$type)){
+            if($type->contains('CTLP Withdrawal')){
                 $tables[] = $ctlp_withdrawals;
             }
             

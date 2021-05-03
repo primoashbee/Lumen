@@ -33,15 +33,15 @@ class ClientCreated
         if(count($deposit_ids)>0){
             foreach($deposit_ids as $key => $value){
                 $deposit = $event->client->deposits()->create([
-                    'client_id'=>$event->client->client_id,
+                    // 'client_id'=>$event->client->client_id,
                     'deposit_id'=>$value,
                     'balance' => rand(500,10000)/10,
                     'created_at'=> Carbon::now(),
                     'updated_at'=> Carbon::now(),
                 ]);
-                $deposit->account()->create([
-                    'client_id'=>$event->client->client_id
-                ]);
+                // $deposit->account()->create([
+                //     'client_id'=>$event->client->client_id
+                // ]);
             }
         }
         
