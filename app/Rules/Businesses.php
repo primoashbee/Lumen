@@ -31,7 +31,7 @@ class Businesses implements Rule
         }
         $z = is_null($value[0]);
 
-        if($z ){
+        if($z){
             return false;
         }
 

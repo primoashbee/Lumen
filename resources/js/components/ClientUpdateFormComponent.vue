@@ -17,35 +17,35 @@
             <form @submit.prevent="submit">
                 <h3 class="text-2xl my-3 px-3 title">Basic Information</h3>
                 <div class="row px-3">
-                <div class="form-group col-md-6 col-lg-3">
-                    <label for="client_id">Linked To</label>
-                    <v2-select @officeSelected="assignOffice" :default_value ="fields.office_id" v-bind:class="officeHasError ? 'is-invalid' : ''"></v2-select>
-                    <div class="invalid-feedback" v-if="officeHasError">
-                        {{ errors.office_id[0]}}
+                    <div class="form-group col-md-6 col-lg-3">
+                        <label for="client_id">Linked To</label>
+                        <v2-select @officeSelected="assignOffice" :default_value ="fields.office_id" v-bind:class="officeHasError ? 'is-invalid' : ''"></v2-select>
+                        <div class="invalid-feedback" v-if="officeHasError">
+                            {{ errors.office_id[0]}}
+                        </div>
+                
                     </div>
-            
-                </div>
-                <div class="form-group col-md-3 col-lg-3">
-                    <label for="firstname">First Name</label>
-                    <input value="" type="text" id="firstname" v-model="fields.firstname" class="form-control"  v-bind:class="firstNameHasError ? 'is-invalid' : ''" z>
-                    <div class="invalid-feedback" v-if="firstNameHasError">
-                        {{ errors.firstname[0]}}
+                    <div class="form-group col-md-3 col-lg-3">
+                        <label for="firstname">First Name</label>
+                        <input value="" type="text" id="firstname" v-model="fields.firstname" class="form-control"  v-bind:class="firstNameHasError ? 'is-invalid' : ''" z>
+                        <div class="invalid-feedback" v-if="firstNameHasError">
+                            {{ errors.firstname[0]}}
+                        </div>
                     </div>
-                </div>
-                <div class="form-group col-md-3">
-                    <label for="middlename">Middle name</label>
-                    <input value="" type="text" id="middlename" v-model="fields.middlename" class="form-control" v-bind:class="middleNameHasError ? 'is-invalid' : ''">
-                    <div class="invalid-feedback" v-if="middleNameHasError">
-                        {{ errors.middlename[0]}}
+                    <div class="form-group col-md-3">
+                        <label for="middlename">Middle name</label>
+                        <input value="" type="text" id="middlename" v-model="fields.middlename" class="form-control" v-bind:class="middleNameHasError ? 'is-invalid' : ''">
+                        <div class="invalid-feedback" v-if="middleNameHasError">
+                            {{ errors.middlename[0]}}
+                        </div>
                     </div>
-                </div>
-                <div class="form-group col-md-3">
-                    <label for="lastname">Last name</label>
-                    <input value="" id="lastname" type="text" v-model="fields.lastname" class="form-control" v-bind:class="lastNameHasError ? 'is-invalid' : ''" z>
-                    <div class="invalid-feedback" v-if="lastNameHasError">
-                        {{ errors.lastname[0]}}
+                    <div class="form-group col-md-3">
+                        <label for="lastname">Last name</label>
+                        <input value="" id="lastname" type="text" v-model="fields.lastname" class="form-control" v-bind:class="lastNameHasError ? 'is-invalid' : ''" z>
+                        <div class="invalid-feedback" v-if="lastNameHasError">
+                            {{ errors.lastname[0]}}
+                        </div>
                     </div>
-                </div>
                 </div>
                 <div class="row px-3">
                     <div class="form-group col-md-2">
@@ -507,14 +507,14 @@
      </div>
      <div class="card" v-show="hasErrors">
          
-                <ul class="list-group">
-                    <li class="list-group-item list-group-item-danger">
-                       <p style="font-size:1.5em; text-align:center;font-weight:bold"> List of Errors </p>
-                    </li>
-                    <li class="list-group-item list-group-item-danger" v-for="error in errors" :key="error.id">
-                        <p v-for="list in error" :key="list.id">{{ list }}</p>
-                    </li>
-                </ul>
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-danger">
+               <p style="font-size:1.5em; text-align:center;font-weight:bold"> List of Errors </p>
+            </li>
+            <li class="list-group-item list-group-item-danger" v-for="error in errors" :key="error.id">
+                <p v-for="list in error" :key="list.id">{{ list }}</p>
+            </li>
+        </ul>
 
      </div>
      
