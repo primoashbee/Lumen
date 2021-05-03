@@ -31,7 +31,7 @@
              <div class="tab-content py-3 px-3 px-sm-0 mt-4" id="nav-tabContent">
                 <div class="tab-pane fade show active" id="personal" role="tabpanel" aria-labelledby="nav-home-tab">
                 	<form class="table-responsive">
-	             		<table class="table">
+	             		<table class="table" id="payment_method">
 			                <thead>
 			                    <tr>
 			                    	<td><p class="text-xl title">Status</p></td>
@@ -232,14 +232,13 @@
 		</div>
 	</div>
 </template>
-<style type="text/css">
+<style type="text/css" scoped>
 	tr td .form-check-sign{
 		position: absolute;
 	}
-	tr td .form-check-sign,.form-check .form-check-sign::before,.form-check .form-check-sign::after{
+	tr td .form-check-sign,table .form-check .form-check-sign::before,table .form-check .form-check-sign::after{
 		top: 5px;
 	}
-
 </style>
 <script type="text/javascript">
 	export default{

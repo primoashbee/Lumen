@@ -14,8 +14,9 @@
                         </div>
                     
                 </div>
+
                 <div class="card-body">
-                    <chart-par-movement></chart-par-movement>
+                    <chart-par-movement office_id="{{auth()->user()->office->first()->id}}" user_id="{{auth()->user()->id}}"></chart-par-movement>
                 </div>
             </div>
         </div>
@@ -29,7 +30,7 @@
                     
                 </div>
                 <div class="card-body">
-                    <chart-repayment-trend></chart-repayment-trend>
+                    <chart-repayment-trend office_id="{{auth()->user()->office->first()->id}}" user_id="{{auth()->user()->id}}"></chart-repayment-trend>
                 </div>
             </div>
         </div>
@@ -37,7 +38,8 @@
 
     <div class="row">
         <div class="col-md-12">
-            <div class="card chart-container" style="height: 450px">
+            <div class="card chart-container" style="height: 600px">
+            {{-- <div class="card chart-container" style="height: 450px"> --}}
                 <div class="card-header">
                     <div class="row">
                         <div class="col-md-12">
@@ -48,13 +50,13 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-area">
-                        <chart-disbursement-trend></chart-disbursement-trend>
+                        <chart-disbursement-trend office_id="{{auth()->user()->office->first()->id}}"></chart-disbursement-trend>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-12">
-            <div class="card chart-container" style="height: 550px">
+            <div class="card chart-container" style="height: 600px">
                 <div class="card-header">
                     <div class="row">
                         <div class="col-md-12">
@@ -65,7 +67,7 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-area">
-                        <chart-client-loans-trend></chart-client-loans-trend>
+                        <chart-client-loans-trend office_id="{{auth()->user()->office->first()->id}}"></chart-client-loans-trend>
                     </div>
                 </div>
             </div>
@@ -82,7 +84,7 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-area" style="height:400px">
-                        <chart-clients></chart-clients>
+                        <chart-clients office_id="{{auth()->user()->office->first()->id}}"></chart-clients>
                     </div>
                 </div>
             </div>
@@ -99,12 +101,16 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-area" style="height:400px">
-                        <chart-summary></chart-summary>
+                        <chart-summary office_id="{{auth()->user()->office->first()->id}}"></chart-summary>
                     </div>
                 </div>
             </div>
         </div>
     </div>	
+
+    <actions-notification office_id="{{auth()->user()->office->first()->id}}"></actions-notification>
+    {{-- <actions-notification room_id="{{session('default_room')->id}}" office_id="{{auth()->user()->office->first()->id}}"></actions-notification> --}}
+</div>
 {{-- 
     <div class="row">
         <div class="col-md-5">

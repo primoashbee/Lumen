@@ -17,6 +17,13 @@ class DatabaseSeeder extends Seeder
         createDeposits();
         generatePaymentMethods();
         generateDefaultPaymentMethods();
-        $this->call(ClientTableSeeder::class);
+        generateFees();
+        generateLoanProducts();
+
+        // $this->call(ClientTableSeeder::class);
+        // createLoanAccount();
+        // generateMPLLoan();
+        
+        
     }
 }

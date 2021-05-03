@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-lg-6">
                 <label for="" style="color:white" class="lead mr-2">Filter:</label>
-                <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px" v-model="office_id"></v2-select>
+                <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px;" v-model="office_id"></v2-select>
                 <!-- <button type="button" class="btn btn-primary" @click="filter">Add New</button> -->
             </div>
             <div class="col-lg-6 float-right d-flex">
@@ -24,9 +24,9 @@
                 </thead>
                 <tbody v-if="hasRecords">
                     <tr v-for="client in lists.data" :key="client.id">
-                        <td><a :href="clientLink(client.client_id)">{{client.client_id}}</a></td>
-                        <td>{{client.firstname + ' ' + client.lastname}}</td>
-                        <td>{{client.office.name}}</td>
+                        <td><a class="text-lg" :href="clientLink(client.client_id)">{{client.client_id}}</a></td>
+                        <td class="text-lg">{{client.firstname + ' ' + client.lastname}}</td>
+                        <td class="text-lg">{{client.office.name}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -42,7 +42,6 @@
 </template>
 
 <script>
-
 import SelectComponentV2 from './SelectComponentV2';
 import Swal from 'sweetalert2';
 import Paginator from './PaginatorComponent';
@@ -105,7 +104,6 @@ export default {
             return false
         },
         fetch(page){
-            
             this.isLoading =true
             if(page==undefined){
                 axios.get(this.queryString)
@@ -122,7 +120,6 @@ export default {
                     this.isLoading =false
                 })
             }
-
         },
         url(page=1){
             return `/clients/list?office_id=`+this.office_id+`&page=`+page

@@ -18,12 +18,15 @@ class CreateDepositTransactionsTable extends Migration
             $table->string('transaction_id');
             $table->string('deposit_account_id');
             $table->string('transaction_type');
-            $table->double('amount');
-            $table->double('balance');
+            $table->unsignedDouble('amount');
+            $table->unsignedDouble('balance');
             $table->string('payment_method');
             $table->date('repayment_date');
-            $table->integer('user_id');
+            $table->unsignedInteger('user_id');
             $table->longText('notes')->nullable();
+            $table->string('identifiable_id');
+            $table->string('identifiable_type');
+            $table->string('receipt_number');
             $table->timestamps();
         });
     }

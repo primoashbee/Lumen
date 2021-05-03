@@ -2,6 +2,8 @@
 
 namespace App;
 
+use App\Room;
+use App\Office;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,7 +20,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'firstname','lastname','middlename','gender','birthday','notes','email', 'password','created_by',
+        'firstname','lastname','middlename','gender','birthday','notes','email', 'password','created_by','send_to'
    ]; 
 
     /**
@@ -54,7 +56,7 @@ class User extends Authenticatable
     }
     
     public function office(){
-        return $this->belongsToMany(Office::class)->orderBy('office_id');
+        return $this->belongsToMany(Office::class);
     }
 
 
@@ -63,10 +65,12 @@ class User extends Authenticatable
             $offices = $this->office;
     
             $scopes = [];
+        
             foreach ($offices as $office) {
-                array_push($scopes, $office);
-                $scopes = array_merge($scopes, $office->getChild());
+                // array_push($scopes, $office);
+                $scopes = array_merge($scopes, Office::lowerOffices($office->id,false,true)->toArray());
             }
+            
             return $scopes;
         
         
@@ -155,9 +159,9 @@ class User extends Authenticatable
             }
             
             
-            if (Office::isChildOf('branch', $item->level) || Office::isChildOf('branch',$item->level == "branch")) {
-                $branch['code'] = $item->getTopOffice('branch')->code;
-                $branch['prefix'] = $item->getTopOffice('branch')->code;
+            if (Office::isChildOf('branch', $item->level) || Office::isChildOf('branch',$item->level)) {
+                $branch['code'] = Office::getUpperOfficesV2($item->id,'branch')->code;
+                $branch['prefix'] = Office::getUpperOfficesV2($item->id,'branch')->code;
             }
             return $branch;
         });
@@ -198,5 +202,58 @@ class User extends Authenticatable
         return $users->get();
     }
 
+    public function officeListIDS(){
+        \DB::select(
+            DB::raw('')
+        );
+    }
 
+    public function rooms(){
+        return $this->belongsToMany(Room::class)->withTimestamps()->withPivot('id');
+    }
+
+    public function canJoinRoom($room_id){
+        $room_ids = session('room_ids');
+        return in_array($room_id,session('room_ids')) ? true : false;
+
+    }
+
+    public function setSessions($user_id){
+
+        $ids = [];
+
+        $this->office->map(function($x) use(&$ids){
+            $office_children_ids = Office::lowerOffices($x->id, true, true);
+            $ids = array_merge($ids, $office_children_ids);
+            // $ids = array_merge($ids, $x->getLowerOfficeIDS());
+        });
+
+        $office_id = $this->office->first()->id;
+        
+        session(['office_list_ids'=>array_unique($ids)]);
+        session(['dashboard.par_movement'=>Dashboard::parMovement(now()->subDays(6),now()->subDay(),$office_id)]);
+        session(['dashboard.repayment_trend'=>Dashboard::repaymentTrend($office_id)]);
+        session(['dashboard.disbursement_trend'=>Dashboard::disbursementTrend($office_id)]);
+        session(['dashboard.client_outreach'=>Dashboard::clientOutreach($office_id)]);
+        session(['dashboard.summary'=>Dashboard::summary($office_id)]);
+        // $rooms = Room::select('id')->whereIn('office_id',$ids)->pluck('id')->toArray();
+        // session(['room_ids'=>array_unique($rooms)]);
+
+        // $top = User::find($user_id)->office->sortBy('level_in_number')->first();
+        // session(['top_level'=>$top]);
+        // session(['default_room'=>Room::select('id','name')->where('office_id',$top->id)->first()]);
+
+    }
+
+
+    public function assignToOffice($office_id){
+        $this->office()->attach($office_id);
+        // $this->addToRoom($office_id);
+    }
+
+    public function addToRoom($office_id){
+        $ids = Office::find($office_id)->getLowerOfficeIDS();
+        $rooms = Room::whereIn('office_id',$ids)->pluck('id');
+        return $this->rooms()->sync($rooms);
+    }
 }

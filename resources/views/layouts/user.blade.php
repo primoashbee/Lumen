@@ -11,8 +11,17 @@
 
         @yield('content')
 
-        
 	</div>
 </body>
 @yield('scripts')
+
+<script defer>
+        window.addEventListener('DOMContentLoaded', function() {
+                setTimeout(()=>{
+                        $('#sidebar-toggle').click()
+                },100)
+                
+        },(jQuery))
+
+</script>
 </html>

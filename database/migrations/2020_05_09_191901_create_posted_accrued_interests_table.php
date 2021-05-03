@@ -16,7 +16,7 @@ class CreatePostedAccruedInterestsTable extends Migration
         Schema::create('posted_accrued_interests', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('deposit_account_id');
-            $table->double('amount');
+            $table->unsignedDouble('amount');
             $table->unsignedInteger('user_id');
             $table->timestamps();
         });

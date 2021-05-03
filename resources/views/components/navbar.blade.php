@@ -8,17 +8,20 @@
     <div class="logo-container">
     <img src="{{ asset('assets/img/logo.png')}}">
     </div>
-    <a class="navbar-brand l-text float-left" href="#">{{ucwords(breadcrumbize(request()->path()))}}</a>
+    {{-- <a class="navbar-brand l-text float-left" href="#">{{ucwords(breadcrumbize(request()->path()))}}</a> --}}
+    <a class="navbar-brand l-text float-left" href="{{route('dashboard')}}">Lumen</a>
 
   </div>
   <div>
   
   <ul class="nav nav-pills">
+    
     <li>
       <a href="" data-target="#search_bar" id="search_icon" data-toggle="modal">
         <i class="fas fa-search"></i>
       </a>
     </li>
+    <notifications user="{{auth()->user()->id}}"></notifications>
     <li class="nav-item dropdown">
       <a class="nav-link dropdown-toggle l-text" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">{{auth()->user()->name()}}</a>
       <div class="dropdown-menu">
@@ -34,4 +37,6 @@
     </li>
   </ul>
 </nav>
-<multi-search></multi-search>
+<multi-search mode="link" list="users" ></multi-search>
+
+

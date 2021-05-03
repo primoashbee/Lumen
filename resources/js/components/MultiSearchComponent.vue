@@ -45,25 +45,24 @@ export default {
     components: {
         Multiselect
     },
+    props : ['mode'],
     created(){
         this.asyncFind = debounce(this.asyncFind.bind(this), 500);
-
     },
     data(){
         return {
             lists: null,
+            list: ['users','clients'],
             options: [],
             selected:null,
             value: [],
         }
     },
     methods : {
-        search(){
-
-        },
-        asyncFind(query){        
+        asyncFind(query){
             axios.post('/search',{
-                keyword: query 
+                keyword: query,
+                list: this.list
             })
             .then(res=>{
                 this.options = res.data
@@ -78,12 +77,12 @@ export default {
 
 <style scoped>
     @import "~vue-multiselect/dist/vue-multiselect.min.css";
-    /* .multiselect__input{
+    .multiselect__input{
         background: #ffffff !important;
     }
     .multiselect__tags{
         background: #ffffff !important;
-        border-color: black !important;
-    } */
+        border-color: #ffffff !important;
+    }
 
 </style>

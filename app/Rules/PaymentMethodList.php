@@ -26,6 +26,7 @@ class PaymentMethodList implements Rule
      */
     public function passes($attribute, $value)
     {
+      
         $list = PaymentMethod::all()->pluck('id')->toArray();
         return in_array($value,$list) ?  true : false;
     }

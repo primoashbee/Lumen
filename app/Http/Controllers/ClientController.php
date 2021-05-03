@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Client;
+use App\Office;
 use Carbon\Carbon;
 use App\Rules\Gender;
 use App\DepositAccount;
@@ -12,9 +13,10 @@ use App\Rules\HouseType;
 use App\Rules\CivilStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\ClientRequest;
 use App\Rules\EducationalAttainment;
-use Intervention\Image\Facades\Image;
 
+use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Validator;
 
 class ClientController extends Controller
@@ -28,7 +30,150 @@ class ClientController extends Controller
         $branches = auth()->user()->scopesBranch();
         return view('pages.create-client',compact('branches'));
     }
+    
 
+    public function step(){
+        return view('pages.create-client');
+    }
+
+    public function createV1(ClientRequest  $request){
+        $req = Client::clientExists($request);
+            
+        if($req['exists']){
+            
+            return response()->json($req,422);
+        }
+
+        $client_id = Office::makeClientID($request->office_id);
+        $filename = $client_id.'.jpeg';
+        checkClientPaths();
+
+        
+        
+        DB::beginTransaction();
+        try{
+            $client = Client::create([
+                'client_id' => $client_id,
+                'firstname' => $request->firstname,
+                'middlename'=>$request->middlename,
+                'lastname'  =>$request->lastname,
+                'suffix'=>$request->suffix,
+                'nickname'=>$request->nickname,
+                'gender'=> $request->gender,
+                'profile_picture_path' => $this->profile_path . $filename,
+                'signature_path' => $this->signature_path . $filename,
+                'birthday' => Carbon::parse($request->birthday),
+                'birthplace' => $request->birthplace,
+                'civil_status' => $request->civil_status,
+                'education' => $request->education,
+                'fb_account' => $request->fb_account,
+                'contact_number'=>$request->contact_number,
+                'street_address'=> $request->street_address,
+                'barangay_address' => $request->barangay_address,
+                'city_address' => $request->city_address,
+                'province_address' => $request->province_address,
+                'zipcode' => $request->zipcode,
+        
+                'spouse_name' => $request->spouse_name,
+                'spouse_contact_number' => $request->spouse_contact_number,
+                'spouse_birthday' =>  Carbon::parse($request->spouse_birthday),
+                'number_of_dependents' => $request->number_of_dependents,
+                'household_size' =>$request->household_size,
+                'years_of_stay_on_house' => $request->years_of_stay_on_house,
+                'house_type' => $request->house_type,
+                'tin' => $request->tin,
+                'umid' => $request->umid,
+                'sss' => $request->sss,
+                'mother_maiden_name' => $request->mother_maiden_name,
+                'notes' => $request->notes,
+                'office_id' => $request->office_id,
+                'created_by' => auth()->user()->id,
+                
+            ]);
+            $b = $request->businesses;
+            foreach($request->businesses as $business){
+                $client->businesses()->create([
+                    'business_address'=>$business['business_address'],
+                    'service_type'=>$business['service_type'],
+                    'monthly_gross_income'=>$business['monthly_gross_income'],
+                    'monthly_operating_expense'=>$business['monthly_operating_expense'],
+                    'monthly_net_income'=>round($business['monthly_gross_income'] - $business['monthly_operating_expense'],2)
+                ]);
+            }
+          $service_type_monthly_gross_income = round($request->service_type_monthly_gross_income,2);
+            $employed_monthly_gross_income = round($request->employed_monthly_gross_income,2);
+            $spouse_service_type_monthly_gross_income = round($request->spouse_service_type_monthly_gross_income,2);
+            $spouse_employed_monthly_gross_income = round($request->spouse_employed_monthly_gross_income,2);
+                
+            $remittance = round($request->remittance_amount,2);
+            $pension = round($request->pension_amount,2);
+
+            
+
+            $total_household_income = 
+                round($service_type_monthly_gross_income + 
+                $employed_monthly_gross_income + 
+                $spouse_service_type_monthly_gross_income + 
+                $spouse_employed_monthly_gross_income + 
+                $remittance + 
+                $pension,2);
+            $client->household_income()->create([
+                'is_self_employed'=>$request->is_self_employed,
+                'service_type'=>$request->service_type,
+                'service_type_monthly_gross_income'=>$service_type_monthly_gross_income,
+                'is_employed'=>$request->is_employed,
+                'employed_position'=>$request->employed_position,
+                'employed_company_name'=>$request->employed_company_name,
+                'employed_monthly_gross_income'=>$employed_monthly_gross_income,
+    
+                'spouse_is_self_employed'=>$request->spouse_is_self_employed,
+                'spouse_service_type'=>$request->spouse_service_type,
+                'spouse_service_type_monthly_gross_income'=>$spouse_service_type_monthly_gross_income,
+                'spouse_is_employed'=>$request->spouse_is_employed,
+                'spouse_employed_position'=>$request->spouse_employed_position,
+                'spouse_employed_company_name'=>$request->spouse_employed_company_name,
+                'spouse_employed_monthly_gross_income'=>$spouse_employed_monthly_gross_income,
+    
+                'has_remittance'=>$request->has_remittance,
+                'remittance_amount' => $remittance,
+                'has_pension'=>$request->has_pension,
+                'pension_amount' => $pension,
+
+                
+                'total_household_income'=>$total_household_income 
+            ]);
+
+            if($request->hasFile('profile_picture_path')){
+                ini_set('memory_limit','512M');
+                $image = $request->file('profile_picture_path');
+                // $filename = $image->getClientOriginalName();   
+                $image_resize = Image::make($image->getRealPath());
+                $image_resize->resize(600, 600);
+                $image_resize->save(public_path($this->profile_path . $filename), 50);
+                ini_set('memory_limit','128M');
+            }
+            if($request->hasFile('signature_path')){
+                ini_set('memory_limit','512M');
+                $image = $request->file('signature_path');
+                // $filename = $image->getClientOriginalName();   
+                $image_resize = Image::make($image->getRealPath());
+                $image_resize->resize(600, 300);
+                $image_resize->save(public_path($this->signature_path . $filename),50);
+                ini_set('memory_limit','128M');
+            }
+            DB::commit();
+            return response()->json(['msg'=>'Client succesfully created'],200);
+        }catch(ValidationException $e){
+            // Rollback and then redirect
+            // back to form with errors
+            DB::rollback();   
+            return response()->json(['errors'=>$e->getErrors()],422);
+        }catch(\Exception $e){
+            DB::rollback();
+            throw $e;
+        }
+
+    }
     //create client using post
     public function create(Request $request){
         
@@ -40,9 +185,6 @@ class ClientController extends Controller
         $request->has_remittance =  filter_var($request->has_remittance, FILTER_VALIDATE_BOOLEAN);
         $request->has_pension =  filter_var($request->has_pension, FILTER_VALIDATE_BOOLEAN);
         
-
-
-        
         $req = Client::clientExists($request);
         
         if($req['exists']){
@@ -50,7 +192,7 @@ class ClientController extends Controller
             return response()->json($req,422);
         }
         $this->validator($request->all())->validate();
-        $client_id = makeClientID($request->office_id);
+        $client_id = Office::makeClientID($request->office_id);
         
 
         $client_id = makeClientID($request->office_id);
@@ -99,13 +241,13 @@ class ClientController extends Controller
                 
             ]);
             
-            $service_type_monthly_gross_income = intval($request->service_type_monthly_gross_income);
-            $employed_monthly_gross_income = intval($request->employed_monthly_gross_income);
-            $spouse_service_type_monthly_gross_income = intval($request->spouse_service_type_monthly_gross_income);
-            $spouse_employed_monthly_gross_income = intval($request->spouse_employed_monthly_gross_income);
+            $service_type_monthly_gross_income = round($request->service_type_monthly_gross_income);
+            $employed_monthly_gross_income = round($request->employed_monthly_gross_income);
+            $spouse_service_type_monthly_gross_income = round($request->spouse_service_type_monthly_gross_income);
+            $spouse_employed_monthly_gross_income = round($request->spouse_employed_monthly_gross_income);
                 
-            $remittance = intval($request->remittance_amount);
-            $pension = intval($request->pension_amount);
+            $remittance = round($request->remittance_amount);
+            $pension = round($request->pension_amount);
 
             
 
@@ -165,15 +307,12 @@ class ClientController extends Controller
             }
             DB::commit();
             return response()->json(['msg'=>'Client succesfully created'],200);
-        } catch(ValidationException $e)
-        {
+        }catch(ValidationException $e){
             // Rollback and then redirect
             // back to form with errors
-            DB::rollback();
-            
+            DB::rollback();   
             return response()->json(['errors'=>$e->getErrors()],422);
-        } catch(\Exception $e)
-        {
+        }catch(\Exception $e){
             DB::rollback();
             throw $e;
         }
@@ -280,10 +419,13 @@ class ClientController extends Controller
     public function list(){
         return view('pages.client-list');
     }
-    
 
     //return JSON data when filtering the list via component
     public function getList(Request $request){
+        if($request->has('limited')){
+            $clients = Client::like($request->office_id, $request->search,true)->paginate(30);
+            return response()->json($clients);
+        }
         $clients = Client::like($request->office_id, $request->search)->paginate(30);
         return response()->json($clients);
     }
@@ -295,7 +437,6 @@ class ClientController extends Controller
             return response()->route('client.list');
         }
         return view('pages.client-profile',compact('client'));
-        
     }
 
     public function view($client_id){
@@ -482,7 +623,7 @@ class ClientController extends Controller
             $remittance + 
             $pension;
 
-        $client->household_income->update([
+        $client->household_income->updateOrCreate([
                 'is_self_employed'=>$request->is_self_employed,
                 'service_type'=>$request->service_type,
                 'service_type_monthly_gross_income'=>$service_type_monthly_gross_income,
@@ -543,10 +684,79 @@ class ClientController extends Controller
 
         return $request;
     }
-    public function depositAccount($client_id,$deposit_id){
-        $account = DepositAccount::find($deposit_id)->load(['type','transactions.paymentMethod','transactions.postedBy','client.office']);
-        return view('pages.deposit-dashboard',compact('account'));
+    public function depositAccount(Request $request, $client_id,$deposit_account_id){
+        if($request->wantsJson()){
+            // $data = DepositAccount::find($deposit_account_id)
+            //     ->load([
+            //         // 'type:id,name,product_id,description,interest_rate',
+            //         'type'=>function($q){
+            //             $q->select('id','name','product_id','description','interest_rate');
+            //         },
+            //         'client'=>function($q){
+            //             $q->select('client_id', 'firstname', 'lastname');
+            //         },
+            //     ]);
+            //     $data['transactions'] = 'ggwp';
+            $space = ' ';
+            $clients = \DB::table('clients');
+            $deposits = \DB::table('deposits');
+            $deposit = \DB::table('deposit_accounts')
+                        ->select(
+                            'deposits.name as deposit_name',
+                            'deposits.product_id as deposit_type',
+                            'deposits.description as deposit_description',
+                            'deposits.interest_rate as deposit_interest_rate',
+                            'deposit_accounts.accrued_interest as accrued_interest',
+                            'deposit_accounts.status as status',
+                            'deposit_accounts.balance as balance',
+                            'deposit_accounts.created_at as created_at',
+                            \DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
+                            'clients.client_id as client_id',
+                        )
+                        ->where('deposit_accounts.id',$deposit_account_id)
+                        ->joinSub($clients,'clients',function($join){
+                            $join->on('clients.client_id','deposit_accounts.client_id');
+                        })
+                        ->joinSub($deposits,'deposits',function($join){
+                            $join->on('deposits.id','deposit_accounts.deposit_id');
+                        })
+                        ->first();
+
+            $data['summary'] = $deposit;
+            $account = DepositAccount::find($deposit_account_id);
+            $data['transactions'] = [];
+            if(count($account->transactions()->get()) > 0){
+                $data['transactions'] = DepositAccount::find($deposit_account_id)->transactions()->get();    
+            }
+            
+            return response()->json(['data'=>$data],200);
+        }
+        
+
+        return view('pages.deposit-dashboard',compact('deposit_account_id','client_id'));
     }
+
+    public function dependents($client_id){
+        
+        $client = Client::select('firstname','middlename','lastname','client_id')->where('client_id',$client_id)->firstOrFail();
+        
+        return view('pages.client-dependents',compact('client'));
+    }
+    public function toCreateDependents($client_id){
+        $client = Client::select('id','firstname','lastname','civil_status','client_id')->where('client_id',$client_id)->firstOrFail();
+        $civil_status = strtolower($client->civil_status);
+        return view('pages.create-client-dependents',compact('client','civil_status'));
+    }
+
+    public function listDependents($client_id){
+        $client = Client::fcid($client_id);
+        if($client!=null){
+            $list = $client->dependents->each->append('pivotList','count'); 
+            return response()->json(['msg'=>'Success','list'=>$list],200);
+        }
+        return response()->json(['msg'=>'Invalid Request'],422);
+    }
+
 }
 
 

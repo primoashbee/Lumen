@@ -40,7 +40,7 @@
 						<td><p class="title">Client ID</p></td>
 						<td><p class="title">Name</p></td>
 						<td><p class="title">Balance</p></td>
-						<td style="width:150px"><p class="title">Amount</p></td>
+						<td style="width:400px"><p class="title">Amount</p></td>
 						<td style="padding-left:50px"><p class="title">Linked To</p></td>
 					</tr>
 
@@ -54,7 +54,7 @@
 						<td><a :href="clientLink(item.client.client_id)">{{item.client.client_id}}</a></td>
 						
 						<td>{{item.client.firstname + ' ' + item.client.lastname}}</td>
-						<td>{{item.balance}} </td>
+						<td>{{item.balance_formatted}} </td>
 						<!-- <td> Account ID : {{item.id}} </td> -->
 						
 						<td>{{item.accrued_interest}}</td>
@@ -64,19 +64,20 @@
 				</tbody>
 				<tbody v-else>
 					<tr  v-for="(item, key) in lists.data" :key="item.id">
-						
-						<td><input type="checkbox" class="item_checkbox"  :id="item.id" @change="checked(item,$event)" :checked="accountOnList(item.id)"></td>
+
+						<td><input type="checkbox" class="   00"  :id="item.id" @change="checked(item,$event)" :checked="accountOnList(item.id)"></td>
 						
 						<td><label :for="item.id">{{item.type.name}}</label></td>
 						<td><a :href="clientLink(item.client.client_id)">{{item.client.client_id}}</a></td>
 						
 						<td>{{item.client.firstname + ' ' + item.client.lastname}}</td>
-						<td>{{item.balance}} </td>
+						<td>{{item.balance_formatted}} </td>
 						<!-- <td> Account ID : {{item.id}} </td> -->
 						
 						<td>
 							<div class="form-group">
-								<amount-input @amountEncoded="amountEncoded" :add_class="errorAddClass(item.id)"  :account_info="item" :tabindex="key+1" ></amount-input>
+								
+								<amount-input :readonly="inputDisabled(item.id) "@amountEncoded="amountEncoded" :add_class="errorAddClass(item.id)"  :account_info="item" :tabindex="key+1" ></amount-input>
 								<div class="text-danger" v-if="hasInputError(item.id)">
 									{{inputErrorMessage(item.id)}}
 								</div>
@@ -90,7 +91,7 @@
 			</table>
 			<p class="lead float-left text-right" style="color:white">Showing Records {{lists.from}} - {{lists.to}} of {{totalRecords}} </p>
 			<p class="lead float-right text-right" style="color:white">Total Records: {{totalRecords}} </p>
-			<button type="button" class="btn btn-primary" @click="showModal()" v-if="hasRecords"> {{transactionTypeDisplay}} </button>
+			<button type="button" class="btn btn-primary" @click="showModal()" v-if="form.accounts.length > 0"> {{transactionTypeDisplay}} </button>
 			<div class="clearfix"></div>
 			<paginator :dataset="lists" @updated="fetch"></paginator>
 		</div>
@@ -102,23 +103,37 @@
 		    <form>
 		        <div class="form-group mt-4">
 		        	<label class="text-lg">Branch</label>
-                    <v2-select @officeSelected="assignOffice" list_level="" :default_value="this.office_id" v-bind:class="officeHasError ? 'is-invalid' : ''"></v2-select>
-                    <div class="invalid-feedback" v-if="officeHasError">
+                    <v2-select @officeSelected="assignOffice" list_level="" :default_value="this.office_id" v-bind:class="hasError('office_id') ? 'is-invalid' : ''"></v2-select>
+                    <div class="invalid-feedback" v-if="hasError('office_id')">
                         {{ errors.office_id[0]}}
                     </div>
 		        </div>
-		        <div class="form-group">
+		        <div class="form-group" v-if="transactionType!='post_interest'">
 		        	<label class="text-lg">Payment Method</label>
-					<payment-methods payment_type="for_deposit" @paymentSelected="paymentSelected" v-bind:class="paymentMethodHasError ? 'is-invalid' : ''" ></payment-methods>
-					<div class="invalid-feedback" v-if="paymentMethodHasError">
-                        {{ errors.payment_method[0]}}
+					<payment-methods payment_type="for_deposit" @paymentSelected="paymentSelected" v-bind:class="hasError('payment_method_id') ? 'is-invalid' : ''" ></payment-methods>
+					<div class="invalid-feedback" v-if="hasError('payment_method_id')">
+                        {{ errors.payment_method_id[0]}}
                     </div>
 		        </div>
-		        <div class="form-group">
+		        <div class="form-group" v-if="transactionType!='post_interest'">
 		        	<label class="text-lg">Repayment Date</label>
-                    <input type="date" class="form-control" v-model="form.repayment_date" v-bind:class="repaymentDateHasError ? 'is-invalid' : ''">
-					<div class="invalid-feedback" v-if="repaymentDateHasError">
+                    <input type="date" class="form-control" v-model="form.repayment_date" v-bind:class="hasError('repayment_date') ? 'is-invalid' : ''">
+					<div class="invalid-feedback" v-if="hasError('repayment_date')">
                         {{ errors.repayment_date[0]}}
+                    </div>
+				</div>
+		        <div class="form-group" v-if="transactionType!='post_interest'">
+		        	<label class="text-lg">OR #:</label>
+                    <input type="text" class="form-control" v-model="form.receipt_number" v-bind:class="hasError('receipt_number') ? 'is-invalid' : ''">
+					<div class="invalid-feedback" v-if="hasError('receipt_number')">
+                        {{ errors.receipt_number[0]}}
+                    </div>
+				</div>
+		        <div class="form-group" v-if="transactionType=='post_interest'">
+		        	<label class="text-lg">JV #:</label>
+                    <input type="text" class="form-control" v-model="form.journal_voucher_number" v-bind:class="hasError('journal_voucher_number') ? 'is-invalid' : ''">
+					<div class="invalid-feedback" v-if="hasError('journal_voucher_number')">
+                        {{ errors.journal_voucher_number[0]}}
                     </div>
 				</div>
 				<div>
@@ -203,7 +218,7 @@ export default {
 			form: {
 				office_id:"",
 				accounts : [],
-				payment_method: null,
+				payment_method_id: null,
 				repayment_date: null,
 				type: null,
 			},
@@ -220,6 +235,18 @@ export default {
         ProductComponent,
     },	
     methods : {
+		hasError(field){
+			return this.errors.hasOwnProperty(field)
+		},
+		inputDisabled(id){
+			var res = true;
+			this.form.accounts.filter(x=>{
+				if(x.id ==id){
+					res = false
+				}
+			})
+			return res;
+		},
 		errorAddClass(account_id){
 			if(this.hasInputError(account_id)){
 				return 'is-invalid'
@@ -253,13 +280,19 @@ export default {
 
 			return false;
 		},
+		finalizeData(){
+			this.form.accounts.forEach(item=>{
+				item['repayment_date'] = this.form.repayment_date
+			})
+		},	
 		depositAll(){
+			this.finalizeData()
 			axios.post(this.postUrl,this.form)
 			.then(res=>{
 				this.errors = [];
 					Swal.fire({
                         icon: 'success',
-                        title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1.875;font-weight:600">Transaction Successful</span> ',
+                        title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1.875em;font-weight:600">Transaction Successful</span> ',
                         html: 
 						`
 						<table class="table table-condensed">
@@ -295,7 +328,12 @@ export default {
 			})
 			.catch(err => {
 				this.isLoading = false
-				this.errors = err.response.data.errors				
+				this.errors = err.response.data.errors
+				Swal.fire(
+					'Error',
+					'Check input errors',
+					'error'
+				)
 			})
 		},
 		cancelModal(){
@@ -338,7 +376,7 @@ export default {
 			
 		},
 		paymentSelected(value){
-				this.form.payment_method = value['id']
+				this.form.payment_method_id = value['id']
 		},
 		amountEncoded(value){
 			
@@ -406,11 +444,14 @@ export default {
 			this.product_id = value['id'];
 		},
 		submit(){
+			this.isLoading = true;
 			if(this.office_id=="" || this.product_id == ""){
-				
+				this.isLoading = false;
 				return;
 			}
+
 			this.fetch()
+			this.isLoading = false;
 		},
         fetch(page){
 			this.checkedAccounts = [];
@@ -576,18 +617,8 @@ export default {
 		hasErrors(){
 			return Object.keys(this.errors).length > 0;
 		},
-		officeHasError(){
-			return this.errors.hasOwnProperty('office_id')
-		},
-		paymentMethodHasError(){
-			return this.errors.hasOwnProperty('payment_method')
-		},
-		amountHasError(){
-			return this.errors.hasOwnProperty('amount')
-		},
-		repaymentDateHasError(){
-			return this.errors.hasOwnProperty('repayment_date')
-		},
+
+
 
 
 	},

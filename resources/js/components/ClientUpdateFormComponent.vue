@@ -82,6 +82,7 @@
                                 <option value="MARRIED">MARRIED</option>
                                 <option value="DIVORCED">DIVORCED</option>
                                 <option value="WIDOWED">WIDOWED</option>
+                                <option value="SEPARATED">SEPARATED</option>
                             </select>
                         </div>
                         <div class="invalid-feedback" v-if="civilStatusHasError">
@@ -312,15 +313,15 @@
                         </div>
                         <div class="hi form-group p0 my-2" data-attribute="is_self_employed" :class="{active:fields.is_self_employed}">
                             <label for="sevice_type">Service Type</label>
-                            <div class="select">
-                                <select v-model="fields.service_type" id="service_type">
-                                <option value=""> CHOOSE AN OPTION</option> 
-                                <option value="AGRICULTURE"> AGRICULTURE </option>
-                                <option value="TRADING/MERCHANDISING"> TRADING/MERCHANDISING </option>
-                                <option value="MANUFACTURING"> MANUFACTURING </option>
-                                <option value="SERVICE"> SERVICE </option>
-                                <option value="OTHERS"> OTHERS </option>
-                                </select>
+                            <div >
+                                <select class="form-control" v-model="fields.service_type" id="service_type">
+                                    <option value=""> CHOOSE AN OPTION</option> 
+                                    <option value="AGRICULTURE"> AGRICULTURE </option>
+                                    <option value="TRADING/MERCHANDISING"> TRADING/MERCHANDISING </option>
+                                    <option value="MANUFACTURING"> MANUFACTURING </option>
+                                    <option value="SERVICE"> SERVICE </option>
+                                    <option value="OTHERS"> OTHERS </option>
+                                    </select>
                             </div>
                         </div>
                         <div class="hi form-group p0 my-2" data-attribute="is_self_employed" :class="{active:fields.is_self_employed}">
@@ -917,7 +918,7 @@ export default {
                     setTimeout(()=>{
                     Swal.fire({
                         icon: 'success',
-                        title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1.875;font-weight:600">Success!</span>',
+                        title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1em;font-weight:600">Success!</span>',
                         text: res.data.msg,
                         confirmButtonText: 'OK',
                         allowEnterKey: true // default value

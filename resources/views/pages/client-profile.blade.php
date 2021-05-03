@@ -5,7 +5,7 @@
 
 	  <div class="row">
 		    <div class="col-md-8"> 	
-		      <div class="card pb-4">
+		      <div class="card pb-24">
 		      	<nav aria-label="breadcrumb">
 				  <ol class="breadcrumb">
 				    <li class="breadcrumb-item"><a href="/clients">Client List</a></li>
@@ -70,11 +70,10 @@
 									  <i class="star-5">★</i>
 								</div>
 								<div class="p-details mt-4">
-									<p class="title text-xl">Created at</p>
-									<p class="text-muted text-lg">{{$client->created_at->format('F, j Y')}} - {{$client->created_at->diffForHumans()}}</p>
+									<p class="title text-xl">{{$client->office->name}}</p>
 								</div>
 								<div class="p-details mt-2">
-									<p class="title text-xl">Status: <span class="active-status text-lg">ACTIVE</span></p>
+									<p class="title text-xl">Status: <span class="badge badge-pill badge-success">Active</span></h1></p>
 								</div>
 							</div>
 						</div>
@@ -101,7 +100,7 @@
 			                 		</div>
 			                 		<div class="p-details mt-4">
 			                 			<span class="title text-xl mr-8">Business Type:</span>
-										<span class="text-muted text-lg">{{$client->household_income->service_type}}</span>
+										{{-- <span class="text-muted text-lg"> {{$client->household_income->service_type}}</span> --}}
 			                 		</div>
 			                 		
 
@@ -147,35 +146,54 @@
 		      <div class="card">
 		        <div class="card-header">
 		          <div class="float-left text-center">
-		          	<h4 class="mt-2">Loan Accounts</h4>
+		          	<a href="{{route('client.loan.list',$client->client_id)}}"><h4 class="mt-2 text-2xl">Loan Accounts</h4></a>
 		          </div>
-		           <a href="" class="float-right btn-create">Create Account</a>
+		           <a href="{{route('client.loan.create',$client->client_id)}}" class="text-base float-right btn-create">Create Account</a>
 		        </div>
 		        <div class="card-body">
 		          <div class="table-accounts table-full-width table-responsive">
 		            <table class="table">
-		                
 		              <tbody>
 		              	<tr>
 		                  <td>
-		                    <p>Account #</p>
+		                    <p class="text-base">Product</p>
 		                  </td>
 		                  <td>
-		                    <p>Status</p>
+		                    <p class="text-base">Amount</p>
+		                  </td>
+		                  <td>
+		                    <p class="text-base">Balance</p>
+		                  </td>
+		                  <td>
+		                    <p class="text-base">Status</p>
 		                  </td>
 		                </tr>
-		                <tr>
+						@foreach($client->activeLoans() as $item)
+						<tr>
 		                  <td>
-		                    <a href="">
-		                      <p class="title">MCBU0001</p>
+						  	<a href="{{route('loan.account',[$client->client_id,$item->id])}}">
+		                      <p class="title text-base">{{$item->product->code}}</p>
 		                    </a>
-		                  </td>
+						  </td>
+						  <td>
+							  <p class="title text-base">{{money($item->getRawOriginal('amount'),2)}}</p>
+						  </td>
+						  <td>
+							  <p class="title text-base">{{money($item->getRawOriginal('total_balance'),2)}}</p>
+						  </td>
 		                  <td>
-		                    <span class="active position-relative px-2">
-		                      Active
-		                    </span>
+							@if($item->status=="In Arrears")
+								<span class="badge badge-pill badge-danger">{{$item->status}}</span></h1>
+							@elseif($item->status=='Pending Approval')
+								<span class="badge badge-pill badge-warning">{{$item->status}}</span></h1>
+							@elseif($item->status=='Approved')
+								<span class="badge badge-pill badge-primary">{{$item->status}}</span></h1>
+							@else
+								<span class="badge badge-pill badge-success">{{$item->status}}</span></h1>
+							@endif
 		                  </td>
-		                </tr>
+						</tr>
+						@endforeach
 		              </tbody>
 		            </table>
 		          </div>
@@ -185,24 +203,24 @@
 		      <div class="card">
 			        <div class="card-header">
 			          <div class="float-left text-center">
-			          	<h4 class="mt-2">Deposit Accounts</h4>
+			          	<h4 class="mt-2 text-2xl">Deposit Accounts</h4>
 			          </div>
-			          <a href="" data-toggle="modal" data-target=".bd-example-modal-lg" class="float-right btn-create">Create Account</a>
+			          <a href="" data-toggle="modal" data-target=".bd-example-modal-lg" class="float-right btn-create text-base">Create Account</a>
 
 			        </div>
 			        <div class="card-body">
-			          <div class="table-accounts table-full-width table-responsive">
+			          <div class="table-accounts table-full-width mb-0 table-responsive">
 			            <table class="table">
 			              <tbody>
 			              	<tr>
 			                  <td>
-			                    <p>Deposit Type</p>
+			                    <p class="text-base">Deposit Type</p>
 			                  </td>
 			                  <td>
-			                    <p>Balance</p>
+			                    <p class="text-base">Balance</p>
 			                  </td>
 			                  <td>
-			                    <p>Status</p>
+			                    <p class="text-base">Status</p>
 			                  </td>
 							</tr>
 							
@@ -210,25 +228,27 @@
 			                <tr>
 			                  <td>
 							  <a href="{{route('client.deposit',[$cbu->client_id,$cbu->id])}}">
-			                      <p class="title">{{$cbu->type->name}}</p>
+			                      <p class="title text-base">{{$cbu->type->name}}</p>
 			                    </a>
 			                  </td>
 			                  <td>
-									{{$cbu->balance}}
+									{{money($cbu->balance,2)}}
 								
 			                  </td>
 			                  <td>
-			                    <span class="active position-relative px-2">
-			                      {{$cbu->status}}
-			                    </span>
+								@if($cbu->status)
+								<span class="badge badge-pill badge-success">{{$cbu->status}}</span></h1>
+								@else
+								<span class="badge badge-pill badge-danger">{{$cbu->status}}</span></h1>
+								@endif
 			                  </td>
 							</tr>
 							@endforeach
 							<tr style="border:none;">
-								<td class="text-right pr-2">
+								<td class="text-right pr-2 text-lg">
 									Total
 								</td>
-								<td class="">
+								<td class="text-lg">
 									{{$client->totalDeposits()}}
 								</td>
 							</tr>
@@ -238,6 +258,43 @@
 			        </div>
 		      </div>
 
+		      <div class="card">
+		        <div class="card-header">
+		          <div class="float-left text-center">
+		          	<h4 class="mt-2 h5">Dependents</h4>
+		          </div>
+					<a href="{{route('client.manage.dependents',$client->client_id)}}" class="float-right btn-create">Manage</a>
+				</div>
+				
+		        <div class="card-body">
+					
+					<div class="table-accounts table-full-width table-responsive">
+					<table class="table">
+						<tr>
+							<td> Unit</td>
+							<td> App. #</td>
+							<td> # of Dpnts </td>
+							<td> Expiry</td>
+							<td> Status</td>
+						</tr>
+						<tbody>
+							@foreach ($client->dependents as $item)
+								<tr>
+									<td>{{$item->unit_of_plan}}</td>
+									<td>{{$item->application_number}}</td>
+									<td>{{$item->count}}</td>
+									<td>{{$item->expires_at}}</td>
+									<td>{{$item->status}}</td>
+								</tr>
+							@endforeach
+						</tbody>
+					</table>
+					</div>
+				</div>
+				
+				
+				
+		      </div>
 		    	<!-- <div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
 				  <div class="modal-dialog modal-lg">
 				    <div class="modal-content">

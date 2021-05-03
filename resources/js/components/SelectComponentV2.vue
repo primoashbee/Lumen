@@ -8,11 +8,12 @@
     group-values="data" 
     group-label="level" 
     :group-select="false" 
-    :allow-empty="false"
+    :allow-empty="true"
     placeholder="Select Level" 
     track-by="name" 
     label="name"
     @input = "emitToParent"
+    
     >
       <span slot="noResult">Oops! No elements found. Consider changing the search query.</span>
     </multiselect>
@@ -37,6 +38,7 @@ export default {
           this.fetchListByLevel(this.list_level)
       }
       
+      
   },
   data () {
     return {
@@ -48,7 +50,6 @@ export default {
   methods: {
     emitToParent(){
       if(this.value!=null){
-        
         this.$emit('officeSelected', this.value);
       }
     },
@@ -80,7 +81,8 @@ export default {
           }
         })
     }
-  }
+  },
+  
 }
 
 </script>
@@ -96,6 +98,10 @@ export default {
     .multiselect__single{
       background: #27293d!important;
       color: white;
+    }
+
+    .is-invalid .multiselect__tags {
+      border: 1px solid red !important;
     }
 
 </style>

@@ -38,11 +38,9 @@ class CreateClientsTable extends Migration
             $table->string('province_address');
             $table->string('zipcode');
 
-
-            $table->string('business_address');
-            $table->string('spouse_name');
-            $table->string('spouse_contact_number');
-            $table->date('spouse_birthday');
+            $table->string('spouse_name')->nullable();
+            $table->string('spouse_contact_number')->nullable();
+            $table->date('spouse_birthday')->nullable();
 
             $table->integer('number_of_dependents');
             $table->integer('household_size');

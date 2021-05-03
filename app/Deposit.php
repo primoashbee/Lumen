@@ -34,6 +34,12 @@ class Deposit extends Model
         return ($val/100 ).'%';
     }
 
+    public function minimumDepositAmount(){
+        return [
+            'amount'=>$this->minimum_deposit_per_transaction,
+            'amount_formatted'=> money($this->minimum_deposit_per_transaction,2)
+        ];
+    }
     
 
   

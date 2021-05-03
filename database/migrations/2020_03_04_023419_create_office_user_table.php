@@ -14,7 +14,7 @@ class CreateOfficeUserTable extends Migration
     public function up()
     {
         Schema::create('office_user', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            // $table->bigIncrements('id');
             $table->unsignedInteger('user_id');
             $table->unsignedInteger('office_id');
             $table->timestamps();

@@ -22,7 +22,7 @@ class CreateHouseholdIncomesTable extends Migration
             $table->boolean('is_employed');
             $table->string('employed_position')->nullable();
             $table->string('employed_company_name')->nullable();
-            $table->integer('employed_monthly_gross_income')->nullable();
+            $table->unsignedDouble('employed_monthly_gross_income')->nullable();
 
             //spouse
             $table->boolean('spouse_is_self_employed');
@@ -31,15 +31,15 @@ class CreateHouseholdIncomesTable extends Migration
             $table->boolean('spouse_is_employed');
             $table->string('spouse_employed_position')->nullable();
             $table->string('spouse_employed_company_name')->nullable();
-            $table->integer('spouse_employed_monthly_gross_income')->nullable();
+            $table->unsignedDouble('spouse_employed_monthly_gross_income')->nullable();
 
             $table->boolean('has_remittance')->default(false);
-            $table->integer('remittance_amount')->nullable();
+            $table->unsignedDouble('remittance_amount')->nullable();
 
             $table->boolean('has_pension')->default(false);
-            $table->integer('pension_amount')->nullable();
+            $table->unsignedDouble('pension_amount')->nullable();
 
-            $table->integer('total_household_income');
+            $table->unsignedDouble('total_household_income');
 
             $table->timestamps();
         });

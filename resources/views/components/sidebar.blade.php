@@ -60,7 +60,7 @@
 						  <ul class="sub-collapse">
 							<li class="sub-list">
 								<a class="sub-nav" data-toggle="collapse" href="#bulk-deposit" role="button" aria-expanded="false" aria-controls="create" class="has-sub">
-									<i class="">D</i>
+									<i class="fas fa-piggy-bank"></i>
 									<p>Deposit<b class="caret"></b></p>
 								</a>
 								<div class="collapse" id="bulk-deposit">
@@ -87,15 +87,71 @@
 								</div>
 							</li>
 							<li class="sub-list">
-								<a class="sub-nav" href="/create/office/cluster">
-									<i class="">L</i>
+								<a class="sub-nav" data-toggle="collapse" href="#bulk-loans" role="button" aria-expanded="false" aria-controls="create" class="has-sub">
+									<i class="fas fa-money-check"></i>
 									<p>Loans<b class="caret"></b></p>
+								</a>
+								<div class="collapse" id="bulk-loans">
+									<ul class="sub-collapse">
+										<li class="second-sub-list">
+											<a class="second-sub-nav" href="{{route('bulk.create.loans')}}">
+												<i class="fas fa-plus-square"></i>
+												<p>Create Loans</p>
+											</a>
+										</li>
+										<li class="second-sub-list">
+											<a class="second-sub-nav" href="{{route('bulk.approve.loans')}}">
+												<i class="fas fa-thumbs-up"></i>
+												<p> Approve Loans</p>
+											</a>
+										</li>
+										<li class="second-sub-list">
+											<a class="second-sub-nav" href="{{route('bulk.disburse.loans')}}">
+												<i class="fas fa-cash-register"></i>
+												<p>Disburse Loans</p>
+											</a>
+										</li>
+									</ul>
+								</div>
+							</li>
+							<li class="sub-list">
+								<a class="sub-nav" href="{{route('bulk.repayment')}}" role="button" aria-expanded="false" aria-controls="create" class="has-sub">
+									<i class="fas fa-money-check"></i>
+									<p>Repayments</p>
+								</a>
+							</li>
+
+						</ul>
+					 </div>
+				</li>
+				<li class="{{ request()->is('accounts/') ? 'active' : '' }} py-2">
+					<a data-toggle="collapse" href="#accounts" role="button" aria-expanded="false" aria-controls="create" class="has-sub">
+						<i class="fas fa-2x fa-cubes"></i>
+						<p>Accounts <b class="caret"></b></p>
+					</a>
+					<div class="collapse" id="accounts">
+						  <ul class="sub-collapse">
+							<li class="sub-list">
+								<a class="sub-nav" href="{{ route('accounts.list','all')}}">
+									<i class="fas fa-object-group"></i>
+									<p>All Accounts</p>
+								</a>
+							</li>
+							<li class="sub-list">
+								<a class="sub-nav" href="{{ route('accounts.list','loan')}}">
+									<i class="fas fa-money-check"></i>
+									<p>Loan Accounts</p>
+								</a>
+							</li>
+							<li class="sub-list">
+								<a class="sub-nav" href="{{ route('accounts.list','deposit') }}">
+									<i class="fas fa-piggy-bank"></i>
+									<p>CBU</p>
 								</a>
 							</li>
 						</ul>
 					 </div>
 				</li>
-				
 				<li class="py-2 {{ request()->is('accounting') ? 'active' : '' }}">
 					<a href="">
 						<i class="far fa-2x fa-money-bill-alt"></i>
@@ -103,7 +159,7 @@
 					</a>
 				</li>
 				<li class="py-2 {{ request()->is('report') ? 'active' : '' }}">
-					<a href="">
+					<a href="{{route('reports.index')}}">
 						<i class="far fa-2x fa-list-alt"></i>
 						<p>Reports</p>
 					</a>
@@ -118,3 +174,5 @@
 		</div>
 	</div>
 </div>
+
+

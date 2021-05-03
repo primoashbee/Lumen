@@ -22,7 +22,7 @@ class CreatePaymentMethodsTable extends Migration
             $table->boolean('for_deposit');
             $table->boolean('for_withdrawal');
             $table->boolean('for_recovery');
-            $table->integer('gl_account_code');
+            $table->unsignedInteger('gl_account_code');
             $table->timestamps();
         });
         

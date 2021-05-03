@@ -14,7 +14,7 @@ class PaymentMethodController extends Controller
 
     //used for payment methods on paymentmethodcomponent
     public function fetchPaymentMethods(Request $request){
-        
+        $z = $request->payment_type;
         if(in_array($request->payment_type,Schema::getColumnListing('payment_methods'))){
             $res['methods'] = PaymentMethod::where($request->payment_type, true)->orderBy('name','asc')->get(['name','id']);
             
