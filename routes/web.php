@@ -113,7 +113,7 @@ Route::get('/download/dst/{loan_account_id}','DownloadController@dst');
 
 // Route::post('/download/dst/{id}','DownloadController@dst');
 Route::get('/download/dst/bulk/{bulk_transaction_id}','DownloadController@dstBulk');
-Route::get('/ccrdebug',function(Request $request){
+Route::get('/ccrdebug/{type}',function(Request $request,$type){
 
 
     $data = session('ccr');
@@ -141,7 +141,9 @@ Route::get('/ccrdebug',function(Request $request){
     $file = public_path('temp/'). $summary->name;
     $pdf = App::make('snappy.pdf.wrapper');
     $headers = ['Content-Type'=> 'application/pdf','Content-Disposition'=> 'attachment;','filename'=>$summary->name];
-
+    if ($type == 1) {
+        return view('exports.test', compact('summary'));
+    }
     return $pdf->loadView('exports.test',compact('summary'))->stream();
     
     
