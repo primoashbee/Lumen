@@ -41,6 +41,7 @@ class SeedBranch extends Command
     {
         ini_set('memory_limit', '2048');
 
+        
         $level = Office::find($this->argument('office_id'));
         if($level->level == 'branch'){
             $cluster_ids = $level->clusters();
