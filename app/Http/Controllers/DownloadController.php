@@ -354,7 +354,7 @@ class DownloadController extends Controller
             });
             $writer = new Xlsx($spreadsheet);
             $writer->setPreCalculateFormulas(false);
-            $newFile = public_path('reports/').$filename;
+            $newFile = public_path('created_reports/').$filename;
             $writer->save($newFile);
         }else{
             $filename = 'Disbursement Report - Detailed ('.$id.').xlsx';
@@ -390,7 +390,7 @@ class DownloadController extends Controller
             });
             $writer = new Xlsx($spreadsheet);
             $writer->setPreCalculateFormulas(false);
-            $newFile = public_path('reports/').$filename;
+            $newFile = public_path('created_reports/').$filename;
             $writer->save($newFile);
         }
         $headers = ['Content-Type'=> 'application/vnd.ms-excel','Content-Disposition'=> 'attachment;','filename'=>$filename];
@@ -454,7 +454,7 @@ class DownloadController extends Controller
 
             $writer = new Xlsx($spreadsheet);
             $writer->setPreCalculateFormulas(false);
-            $newFile = public_path('reports/').$filename;
+            $newFile = public_path('created_reports/').$filename;
             $writer->save($newFile);
 
             $headers = 
@@ -495,7 +495,7 @@ class DownloadController extends Controller
             // }
             $writer = new Xlsx($spreadsheet);
             $writer->setPreCalculateFormulas(false);
-            $newFile = public_path('reports/').$filename;
+            $newFile = public_path('created_reports/').$filename;
             $writer->save($newFile);
         }else{
             $filename = 'Deposit Report - Detailed ('.$id.').xlsx';
@@ -522,7 +522,7 @@ class DownloadController extends Controller
             }
             $writer = new Xlsx($spreadsheet);
             $writer->setPreCalculateFormulas(false);
-            $newFile = public_path('reports/').$filename;
+            $newFile = public_path('created_reports/').$filename;
             $writer->save($newFile);
         }
 
@@ -563,7 +563,7 @@ class DownloadController extends Controller
         
         $writer = new Xlsx($spreadsheet);
         $writer->setPreCalculateFormulas(false);
-        $newFile = public_path('reports/').$filename;
+        $newFile = public_path('created_reports/').$filename;
         $writer->save($newFile);
     
 
