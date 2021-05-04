@@ -48,7 +48,9 @@ Route::get('/', 'DashboardController@index');
 
 
 Auth::routes();
-
+Route::get("/gg",function(){
+    return abort(403);
+});
 Route::group(['middleware' => ['auth']], function () {
 
 
