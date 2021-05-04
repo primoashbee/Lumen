@@ -37,153 +37,27 @@ use Symfony\Component\HttpFoundation\Request;
 |
 */
 
-Route::get('/gg',function(){
-    return \App\Dashboard::disbursementTrend(1,1);
-    return;
-    // $sesh = session('dashboard.par_movement');
 
-    // return response()->json(['data'=>$sesh],200);
-    $data = Dashboard::clientTrend(1,true);
-    return response()->json(['data'=>$data],200);
-    $k_ep =key($sesh['expected_repayment']);
-    $k_ar =key($sesh['actual_repayment']);
-    $k_lb =key($sesh['labels']);
 
-    $sesh['expected_repayment'][$k_ep] = $data['expected_repayment'][0];
-    $sesh['expected_repayment'][$k_ep] = $data['actual_repayment'][0];
-    $sesh['labels'][$k_ep] = $data['labels'][0];
-    
-    return response()->json(['data'=>$sesh],200);
-
-    return 'tae';
-});
-Route::get('rep',function(){
-
-return (\App\ParMovement::dashboardReport('2021-04-06',now(),now(),1));
-return (\App\ParMovement::dashboardReport('2021-04-06',now(),now(),1));
-    $account  = LoanAccount::find(1);
-    $pre_term_amount = $account->fresh()->preTermAmount();
-    $installments =$account->fresh()->installments;
-    
-    $client = Client::select('firstname','lastname','client_id')->where('client_id','001DAG-PC00007')->first();
-    
-    $activity = $account->activity()->orderBy('created_at','desc')->get()->each->transactionable;
-    return response()->json([
-        'account'=>$account,
-        'client'=>$client,
-        'installments'=>$installments,
-        'activity'=>$activity
-    ],200);
-    return LoanAccount::find(1)->load('pre_term_amount');
-    $loanPayload = ['date'=>now(),'amount'=>5000];
-    event(new LoanAccountPaymentEvent($loanPayload,  21, 2, 4));
-    event(new TestEvent('hey'));
-    return;
-    $data = ['from_date'=>'2020-11-26','to_date'=>'2021-04-06'];
-    $x = \App\Report::repayment($data,true);
-    return $x;
-    $filename = 'Disbursement Report.xlsx';
-    $file = public_path('reports/').$filename;
-    return response()->download($file);
-    $data = ['from_date'=>now(),'to_date'=>now()];
-    $list = \App\Report::repayment($data,false);
-    return $list;
-});
-
-Route::get('dRep',function(){
-    $data = ['date'=>carbon()->parse('2020-11-26'),'office_id'=>null,'users'=>[]];
-    $list = \App\Report::disbursement($data,false);
-    // Excel::store(new DisbursementExport($list),'dRep.xlsx');
-    return Excel::store(new DisbursementExport($list),'dRep.xlsx','reports');
-});
-Route::get('/transactions', function(Request $request){
-    if($request->has('type')){
-        if($request->type == 'loan'){
-            $data = [['type'=>'Transaction' , 'data'=>[['id'=>1,'name'=>'Loan Payment'],['id'=>2,'name'=>'CTLP']]]];
-        }
-        
-        if($request->type == 'deposit'){
-            $data = [['type'=>'Transaction' , 'data'=>[['id'=>1,'name'=>'Payment'],['id'=>2,'name'=>'Withdrawal'],['id'=>3,'name'=>'CTLP Withdrawal'],['id'=>4,'name'=>'Interest Posting']]]];
-        }
-    }
-    
-    return response()->json($data,200);
-});
-Route::get('/download/dst/{loan_account_id}','DownloadController@dst');
 
 // Route::post('/download/dst/{id}','DownloadController@dst');
-Route::get('/download/dst/bulk/{bulk_transaction_id}','DownloadController@dstBulk');
-Route::get('/ccrdebug/{type}',function(Request $request,$type){
 
 
-    $data = session('ccr');
-    $request = session('request');
-    
 
-    $office = Office::find($request['office_id']);
-    $repayment_date = \Carbon\Carbon::parse($request['date']);
-    $printed_by = auth()->user()->fullname;
-
-    $summary = new stdClass;
-    $summary->office = $office->name;
-    $summary->printed_by = $printed_by;
-    $summary->printed_at = \Carbon\Carbon::now()->format('F j, Y, g:i a');
-    $summary->repayment_date = $repayment_date->format('F d, Y');
-    $summary->has_deposit = array_key_exists('deposit_product_ids',$request);
-    $summary->has_loan = array_key_exists('loan_product_id',$request);
-    if ($summary->has_deposit) {
-        $summary->deposit_types = $request['deposit_product_ids'];
-    }
-    $summary->loan_accounts = $data;
-
-    $summary->name = 'Collection Sheet - ' . $summary->office . ' for ' . $summary->repayment_date.'.pdf';
-
-    $file = public_path('temp/'). $summary->name;
-    $pdf = App::make('snappy.pdf.wrapper');
-    $headers = ['Content-Type'=> 'application/pdf','Content-Disposition'=> 'attachment;','filename'=>$summary->name];
-    if ($type == 1) {
-        return view('exports.test', compact('summary'));
-    }
-    return $pdf->loadView('exports.test',compact('summary'))->stream();
-    
-    
-    
-    
-    return $pdf->stream();
-    return response()->download($file,$summary->name,$headers);
-
-});
-
-Route::post('/download/ccr','DownloadController@ccr');
-Route::get('/', function () {
-    return redirect()->route('dashboard');
-});
-Route::get('/z',function(){
-    $role = Role::firstOrCreate(['name' => 'Branch Accountant']);
-
-    Permission::firstOrCreate(['name' => 'create client']);
-    Permission::firstOrCreate(['name' => 'view dashboard']);
-
-    $role->givePermissionTo(['view dashboard']);
-    $role->givePermissionTo(['create client']);
-    // $role->revokePermissionTo(['create client']);
-
-    auth()->user()->assignRole($role);
-
-});
+Route::get('/', 'DashboardController@index');
 
 
-Route::get('/loan/products','LoanController@');
-Route::get('/random',function(){
-    return view('random-picker');
-});
 Auth::routes();
-Route::get('/fees','FeeController@getList');
-Route::get('/ssss',function(){
-    // \App\LoanAccount::first()->updateStatus();
-});
+
 Route::group(['middleware' => ['auth']], function () {
 
+
+    Route::get('/loan/products','LoanController@');
+    Route::get('/fees','FeeController@getList');
+    Route::post('/download/ccr','DownloadController@ccr');
+    Route::get('/transactions', 'TransactionController@list');
+    Route::get('/download/dst/{loan_account_id}','DownloadController@dst');
+    Route::get('/download/dst/bulk/{bulk_transaction_id}','DownloadController@dstBulk');
     Route::get('/stepper','ClientController@step');
     Route::get('/pay','RepaymentController@repayLoan');
     Route::post('/loan/calculator', 'LoanAccountController@calculate')->name('loan.calculator');
@@ -204,7 +78,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/loans/repay','RepaymentController@accountPayment');
     Route::post('/loans/preterm','RepaymentController@preTerminate');
     Route::post('/revert','RevertController@revert')->name('revert.action');
-    Route::get('/dashboard','DashboardController@index')->name('dashboard');
+    Route::get('/dashboard','DashboardController@dashboard')->name('dashboard');
     Route::get('/dashboard/v1/{reload?}/{office_id}/{type}','DashboardController@type');
 
 

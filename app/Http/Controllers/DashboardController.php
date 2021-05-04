@@ -10,7 +10,13 @@ class DashboardController extends Controller
     //
 
     public function index(){
+        if (auth()->check()) {
+            return redirect()->route('dashboard');
+        }
+        return redirect()->route('login');
 
+    }
+    public function dashboard(){
         return view('pages.dashboard');
     }
 
@@ -21,7 +27,7 @@ class DashboardController extends Controller
         if($type=="disbursement_trend"){
             return $this->disbursementTrend($office_id,$reload);
         }
-        if($type=="par_movement"){
+        if($type=="par_movement"){ 
             return $this->parMovement($office_id,$reload);
         }
         if($type=="client_trend"){
