@@ -595,6 +595,7 @@ class LoanAccountController extends Controller
             )->validate();
             \DB::beginTransaction();
             try {
+                
                 $payment_info = [
                     'disbursement_date'=>$request->disbursement_date,
                     'first_repayment_date'=>$request->first_repayment_date,
@@ -625,7 +626,7 @@ class LoanAccountController extends Controller
                 $payload = [
                     'msg'=>$msg,
                     'office_id'=>$request->office_id,
-                    'amount'=>$disbursed_amount,
+                    'amount'=>(string) $disbursed_amount,
                     'date'=>$first_payment,
                 ];
                 event(new LoanDisbursed($payload));

@@ -41,12 +41,22 @@ class RepaymentController extends Controller
             \DB::beginTransaction();
             try {
                 
-                $account->payV2($request->all(), true);
+                $payment_summary = [
+                    'interest_paid'=>0,
+                    'principal_paid'=>0,
+                    'total_paid'=>0,
+                ];
+                $account_payment = $account->payV2($request->all(), true);
+
+                $payment_summary['interest_paid'] += $account_payment['interest_paid'];
+                $payment_summary['principal_paid'] += $account_payment['principal_paid'];
+                $payment_summary['total_paid'] += $account_payment['total_paid'];
                 
                 $account->updateBalances();
                 $loanPayload = [
                     'date'=>Carbon::parse($request->repayment_date)->format('d-F'),
-                    'amount'=>$request->amount
+                    'amount'=>$request->amount,
+                    'summary'=>$payment_summary
                 ];
                 event(new LoanAccountPayment($loanPayload, $request->office_id, $request->paid_by, $request->payment_method_id));
                 \DB::commit();
@@ -217,6 +227,14 @@ class RepaymentController extends Controller
             $repayment = 0;
             $deposit = 0;
             
+            $total_payment = [
+                'interest'=>0,
+                'principal'=>0,
+                'total'=>0,
+            ];
+            
+
+            
             foreach($data['accounts'] as $key=>$value){
                 $loan = $value['loans'];
                 $repayment+=$loan['amount'];
@@ -229,7 +247,12 @@ class RepaymentController extends Controller
                     'paid_by'=>$user,
                     'office_id'=>$data['office_id']
                 ];
-                LoanAccount::find($loan['id'])->pay($payment_info);
+                $payment_summary = LoanAccount::find($loan['id'])->payV2($payment_info);
+                
+                $total_payment['interest'] += $payment_summary['interest_paid'];
+                $total_payment['principal'] += $payment_summary['principal_paid'];
+                $total_payment['total'] += $payment_summary['total'];
+
                 $deposits = $value['deposit'];
                 $has_deposit  = count($deposits) > 0;
                 if($has_deposit){
@@ -252,14 +275,21 @@ class RepaymentController extends Controller
 
             // $office
             // $msg = 'Repayment '. money($repayment,2) .' at ' . $office .' by ' . $by. ' ['.$payment.'].';
+            
+            
+            // $loanPayload = [
+            //     'date'=>'02-May',
+            //     'amount'=>250000, 
+            //     'payment_summary'=> ['interest'=>150000,'principal]];
 
-            $loanPayload = ['date'=>$repayment_date->format('d-F'),'amount'=>$repayment];
+
+            $loanPayload = ['date'=>$repayment_date->format('d-F'),'amount'=>$repayment, 'payment_summary'=>$payment_summary];
             $depositPayload = ['date'=>$repayment_date->format('d-F'),'amount'=>$deposit];
             event(new LoanAccountPayment($loanPayload, $request->office_id, $user, $payment_method));
             if ($has_deposit) {
                 event(new DepositTransaction($depositPayload, $request->office_id, $user, $payment_method, 'deposit'));
             }
-            \DB::commit();
+            // \DB::commit();
             
         return response()->json(['msg'=>'Payment Successful','code'=>200],200);    
         } catch (\Exception $e){
@@ -288,12 +318,19 @@ class RepaymentController extends Controller
         try{
             $total_loan_payment = 0;
             $total_deposit_payment = 0;
+            $payment_summary = [
+                'interest_paid'=>0,
+                'principal_paid'=>0,
+                'total_paid'=>0,
+            ];
             foreach($request->accounts as $item){
                 $payment_info = $payment_info_template;
                 $payment_info['amount'] = (float) $item['loan']['amount'];
                 $total_loan_payment += $payment_info['amount'];
-                $account = LoanAccount::find( (int) $item['loan']['loan_account_id'])->payV2($payment_info);
-                
+                $account_payment = LoanAccount::find( (int) $item['loan']['loan_account_id'])->payV2($payment_info);
+                $payment_summary['interest_paid'] += $account_payment['interest_paid'];
+                $payment_summary['principal_paid'] += $account_payment['principal_paid'];
+                $payment_summary['total_paid'] += $account_payment['total_paid'];
                 if (array_key_exists('deposits', $item)) {
                     $dep_accounts = Client::fcid($item['client_id'])->deposits;
                     foreach ($item['deposits'] as $deps) {
@@ -307,7 +344,7 @@ class RepaymentController extends Controller
                 }
             }
 
-            $loanPayload = ['date'=>$repayment_date->format('d-F'),'amount'=>$total_loan_payment];
+            $loanPayload = ['date'=>$repayment_date->format('d-F'),'amount'=>$total_loan_payment,'summary'=>$payment_summary];
             event(new LoanAccountPayment($loanPayload, $request->office_id, $user , $payment_method_id));
             $has_deposit = $total_deposit_payment > 0;
             if ($has_deposit) {

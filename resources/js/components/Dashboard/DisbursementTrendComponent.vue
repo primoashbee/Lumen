@@ -8,7 +8,7 @@
 import Chart from 'chart.js';
 
 export default {
-  props : ['office_id'],
+  props : ['office_id', 'user_id'],
   data(){
     return {
         chart_options : {
@@ -83,6 +83,16 @@ export default {
   },
   mounted() {
     this.getData();
+
+    window.Echo.private(this.repaymentChannel)
+      .listen('.loan-payment',data =>{
+        this.paymentMade(data.data);
+    })
+    window.Echo.private('dashboard.notifications.'+this.office_id)
+      .listen('.loan-disbursed',data =>{
+        console.log(data)
+        this.disbursementMade(data.data);
+    })
     this.chartInit();
   },
 
@@ -99,13 +109,50 @@ export default {
             this.chart_options.data.datasets[2].data = res.data.disbursement_trend.repayment_principal
             this.chart.update();
         })
-    }
+    },
+    paymentMade(data){ 
+      //get index of date
+      var index = this.chart_options.data.labels.findIndex(x=>x == data.date);
+
+      //actual repayment interest index is 1
+      var interest_curr_value = this.chart_options.data.datasets[1].data[index];
+      
+
+      var interest_new_value = parseInt(interest_curr_value) + parseInt(data.summary.interest_paid);
+      
+      this.chart_options.data.datasets[1].data[index] = interest_new_value
+
+      //actual repayment principal index is 2
+      var principal_curr_value = this.chart_options.data.datasets[2].data[index];
+      
+
+      var principal_new_value = parseInt(principal_curr_value) + parseInt(data.summary.principal_paid);
+      
+      this.chart_options.data.datasets[2].data[index] = principal_new_value
+
+      this.chart.update();
+    },
+
+    disbursementMade(data){
+
+      //get index of date
+      var index = this.chart_options.data.labels.findIndex(x=>x == data.date);
+      //actual repayment interest index is 1
+      var disbursed_curr_value = this.chart_options.data.datasets[0].data[index];
+      var disbursed_value = parseInt(disbursed_curr_value) + parseInt(data.amount);
+      this.chart_options.data.datasets[0].data[index] = disbursed_value
+      this.chart.update();
+    },
+
   },
 
   computed : {
     url(){
       return '/dashboard/v1/true/'+this.office_id+'/disbursement_trend'
-    }
+    },
+    repaymentChannel(){
+      return 'dashboard.charts.repayment.'+this.office_id
+    },
   }
 }
 </script>

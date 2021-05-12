@@ -110,22 +110,7 @@ class LoanAccountRepayment extends Model
     
    
     public function hasTransactionBefore(){
-        $id = $this->id;
-        $loan_account_id = $this->loan_account_id;
-        $transactions = Transaction::loanAccountTransactions($this->loan_account_id)
-                    ->where('transaction_date',$this->repayment_date->addDay())
-                    ->where('reverted',false);
-                   
-
-        // $transactions = LoanAccountRepayment::where('loan_account_id',$loan_account_id)->where('reverted',false)->orderBy('id','desc');
-
-        if($transactions->count() > 0){
-            
-            return $transactions->first()->id  > $this->id ? true : false;
-        }
-        //has no transaction or first transaction
-        return false;
-
+        return $this->loanAccount->lastTransaction(true) == $this->transaction_number ? true : false;
     }
 
     public function revertPreTermination($user_id){

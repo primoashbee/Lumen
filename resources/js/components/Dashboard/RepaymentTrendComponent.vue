@@ -118,7 +118,6 @@ export default {
       //get index of date
       var index = this.chart_data.data.labels.findIndex(x=>x == data.date);
 
-      
       //actual repayment index is 1
       var curr_value = this.chart_data.data.datasets[1].data[index];
       

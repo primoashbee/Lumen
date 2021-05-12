@@ -51,7 +51,7 @@ class ParMovementCompute extends Command
 
 
         
-        $start = now()->startOfDay()->subDays(6);
+        // $start = now()->startOfDay()->subDays(6);
 
         // for($x=0;$x<=6;$x++){
             // $date  = $start->copy()->addDays($x);

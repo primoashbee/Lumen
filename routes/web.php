@@ -44,16 +44,12 @@ use Symfony\Component\HttpFoundation\Request;
 
 
 
+
 Route::get('/', 'DashboardController@index');
 
 
 Auth::routes();
-Route::get("/gg",function(){
-    return abort(403);
-});
 Route::group(['middleware' => ['auth']], function () {
-
-
     Route::get('/loan/products','LoanController@');
     Route::get('/fees','FeeController@getList');
     Route::post('/download/ccr','DownloadController@ccr');

@@ -465,15 +465,23 @@ class LoanAccount extends Model
         $amortized_principal = $this->principal;
 
         $total_paid = $this->totalPaid();
-        $minimum_interest_to_be_paid = $amortized_interest / 2; //50%
-
+        $this->installments;
+        $fixed_minimum_interest_to_be_paid = $amortized_interest / 2; //50%
+        $current_minimum_interest_to_be_paid = $this->installments->where('date','<=',now())->sum('interest_due');
+        if($fixed_minimum_interest_to_be_paid > $current_minimum_interest_to_be_paid){
+            $minimum_interest_to_be_paid = $fixed_minimum_interest_to_be_paid;
+        }else{
+            $minimum_interest_to_be_paid = $current_minimum_interest_to_be_paid;
+        }
         //if paid the qualified % of interest to be paid
+        
         $paid_minimum_interest = $total_paid->interest >= $minimum_interest_to_be_paid;
         $principal = $amortized_principal - $total_paid->principal;
         if ($paid_minimum_interest) {
             $interest = 0;
-        } elseif ($total_paid->interest < $minimum_interest_to_be_paid) {
-            $interest = round($minimum_interest_to_be_paid - $total_paid->interest, 2);
+        } elseif ($total_paid->interest < $fixed_minimum_interest_to_be_paid) {
+            // $interest = round($fixed_minimum_interest_to_be_paid - $total_paid->interest, 2);
+            $interest = $minimum_interest_to_be_paid;
         }
 
         $total = round($interest + $principal, 2);
@@ -691,7 +699,7 @@ class LoanAccount extends Model
         $this->bulkDisbursed()->delete();
 
         $this->updateStatus();
-        $this->activity()->delete();
+        
     }
 
     public function updateBalancesAfterPayment($interest_paid, $principal_paid)
@@ -785,6 +793,12 @@ class LoanAccount extends Model
             }
             $this->fresh()->updateStatus();
             $this->updateBalances();
+
+            return [
+                'interest_paid'=>$repayments->interest,
+                'principal_paid'=>$repayments->principal,
+                'total_paid'=>$repayments->total_paid,
+            ];
         }else{
             $transaction_number = 'R'.str_replace('.','',microtime(true));
 
@@ -824,6 +838,12 @@ class LoanAccount extends Model
             if ($total_balance == 0) {
                 $this->closeAccount($paid_by);
             }
+
+            return [
+                'interest_paid'=>$repayments->interest,
+                'principal_paid'=>$repayments->principal,
+                'total_paid'=>$repayments->total_paid,
+            ];
 
         }
     }

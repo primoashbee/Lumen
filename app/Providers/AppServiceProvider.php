@@ -336,7 +336,7 @@ class AppServiceProvider extends ServiceProvider
             if($acc->latestRepayment()==null){
                 return true;
             }
-            $latest_payment = Carbon::parse($acc->latestRepayment()->transaction_date);
+            $latest_payment = Carbon::parse($acc->latestRepayment()->repayment_date);
             
             $repayment_date = Carbon::parse($value);
             

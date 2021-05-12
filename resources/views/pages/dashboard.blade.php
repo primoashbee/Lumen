@@ -50,7 +50,7 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-area">
-                        <chart-disbursement-trend office_id="{{auth()->user()->office->first()->id}}"></chart-disbursement-trend>
+                        <chart-disbursement-trend office_id="{{auth()->user()->office->first()->id}}" user_id="{{auth()->user()->id}}"></chart-disbursement-trend>
                     </div>
                 </div>
             </div>
