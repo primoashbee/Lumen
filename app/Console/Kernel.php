@@ -27,6 +27,7 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
         $schedule->command('loan:update')->dailyAt('00:01');
         $schedule->command('par:calculate')->dailyAt('00:10');
+        $schedule->command('command:test')->everyMinute();
     }
 
     /**
