@@ -13,7 +13,9 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        Commands\RecalculateLoanDues::class,
+        Commands\ParMovementCompute::class,
+        Commands\WordOfTheDay::class,
     ];
 
     /**
@@ -27,6 +29,7 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
         $schedule->command('loan:update')->dailyAt('00:01');
         $schedule->command('par:calculate')->dailyAt('00:10');
+        $schedule->command('word:day')->everyMinute();
         // $schedule->command('command:test')->everyMinute();
     }
 
