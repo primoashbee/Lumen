@@ -47,7 +47,11 @@ return [
             'footer-center'=>'Page [page] of [toPage]',
             'footer-font-size' => 8,
             'footer-left' => 'LIGHT Microfinance Inc © ' . date('Y'),
-            'footer-right' => 'Printed at: ' . Carbon::now()->timezone('Asia/Manila')->format('Y-m-d h:i:sA')
+            'footer-right' => 'Printed at: ' . Carbon::now()->timezone('Asia/Manila')->format('Y-m-d h:i:sA'),
+            'margin-top'    => 5,
+            'margin-right'  => 5,
+            'margin-bottom' => 10,
+            'margin-left'   => 5,
         ],
         'env'     => [],
     ],

@@ -7,6 +7,7 @@ use App\LoanAccount;
 use App\Rules\AccountStatus;
 use App\Rules\ArrayNotEmpty;
 use Illuminate\Http\Request;
+use App\Http\Controllers\DownloadController;
 
 class AccountController extends Controller
 {
@@ -32,37 +33,39 @@ class AccountController extends Controller
         return view('pages.accounts-list');
     }
 
-    public function filter(Request $request, $type){
+    public function getList(Request $request){
 
         $request->validate([
             'office_id'=>'required|exists:offices,id',
             'product'=>[new ArrayNotEmpty],
             'product.*'=>'required|valid_product_ids',
-            'status'=>['required', new AccountStatus]
+            'status'=>['nullable',new AccountStatus]
         ]);
-
+        
+        $data = $request->all();
         $products = collect($request->products);
         
-        $loan = $products->filter(function($v){
-            return $v['type'] == 'loan';
-        });
-        $deposit = $products->filter(function($v){
-            return $v['type'] == 'deposit';
-        });
+        // $loan = $products->filter(function($v){
+        //     return $v['type'] == 'loan';
+        // });
+        // $deposit = $products->filter(function($v){
+        //     return $v['type'] == 'deposit';
+        // });
         
         $q = $request->all();
-        $accounts  = Office::find($request->office_id)->accounts($q)->paginate(25);
-        // $deposit_accounts  = collect();
-        // if($loan->count() > 0){
-        //     $loan_filter = ['loan_id'=>$loan->pluck('id')->toArray(),'status'=>$request->status];
-        //     $loan_accounts = Office::find($request->office_id)->loanAccounts($loan_filter)->paginate(5);
-        // }
-        
-        // if($deposit->count() > 0){
-        //     $deposit_filter = ['deposit_id'=>$deposit->pluck('id')->toArray(),'status'=>$request->status];        
-        //     $deposit_accounts = Office::find($request->office_id)->depositAccountsV2($deposit_filter)->paginate(5);
-        // }
-            
-        return response()->json(['msg'=>'nice','data'=>$accounts],200);
+        if($request->has('export')){
+            $accounts  = Office::find($request->office_id)->accounts($q, false);
+            if ($request->type=='loan') {
+                $file = DownloadController::loanAccounts($accounts);
+            }else{
+                $file = DownloadController::depositAccounts($accounts);
+            }
+            return response()->download($file['file'],$file['filename'],$file['headers']);
+
+        }
+        $accounts  = Office::find($request->office_id)->accounts($q);
+        $summary = $accounts['summary'];
+        $accounts = $accounts['accounts']->paginate(25);
+        return response()->json(['msg'=>'nice','data'=>$accounts,'summary'=>$summary],200);
     }
 }

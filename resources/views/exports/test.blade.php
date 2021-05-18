@@ -61,7 +61,7 @@
             }
             table.table thead tr th{
                 border: 1px solid #ddd;
-                padding: 8px;
+                padding: 1px;
                 font-size: 1em;
             }
             table.table thead tr th{
@@ -117,6 +117,9 @@
             .cs_info{
                 margin-top: 20px;
             }
+            .payment {
+                width: 100px;
+            }
         </style>
         <title>{{$summary->office.' - '.$summary->repayment_date}}</title>
     </head>
@@ -148,30 +151,32 @@
                   <table class="table">
                         <thead>
                           <tr>
-                            <th rowspan="2">#</th>
-                            <th rowspan="2">Client ID</th>
-                            <th rowspan="2">Name</th>
+                            <th rowspan="1">#</th>
+                            <th rowspan="1">Client ID</th>
+                            <th rowspan="1">Name</th>
                             @if($summary->has_loan)
-                            <th rowspan="2">Loan</th>
-                            <th rowspan="2">Term</th>
-                            <th rowspan="2"># of Inst.</th>
-                            <th rowspan="2">Loan Balance (P+I)</th>
-                            <th rowspan="2">Overdue</th>
-                            <th rowspan="2">Installment Due</th>
-                            <th rowspan="2">Total Due</th>
-                            <th colspan="2">Payment</th>
+                            <th rowspan="1">Loan</th>
+                            <th rowspan="1">Term</th>
+                            <th rowspan="1"># of Inst.</th>
+                            <th rowspan="1">Balance (P+I)</th>
+                            <th rowspan="1">Overdue</th>
+                            <th rowspan="1">Inst. Due</th>
+                            <th rowspan="1">Total Due</th>
+                            <th colspan="1" class="payment">Cash</th>
+                            <th colspan="1" class="payment">CTLP</th>
                             @endif
                             @if($summary->has_deposit)
                             @foreach($summary->deposit_types as $type)
-                            <th rowspan="2">{{$type['code']}} - Bal.</th>
-                            <th rowspan="2">{{$type['code']}}
+                            <th rowspan="1">{{$type['code']}} - Bal.</th>
+                            <th rowspan="1">{{$type['code']}}
                             @endforeach
                             @endif
+                            <th class="payment">Signature </th>
                           </tr>
-                          <tr>
+                          {{-- <tr>
                               <th>CTLP</th>
                               <th>CASH</th>
-                          </tr>
+                          </tr> --}}
                         </thead>
                         <tbody>
                           <?php $ctr = 1;
@@ -225,6 +230,7 @@
                                 <td></td>
                                 @endforeach
                               @endif
+                              <td></td>
                             </tr>
                           <?php $ctr++;?>
                           @endforeach
@@ -246,9 +252,10 @@
                             @if($summary->has_deposit)
                             @foreach($deposit_summary as $dep)
                                 <td><b>{{money($dep['total'],2)}}</b></td>
-                                <td></td>
+                                <td class="payment"></td>
                             @endforeach
                             @endif
+                            <td></td>
                           </tr>
                         </tbody>
                   </table>

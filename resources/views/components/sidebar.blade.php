@@ -131,12 +131,12 @@
 					</a>
 					<div class="collapse" id="accounts">
 						  <ul class="sub-collapse">
-							<li class="sub-list">
-								<a class="sub-nav" href="{{ route('accounts.list','all')}}">
+							{{-- <li class="sub-list">
+								<a class="sub-nav" href="#">
 									<i class="fas fa-object-group"></i>
 									<p>All Accounts</p>
 								</a>
-							</li>
+							</li> --}}
 							<li class="sub-list">
 								<a class="sub-nav" href="{{ route('accounts.list','loan')}}">
 									<i class="fas fa-money-check"></i>

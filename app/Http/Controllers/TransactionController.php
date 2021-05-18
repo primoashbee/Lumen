@@ -7,12 +7,9 @@ use Illuminate\Http\Request;
 class TransactionController extends Controller
 {
     public function list(Request $request){
-        
-        // $request->validate([
-        //     ''
-        // ])
-
+    
         $type = $request->type;
+        is_null($type) ? abort(404) : $type;
         if($type == 'loan'){
             $data = [['type'=>'Transaction' , 'data'=>[['id'=>1,'name'=>'Loan Payment'],['id'=>2,'name'=>'CTLP']]]];
         }

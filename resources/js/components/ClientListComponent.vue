@@ -122,7 +122,7 @@ export default {
             }
         },
         url(page=1){
-            return `/clients/list?office_id=`+this.office_id+`&page=`+page
+            return `/client/list?office_id=`+this.office_id+`&page=`+page
         },
         
     },
@@ -142,7 +142,7 @@ export default {
                     str+="search="+this.query
                 }
             }
-            return '/clients/list'+str
+            return '/client/list'+str
         },
         totalRecords(){
             return numeral(this.lists.total).format('0,0')

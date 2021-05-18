@@ -23,11 +23,15 @@ export default {
   },
   props: ['multi_values','add_class','type'],
   mounted(){
-    if(this.type=='loan_account'){
-      this.options = ["All","Active", "Cancelled", "Closed", "In Arrears", "Inactive", "Matured", "Pending Approval", "Rejected", "Written Off"]
+    console.log(this.type);
+    if(this.type=='loan'){
+      this.options = ["Active", "Cancelled", "Closed", "In Arrears", "Inactive", "Matured", "Pending Approval", "Rejected", "Written Off"]
     }
     if(this.type=='deposit'){
-      this.options = ['Active','Dormant'];
+      this.options = ['Active','Closed','Dormant'];
+    }
+    if(this.type=='all'){
+      this.options = ['Active',"Cancelled", "Closed", "In Arrears", "Inactive", "Matured", "Pending Approval", "Rejected", "Written Off",'Dormant'];
     }
   },
   data () {

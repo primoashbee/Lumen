@@ -3,6 +3,7 @@
 /public/storage
 /storage/*.key
 /vendor/*
+
 !/vendor/laravel/ui/*
 .env
 .env.backup
@@ -12,3 +13,4 @@ Homestead.yaml
 npm-debug.log
 yarn-error.log
 public/temp
+public/created_reports

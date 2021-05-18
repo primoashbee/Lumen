@@ -25,8 +25,16 @@ class AccountStatus implements Rule
      */
     public function passes($attribute, $value)
     {
-        $list  = ["All","Active", "Cancelled", "Closed", "In Arrears", "Inactive", "Matured", "Pending Approval", "Rejected", "Written Off"];
-        return in_array($value,$list);
+        if(collect($value)->count() == 0){
+            return true;
+        }
+        
+        $list  = collect(["Active", "Cancelled", "Closed", "In Arrears", "Inactive", "Matured", "Pending Approval", "Rejected", "Written Off"]);
+        $result = false;
+        collect($value)->map(function($item) use (&$result, $list){
+            $result = $list->contains($item) ? true : false;
+        });
+        return $result;
     }
 
     /**

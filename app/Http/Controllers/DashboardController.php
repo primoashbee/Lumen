@@ -44,7 +44,7 @@ class DashboardController extends Controller
         if($reload){
             $repayment_trend = session('dashboard.repayment_trend');
             
-            $data = Dashboard::repaymentTrend(1,true);        
+            $data = Dashboard::repaymentTrend($office_id,true);        
             $repayment_trend['expected_repayment'][6] = $data['expected_repayment'][0];
             $repayment_trend['actual_repayment'][6] = $data['actual_repayment'][0];
             $repayment_trend['labels'][6] = $data['labels'][0];
