@@ -138,7 +138,7 @@ class User extends Authenticatable
             ];
             return $filtered;
         }
-
+        
         $list = $collection->filter(function($item) use($office_level){
             return $item->level == $office_level;
         })->values();

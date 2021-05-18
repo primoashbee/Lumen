@@ -196,7 +196,8 @@ export default {
                 payment_method_id : null,
                 repayment_date: null,
                 receipt_number: null,
-                notes : null
+                notes : null,
+                cluster_office_id: null
             },
             variants: ['primary', 'secondary', 'success', 'warning', 'danger', 'info', 'light', 'dark'],
 			background:'dark',
@@ -431,6 +432,7 @@ export default {
         },
         assignOffice(value){
             this.request.office_id = value['id']
+            this.form.cluster_office_id = value['id']
             this.resetTable()
         },
         loanProductSelected(value){

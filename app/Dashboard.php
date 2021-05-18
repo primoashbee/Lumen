@@ -255,7 +255,6 @@ class Dashboard
         }
     }
 
-    
     public static function disbursementTrend($office_id,$now_only = false){
         if($now_only){
             $dates = [now()->startOfDay()];
@@ -779,6 +778,7 @@ class Dashboard
             }
         })
         ->get();
+        
         $labels = $resigned->pluck('month');
         $resigned = $resigned->pluck('total');
     return compact('labels','resigned','new_loans');

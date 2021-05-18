@@ -312,7 +312,8 @@ class RepaymentController extends Controller
             'notes'=> $request->notes,
             'receipt_number'=>$request->receipt_number,
             'paid_by'=>$user,
-            'office_id'=>$request->office_id
+            'office_id'=>$request->office_id,
+            'cluster_office_id' => $request->cluster_office_id
         ]; 
         \DB::beginTransaction();
         try{
@@ -345,11 +346,11 @@ class RepaymentController extends Controller
             }
 
             $loanPayload = ['date'=>$repayment_date->format('d-F'),'amount'=>$total_loan_payment,'summary'=>$payment_summary];
-            event(new LoanAccountPayment($loanPayload, $request->office_id, $user , $payment_method_id));
+            event(new LoanAccountPayment($loanPayload, $request->cluster_office_id, $user , $payment_method_id));
             $has_deposit = $total_deposit_payment > 0;
             if ($has_deposit) {
                 $depositPayload = ['date'=>$repayment_date->format('d-F'),'amount'=>$total_deposit_payment];
-                event(new DepositTransaction($depositPayload, $request->office_id, $user, $payment_method_id, 'deposit'));
+                event(new DepositTransaction($depositPayload, $request->cluster_office_id, $user, $payment_method_id, 'deposit'));
             }
 
             \DB::commit();
@@ -365,6 +366,7 @@ class RepaymentController extends Controller
         $hasDeposit = count($array['accounts'][0]['deposits']) > 0;
         $rules = [
             'office_id' => ['required','exists:offices,id'],
+            'cluster_office_id' => ['required','exists:offices,id'],
             'receipt_number'=>['required','unique:receipts,receipt_number'],
             'repayment_date'=>['required','date','before:tomorrow'],
             'accounts.*.loan.loan_account_id' =>['required', 'numeric','exists:loan_accounts,id',new AccountMustBeActive],
