@@ -26,6 +26,15 @@ use App\Rules\ClientHasAvailableDependent;
 
 class LoanAccountController extends Controller
 {
+
+    public function __construct(){
+
+        $this->middleware('permission:approve_loan', ['only' => ['bulkApproveForm']]);
+        $this->middleware('permission:disburse_loan', ['only' => ['bulkDisburseForm','preDisbursementList','disburse']]);
+
+    }
+
+
     public function index(Request $request){
         $client = Client::select('client_id','firstname','lastname')->where('client_id',$request->client_id)->firstOrFail();
         return view('pages.create-client-loan',compact('client'));

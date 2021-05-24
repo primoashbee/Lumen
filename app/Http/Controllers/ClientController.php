@@ -25,6 +25,14 @@ class ClientController extends Controller
     protected $profile_path = 'storage/profile_photos/';
     protected $signature_path = 'storage/signatures/';
 
+    public function __construct(){
+
+        $this->middleware('permission:view_client', ['only' => ['index','list']]);
+        $this->middleware('permission:edit_client', ['only' => ['editClient','update']]);
+        $this->middleware('permission:create_client', ['only' => ['step','createV1']]);
+
+    }
+
     //get branches of logged in user upon creating client
     public function index(){
         $branches = auth()->user()->scopesBranch();

@@ -1,15 +1,10 @@
-multi<template>
- <div class="form-group row">
-    <label for="offices" class="col-md-4 col-form-label text-md-right">Office</label>
-
-    <div class="col-md-6"> 
+<template>
+ <div class="form-group">
+    <label for="offices">Office</label>
         <VoerroTagsInput 
             :existing-tags="tags"
-            :typeahead="true" v-model="ids" elementId="user_to_office_id">
+            :typeahead="true" v-model="ids" elementId="user_to_office_id" @tags-updated="assignOffice">
         </VoerroTagsInput>
-
-    </div>
-
 </div>    
 </template>
 
@@ -17,6 +12,7 @@ multi<template>
 import VoerroTagsInput from '@voerro/vue-tagsinput';
     export default {
         mounted() { 
+            console.log(this.ids);
             axios.get('/api/structure') 
                 .then(res=>{
                     this.offices = res.data
@@ -25,7 +21,7 @@ import VoerroTagsInput from '@voerro/vue-tagsinput';
         components : {
             VoerroTagsInput
         },
-        props: ['structure-type'],
+        props: ['structure-type','default'],
         computed: {
             tags(){
                 var offices = [];
@@ -41,6 +37,24 @@ import VoerroTagsInput from '@voerro/vue-tagsinput';
                 offices: null,
                 el: null,
                 ids:[]                
+            }
+        },
+        methods:{
+            assignOffice(){
+                if(this.ids!=null){
+                    this.$emit('officeSelected', this.ids);
+                }
+            }
+        },
+        watch:{
+            default : function (newVal,oldVal){
+                var vm = this
+               if (newVal) {
+                    $.each(newVal, function(k,v){
+                        vm.ids.push({key:v.id,value:v.name});
+                    });
+                    return;
+               }
             }
         }
     }

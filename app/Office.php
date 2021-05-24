@@ -24,7 +24,8 @@ class Office extends Model
     ];
     
     public static function lowerOffices($office_id, $id_only=true, $include_self = false){
-        $query = \DB::table('offices')
+        
+    $query = \DB::table('offices')
                 ->select('id','code','name','parent_id','level')
                 ->where('id',$office_id)
                 ->unionAll(

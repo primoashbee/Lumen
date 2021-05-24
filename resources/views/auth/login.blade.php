@@ -1,7 +1,62 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+
+    <div class="container-fluid">
+        <form method="POST" action="{{ route('login') }}">
+            @csrf()
+            <div class="row main-content text-center">
+                <div class="col-md-4 text-center company__info">
+                    <div class="gray-scale"></div>
+                    <span class="company__logo"><h2><span class="fa fa-android"></span></h2></span>
+                    <img id="logo" src="{{ asset('assets/img/logo.png')}}">
+                </div>
+                
+                <div class="col-md-8 col-xs-12 col-sm-12 login_form ">
+                    <div class="container-fluid">
+                        <div class="row header-content text-center">
+                            <div class="form-head w-100 text-center">
+                                <h2 class="app-title">LUMEN</h2>
+                            </div>
+                        </div>
+                        <div class="row w-100 mx-0">
+                            <h2 class="text-center color-default w-100">Sign in to continue</h2>
+                        </div>
+                        <div class="row w-100 mx-0 pb-3">
+                            <form control="" class="form-group w-100">
+                                <div class="row w-100 mx-0">
+                                    <input type="text" name="email" id="Email" class="form__input @error('email') is-invalid @enderror" value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="Email">
+                                    @error('email')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                                <div class="row w-100 mx-0">
+                                    <!-- <span class="fa fa-lock"></span> -->
+                                    <input type="password" name="password" id="password" class="form__input @error('password') is-invalid @enderror" placeholder="Password"
+                                    required autocomplete="current-password">
+
+                                    @error('password')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                                <div class=" w-100 mx-0 row justify-content-center">
+                                    <input type="submit" value="Submit" class="btn">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form> 
+    </div>
+
+
+
+<!-- <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
@@ -69,5 +124,5 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
 @endsection

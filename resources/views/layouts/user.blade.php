@@ -23,5 +23,11 @@
                 
         },(jQuery))
 
+    window.Laravel = {
+        csrfToken: "{{ csrf_token() }}",
+        userPermissions: {!! auth()->check()?auth()->user()->userPermissions():null !!}
+    }
+</script>
+
 </script>
 </html>
