@@ -90,7 +90,7 @@ export default {
     })
     window.Echo.private('dashboard.notifications.'+this.office_id)
       .listen('.loan-disbursed',data =>{
-        console.log(data)
+        // console.log(data)
         this.disbursementMade(data.data);
     })
     this.chartInit();
@@ -103,7 +103,7 @@ export default {
     getData(){
       axios.get(this.url)
         .then(res=>{ 
-          console.log(res.data)
+          // console.log(res.data)
             this.chart_options.data.labels = res.data.disbursement_trend.labels
             this.chart_options.data.datasets[0].data = res.data.disbursement_trend.disbursements
             this.chart_options.data.datasets[1].data = res.data.disbursement_trend.repayment_interest

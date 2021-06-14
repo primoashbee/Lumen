@@ -27,24 +27,7 @@ export default {
                 this.notify(data.data.msg)
             })
 
-        // window.Echo.private('group.channel.'+this.office_id)
-        // .listen('.suntukan-tayo',data=>{
-        //     this.notify(data.msg)
-        // })
 
-        // window.Echo.join(this.channel)
-        // .here((users)=>{
-        //     console.log(users)
-        // })
-        // .joining((user)=>{
-        //     console.log(user)
-        // })
-        // .leaving((user)=>{
-        //     console.log(user)
-        // })
-        // .listen('.suntukan-tayo', data =>{
-        //     this.notify(data.msg)
-        // })
 
 
 
