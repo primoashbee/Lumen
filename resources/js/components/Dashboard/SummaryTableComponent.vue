@@ -67,7 +67,7 @@ export default {
         fetch(){
             axios.get(this.url)
                 .then(res=>{
-                    console.log(res.data.summary)
+                    // console.log(res.data.summary)
                     this.list  = res.data.summary
                 })
                 .catch(err=>{
