@@ -95,7 +95,7 @@ export default {
           this.disbursementMade(data.data);
       })
 
-
+    console.log('loaded');
     window.Echo.channel('my-channel')
       .listen('.my-event', data=>{
         console.log(data);
