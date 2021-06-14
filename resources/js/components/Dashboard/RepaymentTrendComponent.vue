@@ -87,11 +87,21 @@ export default {
       
       window.Echo.private(this.repaymentChannel)
         .listen('.loan-payment',data =>{
+          console.log(data);
           this.paymentMade(data.data);
       })
       window.Echo.private(this.expectedChannel)
         .listen('.loan-disbursed',data =>{
           this.disbursementMade(data.data);
+      })
+
+
+    window.Echo.channel('my-channel')
+      .listen('.my-event', data=>{
+        console.log(data);
+      })
+      .listen('TestEvent', data=>{
+        console.log(data);
       })
 
         
@@ -135,7 +145,7 @@ export default {
       var curr_value = this.chart_data.data.datasets[0].data[index];
 
       var new_value = parseInt(curr_value) + parseInt(data.amount);
-      console.log('New Value' , new_value);
+      // console.log('New Value' , new_value);
       this.chart_data.data.datasets[0].data[index] = parseInt(curr_value) + parseInt(data.amount)
 
       this.chartInit();
