@@ -34,9 +34,9 @@ class TestEvent implements ShouldBroadcast, ShouldQueue
      */
     public function broadcastOn()
     {
-        return new Channel('channel-name');
+        return new Channel('my-channel');
     }
-    public function broadcastAs(){
-        return 'bulk-disburse-loan';
-    }
+    // public function broadcastAs(){
+    //     return 'my-event';
+    // }
 }
