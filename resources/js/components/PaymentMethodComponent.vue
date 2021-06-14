@@ -29,7 +29,7 @@ export default {
   },
   props: ['payment_type'],
   created(){
-    axios.get('/payment/methods?payment_type='+this.payment_type)
+    axios.get('/wApi/payment/methods?payment_type='+this.payment_type)
     .then(res=>{
       this.options = res.data.methods
       this.value = res.data.default_payment

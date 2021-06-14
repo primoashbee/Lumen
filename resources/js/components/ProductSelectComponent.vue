@@ -30,7 +30,7 @@ export default {
   props: ['product_code','product_type'],
   created(){
     if(this.product_code==null){
-	axios.get('/product?product_type='+this.product_type)
+	axios.get('/wApi/product?product_type='+this.product_type)
 		.then(res=>{
 			this.options = res.data
         })

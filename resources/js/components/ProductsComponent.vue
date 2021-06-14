@@ -48,7 +48,7 @@ export default {
     },
 
     fetch(){
-       axios.post('/products',{list: this.list, status: this.status})
+       axios.post('/wApi/products',{list: this.list, status: this.status})
         .then(res=>{
           this.options=res.data
           //   if(this.default_value!==undefined){

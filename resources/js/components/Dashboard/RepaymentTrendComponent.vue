@@ -87,7 +87,6 @@ export default {
       
       window.Echo.private(this.repaymentChannel)
         .listen('.loan-payment',data =>{
-          console.log('meron')
           this.paymentMade(data.data);
       })
       window.Echo.private(this.expectedChannel)
@@ -129,7 +128,7 @@ export default {
       this.chart.update();
     },
     disbursementMade(){
-      return;
+      
       //get index of date
       var index = this.chart_data.data.labels.findIndex(x=>x == data.date);
       //actual repayment index is 1
@@ -146,7 +145,7 @@ export default {
   },
   computed : {
     url(){
-      return '/dashboard/v1/true/'+this.office_id+'/repayment_trend'
+      return '/wApi/dashboard/'+this.office_id+'/repayment_trend'
     },
     repaymentChannel(){
       return 'dashboard.charts.repayment.'+this.office_id

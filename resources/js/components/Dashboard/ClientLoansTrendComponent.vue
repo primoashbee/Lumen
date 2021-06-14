@@ -104,7 +104,7 @@ export default {
   },
   computed : {
     url(){
-      return '/dashboard/v1/true/'+this.office_id+'/client_trend'
+      return '/wApi/dashboard/'+this.office_id+'/client_trend'
     }
   }
 }

@@ -13,7 +13,7 @@ class SeedBranch extends Command
      *
      * @var string
      */
-    protected $signature = 'branch:seed {office_id}';
+    protected $signature = 'branch:seed {office_id} {--date=null} {--loan=false}';
 
     /**
      * The console command description.
@@ -42,13 +42,23 @@ class SeedBranch extends Command
         ini_set('memory_limit', '2048');
 
         
+        if($this->option('date') == 'null'){
+            $start_date = Carbon::today()->subDays(rand(0,190));
+        }else{
+            $start_date = Carbon::parse($this->option('date'));
+        }
+        if($this->option('loan') =='false'){
+            $has_loans = false;
+        }else{
+            $has_loans = true;
+        }
         $level = Office::find($this->argument('office_id'));
         if($level->level == 'branch'){
             $cluster_ids = $level->clusters();
             foreach(Office::whereIn('id',$cluster_ids)->cursor() as $office){
                 $this->info('Seeding .... ' . $office->name);
-                $start_date = Carbon::today()->subDays(rand(0, 190));
-                $office->seed(20, true, $start_date);
+-
+                // $office->seed(20, true, $start_date);
                 $this->info('Done  ' . $office->name);
             }
         }
@@ -56,17 +66,17 @@ class SeedBranch extends Command
             $cluster_ids = $level->clusters();
             foreach(Office::whereIn('id',$cluster_ids)->cursor() as $office){
                 $this->info('Seeding .... ' . $office->name);
-                $start_date = Carbon::today()->subDays(rand(0, 190));
-                $office->seed(20, true, $start_date);
+                
+                // $office->seed(20, true, $start_date);
                 $this->info('Done  ' . $office->name);
             }
         }
 
         if($level->level == 'cluster'){
             $this->info('Seeding .... ' . $level->name);
-            $start_date = Carbon::today()->subDays(rand(0,190));
+            
             // $start_date = now();
-            $level->seed(20, true, $start_date);
+            $level->seed(20, $has_loans, $start_date);
             $this->info('Done  ' . $level->name);
 
         }

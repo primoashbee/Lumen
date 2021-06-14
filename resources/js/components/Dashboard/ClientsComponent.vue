@@ -88,7 +88,7 @@ export default {
 
   computed : {
     url(){
-      return '/dashboard/v1/true/'+this.office_id+'/client_outreach'
+      return '/wApi/dashboard/'+this.office_id+'/client_outreach'
     }
   }
 }

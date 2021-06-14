@@ -157,6 +157,12 @@
 							<p class="title text-center mt-2">Payment Method</p>
 						</a>	
 					</li>
+					<li class="settings-item">
+						<a class="nav-link" id="home-tab" href="{{route('settings.import')}}">
+							<i class="fas fa-3x fa-file-import"></i>
+							<p class="title text-center mt-2">Import Data</p>
+						</a>	
+					</li>
 				</ul>
 
 			</div>

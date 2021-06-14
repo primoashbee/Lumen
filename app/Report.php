@@ -361,16 +361,16 @@ class Report extends Model
                         ->when($data['office_id'],function($q,$data){
                             $q->whereExists(function($q2) use ($data){
                                 $office_ids = Office::lowerOffices($data,true,true);
-                                $client_ids = DB::table('clients')->whereIn('office_id',$office_ids)->select('client_id')->get();
+                                $client_ids = DB::table('clients')->whereIn('office_id',$office_ids)->select('client_id')->pluck('client_id');
                                 
                                 $q2->from('deposit_accounts')
                                     ->whereIn('client_id',$client_ids)
-                                    ->whereColumn('deposit_accounts.client_id','deposit_payments.deposit_account_id');
+                                    ->whereColumn('deposit_accounts.id','deposit_payments.deposit_account_id');
                             });
                         })
                         ->when($data['from_date'], function($q) use ($data){
                             $q->when($data['to_date'],function($q2) use($data){
-                                $q2->whereBetweenDate('deposit_payments.repayment_date',[$data['from_date'], $data['to_date']]);
+                                $q2->whereBetween('deposit_payments.repayment_date',[$data['from_date'], $data['to_date']]);
                             }); 
                         })
                         ->when($data['amount_from'], function($q) use ($data){
@@ -381,7 +381,6 @@ class Report extends Model
                         ->when($data['transaction_by'], function($q,$data){
                             $q->whereIn('paid_by',$data);
                         })
-                        ->where('deposit_payments.reverted',false)
                         ->leftJoinSub($deposit_accounts,'deposit_accounts',function($join){
                             $join->on('deposit_accounts.id','deposit_payments.deposit_account_id');
                         })
@@ -404,8 +403,9 @@ class Report extends Model
                         })
                         ->leftJoinSub($offices,'offices',function($join){
                             $join->on('offices.id','deposit_payments.office_id');
-                        });
-
+                        })
+                        ->where('deposit_payments.reverted',false);
+        
         $withdrawals = \DB::table('deposit_withdrawals')
                         ->select(
                             'deposit_withdrawals.transaction_number as transaction_number',
@@ -427,16 +427,16 @@ class Report extends Model
                         ->when($data['office_id'],function($q,$data){
                             $q->whereExists(function($q2) use ($data){
                                 $office_ids = Office::lowerOffices($data,true,true);
-                                $client_ids = DB::table('clients')->whereIn('office_id',$office_ids)->select('client_id')->get();
+                                $client_ids = DB::table('clients')->whereIn('office_id',$office_ids)->select('client_id')->pluck('client_id');
                                 
                                 $q2->from('deposit_accounts')
                                     ->whereIn('client_id',$client_ids)
-                                    ->whereColumn('deposit_accounts.client_id','deposit_withdrawals.deposit_account_id');
+                                    ->whereColumn('deposit_accounts.id','deposit_withdrawals.deposit_account_id');
                             });
                         })
                         ->when($data['from_date'], function($q) use ($data){
                             $q->when($data['to_date'],function($q2) use($data){
-                                $q2->whereBetweenDate('deposit_withdrawals.repayment_date',[$data['from_date'], $data['to_date']]);
+                                $q2->whereBetween('deposit_withdrawals.repayment_date',[$data['from_date'], $data['to_date']]);
                             }); 
                         })
                         ->when($data['amount_from'], function($q) use ($data){
@@ -469,6 +469,7 @@ class Report extends Model
                         ->leftJoinSub($offices,'offices',function($join){
                             $join->on('offices.id','deposit_withdrawals.office_id');
                         });
+
         $ctlp_withdrawals = \DB::table('deposit_withdrawals')
                         ->select(
                             'deposit_withdrawals.transaction_number as transaction_number',
@@ -490,16 +491,16 @@ class Report extends Model
                         ->when($data['office_id'],function($q,$data){
                             $q->whereExists(function($q2) use ($data){
                                 $office_ids = Office::lowerOffices($data,true,true);
-                                $client_ids = DB::table('clients')->whereIn('office_id',$office_ids)->select('client_id')->get();
+                                $client_ids = DB::table('clients')->whereIn('office_id',$office_ids)->select('client_id')->pluck('client_id');
                                 
                                 $q2->from('deposit_accounts')
                                     ->whereIn('client_id',$client_ids)
-                                    ->whereColumn('deposit_accounts.client_id','deposit_withdrawals.deposit_account_id');
+                                    ->whereColumn('deposit_accounts.id','deposit_withdrawals.deposit_account_id');
                             });
                         })
                         ->when($data['from_date'], function($q) use ($data){
                             $q->when($data['to_date'],function($q2) use($data){
-                                $q2->whereBetweenDate('deposit_withdrawals.repayment_date',[$data['from_date'], $data['to_date']]);
+                                $q2->whereBetween('deposit_withdrawals.repayment_date',[$data['from_date'], $data['to_date']]);
                             }); 
                         })
                         ->when($data['amount_from'], function($q) use ($data){
@@ -556,16 +557,16 @@ class Report extends Model
                         ->when($data['office_id'],function($q,$data){
                             $q->whereExists(function($q2) use ($data){
                                 $office_ids = Office::lowerOffices($data,true,true);
-                                $client_ids = DB::table('clients')->whereIn('office_id',$office_ids)->select('client_id')->get();
+                                $client_ids = DB::table('clients')->whereIn('office_id',$office_ids)->select('client_id')->pluck('client_id');
                                 
                                 $q2->from('deposit_accounts')
                                     ->whereIn('client_id',$client_ids)
-                                    ->whereColumn('deposit_accounts.client_id','deposit_interest_posts.deposit_account_id');
+                                    ->whereColumn('deposit_accounts.id','deposit_interest_posts.deposit_account_id');
                             });
                         })
                         ->when($data['from_date'], function($q) use ($data){
                             $q->when($data['to_date'],function($q2) use($data){
-                                $q2->whereBetweenDate('deposit_interest_posts.repayment_date',[$data['from_date'], $data['to_date']]);
+                                $q2->whereBetween('deposit_interest_posts.repayment_date',[$data['from_date'], $data['to_date']]);
                             }); 
                         })
                         ->when($data['amount_from'], function($q) use ($data){
@@ -598,10 +599,10 @@ class Report extends Model
                             $join->on('offices.id','deposit_interest_posts.office_id');
                         });
         
-        
-        $x;
 
         $tables = [];
+
+        $z = $type->count();
         if($type->count() == 0){
             $list = $payments
                         ->unionAll($withdrawals)
@@ -639,15 +640,160 @@ class Report extends Model
                         });
             }
         }
+        // $gg = $list->get();
         $summary = clone $list;
+
+
         // $summary = $summary->select(
-        //         DB::raw('count(transactions.id) as number_of_transactions'),
-        //         DB::raw('sum(morphed_table.amount) as total_amount'),
-        //         DB::raw('SUM(morphed_table.balance) as balance'),
+        //         DB::raw('COUNT(transaction_number) as number_of_transactions'),
+        //         DB::raw('SUM(amount) as total_amount'),
+        //         DB::raw('SUM(balance) as balance'),
         // )->first();
-     
- 
-        $data = $paginated ? $list->paginate($data['per_page']) : $list->select($select);
+        $summary = DB::query()->fromSub(function($query) use ($summary){
+            $query->from($summary);
+        },'summary')->select(
+                DB::raw('COUNT(transaction_number) as number_of_transactions'),
+                DB::raw('SUM(amount) as total_amount'),
+                DB::raw('SUM(balance) as balance'),
+        )->first();
+        
+        $data = $paginated ? $list->paginate($data['per_page']) : $list;
         return compact('data','summary','is_summarized');
+    }
+
+    public static function clientStatus($data, $paginated = true){
+        $space = " ";
+        $office_id = $data['office_id'];
+        $status = collect($data['status']);
+        $type = collect($data['service_type']);
+        $age_from = $data['age_from'];
+        $age_to = $data['age_to'];
+        $educational_attainment = collect($data['educational_attainment']);
+        $gender = collect($data['gender']);
+        $is_summarized = $data['is_summarized'];
+        $offices = DB::table('offices');
+
+        $list = DB::table('clients')
+                    ->select(
+                        'clients.*',
+                        'offices.code as level',
+                        DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as fullname"),
+                        DB::raw('TIMESTAMPDIFF(YEAR, clients.birthday, CURDATE()) as age')
+                    )
+                    ->when($office_id, function($q,$data){
+                        $ids = Office::lowerOffices($data);
+                        $q->whereIn('office_id', $ids);
+                    })
+                    // ->when($status, function($q,$data){
+                    //     if ($data->count() > 0) {
+                    //         $q->whereIn('status', $data);
+                    //     }
+                    // })
+                    // ->when($type, function($q,$data){
+                    //     if ($data->count() > 0) {
+                    //         $q->whereIn('office_id', $ids);
+                    //     }
+                    // })
+                    ->when($age_from,function($q, $age_from) use ($age_to){
+                        $from = now()->subYears($age_from);
+                        $to = now()->subYears($age_to);
+                        $q->whereBetween('birthday',[$from, $to]);
+                    })
+                    ->when($educational_attainment,function($q, $data){
+                        if(collect($data)->count() > 0){
+                            $q->whereIn('education',$data);
+                        }  
+                    })
+                    ->when($gender,function($q, $data){
+                        if(collect($data)->count() > 0){
+                            $q->whereIn('gender',$data);
+                        }  
+                    })
+                    ->leftJoinSub($offices,'offices',function($join){
+                        $join->on('offices.id','=','clients.office_id');
+                    });
+                    
+
+                    
+
+        $summary = ['total'=>$list->count()];
+        $data = $paginated ? $list->paginate($data['per_page']) : $list;
+        
+        return compact('data','summary','is_summarized');
+    }
+
+    public static function dst($data, $paginated = true, $for_export = false){
+        
+        $space = " ";
+        $office_id = $data['office_id'];
+        $disbursement_date = $data['disbursement_date'];
+        $per_page = $data['per_page'];
+        // $for_export = $data['export'];
+        
+        $offices = DB::table('offices');
+        $loans = DB::table('loans');
+        $loan_accounts = DB::table('loan_accounts');
+        $users = DB::table('users');
+        $clients = DB::table('clients');
+        $list = DB::table('bulk_disbursements')
+                    ->select(
+                        'bulk_disbursements.bulk_disbursement_id',
+                        'bulk_disbursements.disbursement_date',
+                        'offices.code as level',
+                        'clients.client_id as client_id',
+                        DB::raw("CONCAT(clients.firstname,'{$space}',clients.lastname) as client_fullname"),
+                        'loans.code as type',
+                        'loan_accounts.principal as principal',
+                        'loan_accounts.interest as interest',
+                        'loan_accounts.total_deductions as fees',
+                    )
+                    ->leftJoinSub($loan_accounts,'loan_accounts', function($join){
+                        $join->on('loan_accounts.id','=','bulk_disbursements.loan_account_id');
+                    })
+                    ->leftJoinSub($loans,'loans', function($join){
+                        $join->on('loans.id','=','loan_accounts.loan_id');
+                    })
+                    ->leftJoinSub($clients,'clients', function($join){
+                        $join->on('clients.client_id','=','loan_accounts.client_id');
+                    })
+                    ->leftJoinSub($offices,'offices', function($join){
+                        $join->on('offices.id','=','clients.office_id');
+                    })
+                    ->when($office_id,function($q,$data){
+                        $ids = Office::lowerOffices($data,true,true);
+                        $q->whereIn('clients.office_id',$ids);
+                    })
+                    ->when($disbursement_date,function($q,$data){
+                        $q->where('bulk_disbursements.disbursement_date',$data);
+                    });
+                    
+    $data= $paginated ? $list->paginate($per_page) : $list;
+    if ($for_export) {
+        $data = DB::table('bulk_disbursements')
+            ->distinct('bulk_disbursement_id')
+            ->leftJoinSub($loan_accounts,'loan_accounts', function($join){
+                $join->on('loan_accounts.id','=','bulk_disbursements.loan_account_id');
+            })
+            ->leftJoinSub($loans,'loans', function($join){
+                $join->on('loans.id','=','loan_accounts.loan_id');
+            })
+            ->leftJoinSub($clients,'clients', function($join){
+                $join->on('clients.client_id','=','loan_accounts.client_id');
+            })
+            ->leftJoinSub($offices,'offices', function($join){
+                $join->on('offices.id','=','clients.office_id');
+            })
+            ->when($office_id, function ($q, $data) {
+                $ids = Office::lowerOffices($data, true, true);
+                $q->whereIn('clients.office_id', $ids);
+            })
+            ->when($disbursement_date, function ($q, $data) {
+                $q->where('bulk_disbursements.disbursement_date', $data);
+            })
+            ->pluck('bulk_disbursement_id');
+    }
+    $summary = ['total'=>$list->count()];
+
+    return compact('data','summary');
     }
 }

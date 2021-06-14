@@ -16,7 +16,7 @@
 				<div class="card-header">
                     <div class="row px-4">
                         <div class="x">
-                            <h3 class="h3">{{client.full_name}} Multi-Purpose Loan</h3>
+                            <h3 class="h3">{{client.full_name}} - {{loan_type}}</h3>
                         </div>
                         <div class="col-lg-6 text-right" v-if="account.disbursed!=0 && account.closed_at==null">
                             <button  type="button" class="btn btn-primary" data-toggle="modal" @click="modal.modalState=true">
@@ -328,6 +328,7 @@ export default {
             pre_term_amount: null,
             payment_type : null,
             amount_due: null,
+            loan_type: null
         }
     },
     methods:{
@@ -517,6 +518,7 @@ export default {
                 this.repayments = response.data.repayments
 
                 this.fees = response.data.fees
+                this.loan_type = response.data.loan_type
                 this.activity = response.data.activity
                 this.total_paid = response.data.total_paid
                 this.pre_term_amount = response.data.pre_term_amount

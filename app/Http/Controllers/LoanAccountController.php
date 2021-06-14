@@ -45,7 +45,7 @@ class LoanAccountController extends Controller
         $fees = $loan->fees;
         $total_deductions = 0;
 
-        $loan_amount = (int) $request->amount;
+        $loan_amount = (double) $request->amount;
         $number_of_installments = $request->number_of_installments;
         $fee_repayments = array();
         $dependents = null;
@@ -64,7 +64,7 @@ class LoanAccountController extends Controller
         }
         
         $disbursed_amount = $loan_amount - $total_deductions;
-        $annual_rate = 0.03 * 12;
+        $annual_rate = $loan->annual_rate;
         $start_date = $request->first_payment;
         
         $loan_interest_rate = Loan::rates($loan->id)->where('installments',$number_of_installments)->first()->rate;
@@ -73,6 +73,7 @@ class LoanAccountController extends Controller
             'principal'=>$loan_amount,
             'annual_rate'=>$annual_rate,
             'interest_rate'=>$loan_interest_rate,
+            'monthly_rate'=>$loan->monthly_rate,
             'interest_interval'=>$loan->interest_interval,
             'disbursement_date'=>$loan->disbursement_date,
             'term'=>$loan->installment_method,
@@ -80,6 +81,10 @@ class LoanAccountController extends Controller
             'start_date'=>$start_date,
             'office_id'=>$client->office->id
         );
+
+        // $data = [
+        //     'principal'=>10000,
+        // ]
         
         $calculator = LoanAccount::calculate($data);
         
@@ -123,7 +128,7 @@ class LoanAccountController extends Controller
             $rules = [
                 'loan_id'=>'required|exists:loans,id',
                 'client_id'=>['required','exists:clients,client_id',new HasNoUnusedDependent,new HasNoPendingLoanAccount],
-                'amount'=>['required','gte:2000',new LoanAmountModulo, new MaxLoanableAmount($data['loan_id'])],
+                'amount'=>['required',new LoanAmountModulo($data['loan_id']), new MaxLoanableAmount($data['loan_id'])],
                 // 'disbursement_date'=>['required','date', new DateIsWorkingDay],
                 
                 'first_payment'=>['required','date','after_or_equal:disbursement_date', new DateIsWorkingDay],
@@ -146,7 +151,7 @@ class LoanAccountController extends Controller
         $fees = $loan->fees;
         $total_deductions = 0;
 
-        $loan_amount = (int) $request->amount;
+        $loan_amount = (double) $request->amount;
         $number_of_installments = $request->number_of_installments;
         $number_of_months = Loan::rates()->where('code',$loan->code)->first()->rates->where('installments',$number_of_installments)->first()->number_of_months;
 
@@ -164,7 +169,7 @@ class LoanAccountController extends Controller
         }
         
         $disbursed_amount = $loan_amount - $total_deductions;
-        $annual_rate = 0.03 * 12;
+        $annual_rate = $loan->annual_rate;
         $start_date = $request->first_payment;
 
         //get loan rates via loan and installment length
@@ -172,8 +177,10 @@ class LoanAccountController extends Controller
 
         $data = array(
             'principal'=>$loan_amount,
+            'monthly_rate'=>$loan->monthly_rate,
             'annual_rate'=>$annual_rate,
             'interest_rate'=>$loan_interest_rate,
+            'monthly_rate'=>$loan->monthly_rate,
             'interest_interval'=>$loan->interest_interval,
             'term'=>$loan->installment_method,
             'term_length'=>$number_of_installments,
@@ -264,7 +271,7 @@ class LoanAccountController extends Controller
                 }
                 
                 $disbursed_amount = $loan_amount - $total_deductions;
-                $annual_rate = 0.03 * 12;
+                $annual_rate = $loan->annual_rate;
                 $start_date = $request->first_payment;
         
                 //get loan rates via loan and installment length
@@ -489,8 +496,10 @@ class LoanAccountController extends Controller
 
         if($request->wantsJson()){
             $account  = LoanAccount::find($loan_id);
-            $activity = $account->transactions()->orderBy('transaction_date','DESC')->get();
-            $pre_term_amount = $account->preTermAmount();
+            $loan_type = $account->type->name;
+            $account_1 = clone $account;
+            $activity = $account_1->transactions()->orderBy('transaction_date','DESC')->get();
+            $pre_term_amount = $account_1->preTermAmount();
             $installment_repayments = \DB::table('loan_account_installment_repayments');
             $installments = \DB::table('loan_account_installments')
                                 ->select('installment','original_principal','original_interest','date','amortization','principal','interest','principal_due','interest_due',
@@ -512,15 +521,16 @@ class LoanAccountController extends Controller
                                 ->orderBy('installment','asc')
                                 ->groupBy('loan_account_installments.id')
                                 ->get();
-            $fees = $account->fresh()->feePayments;
-            $total_paid = $account->fresh()->totalPaid();
-            $amount_due = $account->fresh()->amountDue();
+            $fees = $account_1->feePayments;
+            $total_paid = $account_1->totalPaid();
+            $amount_due = $account_1->amountDue();
             
             $client = Client::select('firstname','lastname','client_id')->where('client_id',$client_id)->first();
             
             
             return response()->json([
                 'account'=>$account,
+                'loan_type'=>$loan_type,
                 'client'=>$client,
                 'installments'=>$installments,
                 'activity'=>$activity,
@@ -636,7 +646,11 @@ class LoanAccountController extends Controller
             } catch (\Exception $e) {
                 return response()->json(['msg'=>$e->getMessage()], 500);
             }
+        }elseif($type=='create'){
+            return $this->bulkCreateLoan($request);
         }
+        
+        
     }
 
 

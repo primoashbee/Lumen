@@ -254,7 +254,7 @@ export default {
             return false;
         },
         url(){
-            return '/reports/repayments'
+            return '/wApi/reports/repayments'
         }
 
         

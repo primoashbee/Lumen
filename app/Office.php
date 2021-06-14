@@ -62,7 +62,7 @@ class Office extends Model
         
         return $offices;
     }
-    public function seed($count, $with_loans, $start_date = null){
+    public function seed($count, $with_loans=false, $start_date = null){
         $office_id = $this->id;
         \DB::beginTransaction();
         try {

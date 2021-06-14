@@ -264,6 +264,64 @@ class ParMovement extends Model
             return ['labels'=>$labels, 'par_amount'=>$par_amount];
         }
     }
+    public static function dashboardReportV2($from,$to,$office_id,$now_only = false){
+
+  
+        $from = Carbon::parse($from);
+        $to = Carbon::parse($to);
+        $ids = Office::lowerOffices($office_id,true,true);
+        // return $x;
+        $date_list  = CarbonPeriod::create($from, $to)->toArray();
+        $movements= [];
+
+
+
+        foreach ($date_list as $item) {
+            //per day
+            $tables  = [];
+            foreach (ParMovement::$aging as $value) {
+                //per age
+                if (is_array($value)) {
+                    $value = (string) $value[0].'-'. (string) $value[1];
+                }
+                $tables[] = \DB::table('par_movements')
+                ->select(
+                    \DB::raw('SUM(par_amount) as total_par, aging, date'),
+                    \DB::raw("IF(1=1,'{$office_id}',0) as office_id")
+                )
+                ->whereIn('office_id', $ids)
+                ->whereDate('date', $item)
+                ->where('aging', $value)
+                ->groupBy('aging', 'date')
+                ->get();
+            }
+            $movements[] = ['date'=>$item->format('d-F'), 'tables'=>collect($tables)->flatten()];
+        }
+
+        //last date
+
+
+        $par_amount = [];
+        $labels = [];
+
+        collect($date_list)->map(function ($value, $key) use (&$labels) {
+            $labels[] = $value->format('d-F');
+        });
+    
+        foreach (ParMovement::$aging as $age) {
+            // $par_amount['age'] =[$age];
+            if (is_array($age)) {
+                $age = (string) $age[0].'-'. (string) $age[1];
+            }
+            collect($movements)->map(function ($movement) use ($age, &$par_amount) {
+                $item = collect($movement['tables'])->where('aging', $age)->first()->total_par;
+                $par_amount[$age][] = collect($movement['tables'])->where('aging', $age)->first()->total_par;
+            });
+        }
+    
+        return ['labels'=>$labels, 'par_amount'=>$par_amount];
+    
+    }
 
     
 }

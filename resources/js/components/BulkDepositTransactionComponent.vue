@@ -54,7 +54,7 @@
 						<td><a :href="clientLink(item.client.client_id)">{{item.client.client_id}}</a></td>
 						
 						<td>{{item.client.firstname + ' ' + item.client.lastname}}</td>
-						<td>{{item.balance_formatted}} </td>
+						<td>{{moneyFormat(item.balance)}} </td>
 						<!-- <td> Account ID : {{item.id}} </td> -->
 						
 						<td>{{item.accrued_interest}}</td>
@@ -71,7 +71,7 @@
 						<td><a :href="clientLink(item.client.client_id)">{{item.client.client_id}}</a></td>
 						
 						<td>{{item.client.firstname + ' ' + item.client.lastname}}</td>
-						<td>{{item.balance_formatted}} </td>
+						<td>{{moneyFormat(item.balance)}} </td>
 						<!-- <td> Account ID : {{item.id}} </td> -->
 						
 						<td>
@@ -103,7 +103,7 @@
 		    <form>
 		        <div class="form-group mt-4">
 		        	<label class="text-lg">Branch</label>
-                    <v2-select @officeSelected="assignOffice" list_level="" :default_value="this.office_id" v-bind:class="hasError('office_id') ? 'is-invalid' : ''"></v2-select>
+                    <v2-select @officeSelected="assignOffice" list_level="branch" :default_value="this.office_id" v-bind:class="hasError('office_id') ? 'is-invalid' : ''"></v2-select>
                     <div class="invalid-feedback" v-if="hasError('office_id')">
                         {{ errors.office_id[0]}}
                     </div>
@@ -235,6 +235,9 @@ export default {
         ProductComponent,
     },	
     methods : {
+		moneyFormat(value){
+			return moneyFormat(value)
+		},
 		hasError(field){
 			return this.errors.hasOwnProperty(field)
 		},
@@ -485,7 +488,7 @@ export default {
 
         },
         url(page=1){
-            return `/clients/list?office_id=`+this.office_id+`&page=`+page
+            return `/wApi/clients/list?office_id=`+this.office_id+`&page=`+page
 		},
 		checkForm(){
 			if(this.formPassed){
@@ -559,7 +562,7 @@ export default {
 			return this.transactionType.replace("_"," ").toUpperCase()
 		},
 		postUrl(){
-			return '/bulk/'+this.transactionType
+			return '/wApi/bulk/'+this.transactionType
 		},
         queryString(){
             var str ="?"
@@ -586,7 +589,7 @@ export default {
             }else{
 				str = str.replace('query','')
 			}
-            return '/deposits'+str
+            return '/wApi/deposits'+str
         },
         totalRecords(){
 
@@ -617,10 +620,6 @@ export default {
 		hasErrors(){
 			return Object.keys(this.errors).length > 0;
 		},
-
-
-
-
 	},
 	mounted(){
 		this.form.type = this.transactionType

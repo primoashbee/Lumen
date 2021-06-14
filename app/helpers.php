@@ -19,6 +19,7 @@ use Faker\Factory as Faker;
 use Illuminate\Support\Str;
 use App\DefaultPaymentMethod;
 use App\Imports\OfficeImport;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\LoanAccountController;
@@ -192,14 +193,14 @@ use App\Http\Controllers\LoanAccountController;
     }
     function createLoan($client , $bulk_disbursement_id, $cv_number,$disbursement_date, $start_date){
                 $client = $client;
-                $loan =  Loan::find(1);
+                $loan =  Loan::find(2);
                 $fees = $loan->fees;
                 $total_deductions = 0;
 
 
                 $loan_amount = rand(2,99) * 1000;
                 
-                $number_of_installments = 22;
+                $number_of_installments = 24;
                 $number_of_months = Loan::rates()->where('code',$loan->code)->first()->rates->where('installments',$number_of_installments)->first()->number_of_months;
                 $fee_repayments = array();
                 
@@ -215,7 +216,7 @@ use App\Http\Controllers\LoanAccountController;
                 }
                 
                 $disbursed_amount = $loan_amount - $total_deductions;
-                $annual_rate = 0.03 * 12;
+                $annual_rate = $loan->annual_rate;
                 $start_date = $start_date;
         
                 //get loan rates via loan and installment length
@@ -226,16 +227,18 @@ use App\Http\Controllers\LoanAccountController;
                     'annual_rate'=>$annual_rate,
                     'interest_rate'=>$loan_interest_rate,
                     'interest_interval'=>$loan->interest_interval,
+                    'monthly_rate'=>$loan->monthly_rate,
                     'term'=>$loan->installment_method,
                     'term_length'=>$number_of_installments,
                     'disbursement_date'=>$disbursement_date,
                     'start_date'=>$start_date,
                     'office_id'=>$client->office->id
                 );
-                
+
+                Log::info($data);
                 
                 $calculator = LoanAccount::calculate($data);
-                
+                Log::info(['calc'=>$calculator]);
                 //dependent on calculator result.
         
                 
@@ -263,6 +266,7 @@ use App\Http\Controllers\LoanAccountController;
                     'created_by'=>3,
                 ]);
             
+                
                 $lac = new LoanAccountController;
                 $lac->createFeePayments($loan_acc,$fee_repayments);
                 
@@ -480,6 +484,103 @@ use App\Http\Controllers\LoanAccountController;
       
     }
     function generateLoanProducts(){
+        
+        $id = Loan::create([
+            "name"=>'MULTI-PURPOSE LOAN - Refinanced',
+            "code"=>'RF-MPL',
+            "description"=>"Refinanced - Multi-Purpose Loan is a flexible Microfinance Loan for growth and expansion of business, for education, housing, asset acquisitions and farm needs amounting to 4k-99k and must qualify based on credit limit and loan performance criteria. Payable in 6 or 12 months only on a weekly cash basis. This is an individual yet CLUSTERED loan with minimum of 20 PARTNER CLIENTS. Pre-termination is allowed if 50% of loan is paid and with either the following reason: (1) Resigning from the program; (2) Transferring to another product",
+            "account_per_client"=>2,
+            "interest_calculation_method_id"=>103,
+
+            "minimum_installment"=>1,
+            "default_installment"=>22,
+            "maximum_installment"=>24,
+
+            "installment_length"=>1,
+            "installment_method"=>'weeks',
+
+            "interest_interval"=>'Monthly',
+
+            "monthly_rate"=>0.02,
+            "annual_rate"=>0.24,
+            "interest_rate"=>5.475225,
+            
+
+            "loan_minimum_amount"=>0,
+            "loan_maximum_amount"=>99000,
+
+            "grace_period"=>'NO GRACE PERIOD',
+            "has_tranches"=>false,
+        
+            "loan_portfolio_active"=>26,
+            "loan_portfolio_in_arrears"=>26,
+            "loan_portfolio_matured"=>26,
+
+            "loan_interest_income_active"=>26,
+            "loan_interest_income_in_arrears"=>26,
+            "loan_interest_income_matured"=>26,
+
+            "loan_write_off"=>26,
+            "loan_recovery"=>26,
+            "created_by"=>2,
+            "status"=>1,
+            "has_optional_fees"=>true,
+            "type"=>'DRP'
+        ])->id;
+        Loan::find($id)->fees()->attach([Fee::find(3)->id]); //MI FEE
+        Loan::find($id)->fees()->attach([Fee::find(4)->id]); // MI PREMIUM
+        Loan::find($id)->fees()->attach([Fee::find(6)->id]); // PF 1.5%
+        Loan::find($id)->fees()->attach([Fee::find(5)->id]); //DST
+        Loan::find($id)->fees()->attach([Fee::find(2)->id]); //CGLI 
+        Loan::find($id)->fees()->attach([Fee::find(1)->id]); //CGLI PREMIUM
+        
+        $id = Loan::create([
+            "name"=>'MULTI-PURPOSE LOAN - Restructured',
+            "code"=>'RS-MPL',
+            "description"=>"Restructured - Multi-Purpose Loan is a flexible Microfinance Loan for growth and expansion of business, for education, housing, asset acquisitions and farm needs amounting to 4k-99k and must qualify based on credit limit and loan performance criteria. Payable in 6 or 12 months only on a weekly cash basis. This is an individual yet CLUSTERED loan with minimum of 20 PARTNER CLIENTS. Pre-termination is allowed if 50% of loan is paid and with either the following reason: (1) Resigning from the program; (2) Transferring to another product",
+            "account_per_client"=>2,
+            "interest_calculation_method_id"=>103,
+
+            "minimum_installment"=>1,
+            "default_installment"=>22,
+            "maximum_installment"=>24,
+
+            "installment_length"=>1,
+            "installment_method"=>'weeks',
+
+            "interest_interval"=>'Monthly',
+                
+            'monthly_rate'=>0.02,
+            "annual_rate"=>0.24,
+            "interest_rate"=>5.475225,
+            
+
+            "loan_minimum_amount"=>0,
+            "loan_maximum_amount"=>99000,
+
+            "grace_period"=>'NO GRACE PERIOD',
+            "has_tranches"=>false,
+        
+            "loan_portfolio_active"=>26,
+            "loan_portfolio_in_arrears"=>26,
+            "loan_portfolio_matured"=>26,
+
+            "loan_interest_income_active"=>26,
+            "loan_interest_income_in_arrears"=>26,
+            "loan_interest_income_matured"=>26,
+
+            "loan_write_off"=>26,
+            "loan_recovery"=>26,
+            "created_by"=>2,
+            "status"=>1,
+            "has_optional_fees"=>true,
+            "type"=>'DRP'
+        ])->id;
+        Loan::find($id)->fees()->attach([Fee::find(3)->id]); //MI FEE
+        Loan::find($id)->fees()->attach([Fee::find(4)->id]); // MI PREMIUM
+        Loan::find($id)->fees()->attach([Fee::find(2)->id]); //CGLI 
+        Loan::find($id)->fees()->attach([Fee::find(1)->id]); //CGLI PREMIUM
+        
         $id = Loan::create([
             "name"=>'MULTI-PURPOSE LOAN',
             "code"=>'MPL',
@@ -495,6 +596,9 @@ use App\Http\Controllers\LoanAccountController;
             "installment_method"=>'weeks',
 
             "interest_interval"=>'Monthly',
+            
+            'monthly_rate'=>0.03,
+            'annual_rate'=>0.36,
             "interest_rate"=>5.475225,
             
 
@@ -515,8 +619,10 @@ use App\Http\Controllers\LoanAccountController;
             "loan_write_off"=>26,
             "loan_recovery"=>26,
             "created_by"=>2,
-            "status"=>1
+            "status"=>1,
+            "type"=>'NORMAL'
         ])->id;
+        
         Loan::find($id)->fees()->attach([Fee::find(3)->id]); //MI FEE
         Loan::find($id)->fees()->attach([Fee::find(4)->id]); // MI PREMIUM
         Loan::find($id)->fees()->attach([Fee::find(6)->id]); // PF 1.5%
@@ -539,6 +645,8 @@ use App\Http\Controllers\LoanAccountController;
             "installment_method"=>'weeks',
 
             "interest_interval"=>'Monthly',
+            
+            "monthly_rate"=>0.03,
             "interest_rate"=>2.5,
 
             "loan_minimum_amount"=>5000,
@@ -559,7 +667,8 @@ use App\Http\Controllers\LoanAccountController;
             "loan_write_off"=>26,
             "loan_recovery"=>26,
             "created_by"=>2,
-            "status"=>1
+            "status"=>1,
+            "type"=>'NORMAL'
         ])->id;
         Loan::find($id)->fees()->attach([Fee::find(1)->id]);
         Loan::find($id)->fees()->attach([Fee::find(3)->id]);
@@ -581,6 +690,7 @@ use App\Http\Controllers\LoanAccountController;
             "installment_method"=>'days',
 
             "interest_interval"=>'Monthly',
+            "monthly_rate"=>0.03,
             "interest_rate"=>5.18461,
 
             "loan_minimum_amount"=>100000,
@@ -601,7 +711,8 @@ use App\Http\Controllers\LoanAccountController;
             "loan_write_off"=>26,
             "loan_recovery"=>26,
             "created_by"=>2,
-            "status"=>1
+            "status"=>1,
+            "type"=>'NORMAL'
         ])->id;
         Loan::find($id)->fees()->attach([Fee::find(1)->id]);
         Loan::find($id)->fees()->attach([Fee::find(3)->id]);
@@ -611,6 +722,17 @@ use App\Http\Controllers\LoanAccountController;
     }
     function generatePaymentMethods(){
         $methods = array(
+            [
+            'name'=>'MIGRATION PAYMENT',
+            'for_disbursement'=>0,
+            'for_repayment'=>0,
+            'for_deposit'=>0,
+            'for_withdrawal'=>0,
+            'for_recovery'=>0,
+            'gl_account_code'=>1,
+            'created_at'=>Carbon::now(),
+            'updated_at'=>Carbon::now()
+            ],
             [
             'name'=>'CASH ON HAND',
             'for_disbursement'=>true,

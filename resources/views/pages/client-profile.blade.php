@@ -47,7 +47,7 @@
 					</div>
 
 					<div class="col-lg-8 profile-wrapper">
-						<a href="/edit/client/{{$client->client_id}}" type="submit" class="btn btn-primary float-right mr-4">Edit Client</a>
+						<a href="{{route('edit.client',$client->client_id)}}" type="submit" class="btn btn-primary float-right mr-4">Edit Client</a>
 						<div class="p-details">
 							
 							<p class="title text-2xl">{{$client->name()}}</p>
@@ -97,18 +97,45 @@
                             </ul>
                             <div class="tab-content py-3 px-3 px-sm-0" id="nav-tabContent">
 			                    <div class="tab-pane fade show active" id="personal" role="tabpanel" aria-labelledby="nav-home-tab">
-			                    	@if($client->businesses)
-			                    		@foreach($client->businesses as $business)
-					                 		<div class="p-details">
-					                 			<span class="title text-xl mr-8">Address:</span>
-												<span class="text-light text-lg">{{$business->business_address}}</span>
-					                 		</div>
-					                 		<div class="p-details mt-4">
-					                 			<span class="title text-xl mr-8">Business Type:</span>
-												<span class="text-light text-lg"> {{$business->service_type}}</span> 
-					                 		</div>
-			                 			@endforeach
-			                 		@endif
+									<div class="accordion" id="businesses">
+										@foreach ($client->businesses as $key=>$business)
+										<div class="card">
+										  <div class="card-header" id="business_{{$key+1}}">
+											<h2 class="mb-0">
+											  <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapse_{{$key+1}}" aria-expanded="false" aria-controls="collapse_{{$key+1}}">
+												<span class="title text-xl= mr-8">Business #{{$key + 1}}</span>
+											  </button>
+											</h2>
+										  </div>
+										  <div id="collapse_{{$key+1}}" class="collapse" aria-labelledby="business_{{$key+1}}" data-parent="#businesses" style="">
+											<div class="card-body">
+												<div class="p-details">
+													<span class="title text-m mr-8">Business Address:</span>
+												   <span class="text-light text-lg">{{$business->business_address}}</span>
+												</div>
+												<div class="p-details mt-4">
+													<span class="title text-m mr-8">Service Type:</span>
+												   <span class="text-light text-lg"> {{$business->service_type}}</span> 
+												</div>
+												<div class="p-details mt-4">
+													<span class="title text-m mr-8">Monthly Gross Income</span>
+												   <span class="text-light text-lg"> {{money($business->monthly_gross_income,2)}}</span> 
+												</div>
+												<div class="p-details mt-4">
+													<span class="title text-m mr-8">Monthly Operating Expense</span>
+												   <span class="text-light text-lg"> {{money($business->monthly_operating_expense,2)}}</span> 
+												</div>
+												<div class="p-details mt-4">
+													<span class="title text-m mr-8">Monthly Net Income</span>
+												   <span class="text-light text-lg"> {{money($business->monthly_net_income,2)}}</span> 
+												</div>
+											  {{-- Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS. --}}
+											</div>
+										  </div>
+										</div>
+										@endforeach
+									  </div>
+
 			                 		
 
 			                    </div>
@@ -268,7 +295,7 @@
 		      <div class="card">
 		        <div class="card-header">
 		          <div class="float-left text-center">
-		          	<h4 class="mt-2 h5">Dependents</h4>
+		          	<h4 class="mt-2 h5">Micro-Insurance</h4>
 		          </div>
 					<a href="{{route('client.manage.dependents',$client->client_id)}}" class="float-right btn-create">Manage</a>
 				</div>

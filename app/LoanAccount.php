@@ -23,6 +23,8 @@ class LoanAccount extends Model
         'principal',
         'interest',
         'total_loan_amount',
+
+        'annual_rate',
         'interest_rate',
         
         'number_of_months',
@@ -83,7 +85,7 @@ class LoanAccount extends Model
     }
     public static function active()
     {
-        return LoanAccount::where('disbursed',1)->whereNull('closed_at')->get();
+        return LoanAccount::where('disbursed',1)->whereNull('closed_at');
     }
     public function disbursement()
     {
@@ -117,7 +119,7 @@ class LoanAccount extends Model
     }
 
     // public static function calculate($principal,$annual_rate,$interest_rate,$interest_interval,$term,$term_length,$start_date=null,$office_id){
-    public static function calculate(array $data)
+    public static function calculate(array $data,$ir = 0)
     {
         $interval = 0;
         if ($data['interest_interval']=='Monthly') {
@@ -126,14 +128,17 @@ class LoanAccount extends Model
         if ($data['term'] == 'weeks') {
             $number_of_weeks = 52;
             $term_length = $data['term_length'];
-            $exponent = $number_of_weeks*($term_length/$number_of_weeks);
+
+            $exponent = $number_of_weeks * ($term_length/$number_of_weeks);
             
-            $base = 1+($data['annual_rate']/$number_of_weeks);
+            $base = 1+((double) $data['annual_rate']/$number_of_weeks);
             
             $principal = $data['principal'];
-            $total_amount = $principal * pow($base, $exponent);
             
-            $total_interest = round($total_amount - $principal, 2);
+            $total_amount = $principal * pow($base, $exponent);
+            $monthly_rate = ($data['monthly_rate'] * ($term_length / 4));
+            // $total_interest = round($total_amount - $principal, 2);
+            $total_interest = round($principal * $monthly_rate, 2);
             
             $amortization = $total_amount / $term_length;
 
@@ -141,9 +146,10 @@ class LoanAccount extends Model
             $installments = array();
 
             $interest_rate = $data['interest_rate'];
+            // $interest_rate = 0;
+
             $weekly_compounding_rate = ($interest_rate / 4) / 100;
             
-           
             $interest_balance = round($total_interest, 2);
 
             // $sched = new Scheduler($start_date,$office_id);
@@ -1325,13 +1331,16 @@ class LoanAccount extends Model
         if ($diff != 0) {
             //create new installments
             $this->installments()->delete();
-            $annual_rate = 0.03 * 12;
-            $product = $this->product;
+            
+            $product = $account->product;
+            $annual_rate = $product->annual_date;
+            $monthly_rate = $product->monthly_rate;
             $loan_interest_rate = Loan::rates($this->product->id)->where('installments', $this->number_of_installments)->first()->rate;
 
             $data = array(
                 'principal'=>$this->amount,
                 'annual_rate'=>$annual_rate,
+                'monthly_rate'=>$monthly_rate,
                 'interest_rate'=>$loan_interest_rate,
                 'interest_interval'=>$product->interest_interval,
                 'term'=>$product->installment_method,
@@ -1369,12 +1378,14 @@ class LoanAccount extends Model
         // $account->updateBalance();
         $account->updateStatus();
 
-        $account->dependents->update([
-            'status'=>'Used',
-            'loan_account_id'=>$account->id,
-            'activated_at'=>Carbon::now(),
-            'expires_at'=>Carbon::now()->addDays(env('INSURANCE_MATURITY_DAYS'))
-        ]);
+        if(!is_null($account->dependents)){
+                $account->dependents->update([
+                'status'=>'Used',
+                'loan_account_id'=>$account->id,
+                'activated_at'=>Carbon::now(),
+                'expires_at'=>Carbon::now()->addDays(env('INSURANCE_MATURITY_DAYS'))
+            ]);
+        }
         if ($bulk) {
             
             $account->bulkDisbursed()->create([
@@ -1389,7 +1400,7 @@ class LoanAccount extends Model
         }
     
     }
-
+    
     public function canBeDisbursed()
     {
         if ($this->approved == 1 && $this->disbursed == 0) {

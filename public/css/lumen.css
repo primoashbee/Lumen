@@ -6263,3 +6263,15 @@ ol {
     border-color: #fff!important;
     color: #fff;
 }
+/* Main Level */
+ul.errors{
+    margin-left:10px;
+  }
+
+li:before.errors {
+    content: "\2022";
+}
+  
+
+
+  

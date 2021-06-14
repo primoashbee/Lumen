@@ -38,6 +38,7 @@ class ClientController extends Controller
 
     public function createV1(Request $request){
         $req = Client::clientExists($request);
+        
         if($req['exists']){
             return response()->json($req,422);
         }
@@ -49,7 +50,7 @@ class ClientController extends Controller
 
         DB::beginTransaction();
         try{
-            
+
         $client = Client::create(array_merge($request->all(), 
                 ['client_id' => $client_id, 
                 'created_by' => auth()->user()->id]));
@@ -60,7 +61,6 @@ class ClientController extends Controller
             foreach($request->businesses as $business){
 
                 $client->businesses()->create([
-
                     'business_address'=>$business['business_address'],
                     'service_type'=>$business['service_type'],
                     'monthly_gross_income'=>$business['monthly_gross_income'],
@@ -69,7 +69,6 @@ class ClientController extends Controller
                 ]);
             }
 
-        
             $client->household_income()->create($this->household_income_request());
 
             // if($request->hasFile('profile_picture_path')){
@@ -205,19 +204,22 @@ class ClientController extends Controller
         
     }
 
-    public function editClient(Client $client){
-
+    public function editClient($client_id){
+        $client = Client::fcid($client_id);
         if($client===null){
             abort(503);
             return response()->route('client.list');
         }
         $client->load('household_income','businesses');
+        
         return view('pages.update-client',compact('client'));
     }
 
-    public function update(ClientRequest $request, Client $client){
+    public function update(ClientRequest $request, $client_id){
         
         // $request = $this->antiNullStrings($request);
+        $client = Client::fcid($client_id);
+        
         $filename = $client->client_id.'.jpeg';
 
         $client->update($request->all());

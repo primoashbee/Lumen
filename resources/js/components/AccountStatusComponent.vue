@@ -30,8 +30,21 @@ export default {
     if(this.type=='deposit'){
       this.options = ['Active','Closed','Dormant'];
     }
+    if(this.type=='client'){
+      this.options = ["Active", "In-Arrears", "Closed", "Written-Off"];
+    }
     if(this.type=='all'){
       this.options = ['Active',"Cancelled", "Closed", "In Arrears", "Inactive", "Matured", "Pending Approval", "Rejected", "Written Off",'Dormant'];
+    }
+    
+    if(this.type=='service_type'){
+      this.options = ['AGRICULTURE','TRADING/MERCHANDISING','MANUFACTURING','SERVICES','OTHERS'];
+    }
+    if(this.type=='gender'){
+      this.options = ['MALE','FEMALE'];
+    }
+    if(this.type=='educational_attainment'){
+      this.options = ["ELEMENTARY","HIGH SCHOOL","VOCATIONAL","COLLEGE"];
     }
   },
   data () {

@@ -35,8 +35,7 @@ class DepositAccount extends Model
         'balance',
         'accrued_interest',
         'status',
-        'repayment_date',
-        'user_id'
+
     ];
     protected $casts = [
         'created_at' => 'datetime:F d, Y',

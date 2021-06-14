@@ -142,7 +142,7 @@ export default {
                     str+="search="+this.query
                 }
             }
-            return '/client/list'+str
+            return '/wApi/client/list'+str
         },
         totalRecords(){
             return numeral(this.lists.total).format('0,0')

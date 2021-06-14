@@ -26,6 +26,9 @@ class Loan extends Model
         "installment_method",
 
         "interest_interval",
+        
+        "monthly_rate",
+        "annual_rate",
         "interest_rate",
         
 
@@ -47,8 +50,11 @@ class Loan extends Model
         "loan_write_off",
         "loan_recovery",
         "created_by",
-        "status"
+        "status",
         
+        "has_optional_fees",
+        "type",
+
     ];
     public function fees(){
         return $this->belongsToMany(Fee::class,'loan_fee')->withTimestamps();
@@ -64,6 +70,195 @@ class Loan extends Model
                     'code'=>'MPL',
                     'rates'=>
                         collect([
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>22,
+                                'rate'=>5.1097,
+                                'number_of_months'=>6
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>24,
+                                'rate'=>5.475225,
+                                'number_of_months'=>6
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>44,
+                                'rate'=>5.80480,
+                                'number_of_months'=>8,
+
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>48,
+                                'rate'=>5.32911,
+                                'number_of_months'=>8
+                            ]
+                        ]),
+                    ],
+                    (object) [
+                    'code'=>'RS-MPL',
+                    'rates'=>
+                        collect([
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>4,
+                                'rate'=>3.19740,
+                                'number_of_months'=>1
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>8,
+                                'rate'=>3.51958,
+                                'number_of_months'=>2
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>12,
+                                'rate'=> 3.63215 ,
+                                'number_of_months'=>3
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>16,
+                                'rate'=>  3.68050 ,
+                                'number_of_months'=>4
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>20,
+                                'rate'=>   3.70160  ,
+                                'number_of_months'=>5
+                            ],
+                            
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>24,
+                                'rate'=>3.70890 ,
+                                'number_of_months'=>6
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>28,
+                                'rate'=>3.70832,
+                                'number_of_months'=>7
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>32,
+                                'rate'=> 3.70286,
+                                'number_of_months'=>8
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>36,
+                                'rate'=>3.69417 ,
+                                'number_of_months'=>9
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>40,
+                                'rate'=> 3.68358,
+                                'number_of_months'=>10
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>44,
+                                'rate'=>  3.67000 ,
+                                'number_of_months'=>11
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>48,
+                                'rate'=> 3.65839 ,
+                                'number_of_months'=>12
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>52,
+                                'rate'=> 3.64461 ,
+                                'number_of_months'=>13
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>56,
+                                'rate'=> 3.630551,
+                                'number_of_months'=>14,
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>60,
+                                'rate'=>3.616035,
+                                'number_of_months'=>15,
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>64,
+                                'rate'=>3.601544,
+                                'number_of_months'=>16,
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>68,
+                                'rate'=>3.586879,
+                                'number_of_months'=>17,
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>72,
+                                'rate'=>3.572176,
+                                'number_of_months'=>18,
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>76,
+                                'rate'=>3.557311,
+                                'number_of_months'=>19,
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>80,
+                                'rate'=>3.542881,
+                                'number_of_months'=>20,
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>84,
+                                'rate'=>3.528221,
+                                'number_of_months'=>21,
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>88,
+                                'rate'=>3.514071,
+                                'number_of_months'=>22,
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>92,
+                                'rate'=>3.499841,
+                                'number_of_months'=>23,
+                            ],
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>96,
+                                'rate'=> 3.48550 ,
+                                'number_of_months'=>24,
+                            ],
+                            
+                        ]),
+                    ],
+                    (object) [
+                    'code'=>'RF-MPL',
+                    'rates'=>
+                        collect([
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>4,
+                                'rate'=>3.18740,
+                                'number_of_months'=>1
+                            ],
                             (object) [
                                 'code'=>'MPL',
                                 'installments'=>22,
@@ -116,10 +311,18 @@ class Loan extends Model
 
     }
 
-    // public function repayments(){
-    //     $this->ins
-    // }
+    public function isDRP(){
+        return $this->type == 'DRP' ? true : false;
+    }
 
+    public function installmentInterval(){
+        if($this->installment_method==='weeks'){
+            return 7 * $this->installment_length;
+        }
+        if($this->installment_length==='days'){
+            return (int) $this->installment_length;
+        }
+    }
     
 
 }

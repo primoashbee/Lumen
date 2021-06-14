@@ -104,20 +104,31 @@
                                 <tr style="border-style:none;">
                                     <td><p class="title"></p></td>
                                     <td><p class="title"></p></td>
+                                    <td><p class="title"></p></td>
                                     <td><p class="title text-right"># of Accounts: </p></td>
                                     <td><p class="title text-center">{{(summary.number_of_transactions)}}</p></td>
                                     <td><p class="title">{{moneyFormat(summary.total_amount)}}</p></td>
                                     <td><p class="title">{{moneyFormat(summary.balance)}}</p></td>
+                                    <td><p class="title"></p></td>
+                                    <td><p class="title"></p></td>
+                                    <td><p class="title"></p></td>
+                                    <td><p class="title"></p></td>
                                 </tr>
                             </template>
                             <template v-if="report_class=='summary' && hasRecords">
                                 <tr style="border-style:none;">
                                     <td><p class="title"></p></td>
                                     <td><p class="title"></p></td>
+                                    <td><p class="title"></p></td>
                                     <td><p class="title text-center"># of Accounts: </p></td>
                                     <td><p class="title">{{(summary.number_of_transactions)}}</p></td>
                                     <td><p class="title">{{moneyFormat(summary.total_amount)}}</p></td>
                                     <td><p class="title">{{moneyFormat(summary.balance)}}</p></td>
+                                    <td><p class="title"></p></td>
+                                    <td><p class="title"></p></td>
+                                    <td><p class="title"></p></td>
+                                    <td><p class="title"></p></td>
+
                                 </tr>
                             </template>
                             
@@ -165,7 +176,7 @@ export default {
             isLoading : false,
             exportable : false,
             summary : [],
-            url : '/reports/deposit-transactions'
+            url : '/wApi/reports/deposit-transactions'
 
         }
     },
@@ -191,8 +202,10 @@ export default {
             this.search()
         },
         search(){
+            this.isLoading = true
             axios.post(this.url+'?page='+this.request.page, this.request)
                 .then(res=>{
+                    this.isLoading = false
                     this.list = res.data.data
                     this.summary = res.data.summary
                     this.exportable = false;
@@ -226,7 +239,8 @@ export default {
         download(){
             var data = Object.assign({},this.request);
             data['export'] = true;
-            console.log(data)
+            this.isLoading = true
+
             axios.post(this.url+'?page='+this.request.page, data, {
                      headers:
                         {
@@ -238,6 +252,8 @@ export default {
                     }
                 )
                 .then(res=>{
+                    this.isLoading = false
+
                     const url = window.URL.createObjectURL(new Blob([res.data],{type:'application/vnd.ms-excel'}));
                     const link = document.createElement('a');
                     link.href = url;

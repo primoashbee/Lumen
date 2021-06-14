@@ -4,6 +4,7 @@ namespace App;
 
 use App\Room;
 use App\Office;
+use App\Traits\Loggable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,7 +13,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    use Notifiable, HasRoles;
+    use Notifiable, HasRoles, Loggable;
 
     /**
      * The attributes that are mass assignable.
@@ -60,7 +61,7 @@ class User extends Authenticatable
     }
 
 
-    public function scopes(){
+    public function scopes($id_only=false){
        
             $offices = $this->office;
     
@@ -68,7 +69,11 @@ class User extends Authenticatable
         
             foreach ($offices as $office) {
                 // array_push($scopes, $office);
-                $scopes = array_merge($scopes, Office::lowerOffices($office->id,false,true)->toArray());
+                if ($id_only) {
+                    $scopes = array_merge($scopes, Office::lowerOffices($office->id, $id_only, true));
+                }else{
+                    $scopes = array_merge($scopes, Office::lowerOffices($office->id,$id_only,true)->toArray());
+                }
             }
             
             return $scopes;

@@ -122,8 +122,11 @@ Vue.component('random-picker', require('./components/RandomPickerComponent.vue')
 Vue.component('report-disbursement', require('./components/Reports/DisbursementsComponent.vue').default);
 Vue.component('report-repayment', require('./components/Reports/RepaymentsComponent.vue').default);
 Vue.component('report-deposit', require('./components/Reports/DepositsComponent.vue').default);
+Vue.component('report-client', require('./components/Reports/ClientStatusComponent.vue').default);
+Vue.component('report-dst', require('./components/Reports/BulkDSTComponent.vue').default);
 Vue.component('user-list', require('./components/UserListComponent.vue').default);
 Vue.component('transaction-method', require('./components/TransactionMethodComponent.vue').default);
+
 
 
 

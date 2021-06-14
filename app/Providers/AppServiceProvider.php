@@ -9,10 +9,11 @@ use Carbon\Carbon;
 use App\LoanAccount;
 use App\PaymentMethod;
 use App\DepositAccount;
-use Faker\Provider\Payment;
-use App\Observers\LoanAccountObserver;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Validator;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+    
     }
 
     /**
@@ -33,6 +34,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $slackUrl = env('SLACK_WEBHOOK_URL');
+        Queue::failing(function(JobFailed $event) use ($slackUrl){
+            // Notification::route('mail', 'ashbee.morgado@light.org.ph')->notify(new DataMigrationJobFailed($event));
+            
+            // Notification::route('slack', $slackUrl)->notify(new DataMigrationJobFailed($event));
+            // Notification::route('slack', $slackUrl)->notify(new DataMigrationJobFailed($event));
+        });
+        
         $error = ':custom_message.';        
         Validator::extendDependent('cbu_deposit', function ($attribute, $value, $parameters, $validator){
             // The $parameters passed from the validator below is ['*.provider'], when we imply that this
@@ -564,6 +573,35 @@ class AppServiceProvider extends ServiceProvider
             
        
             return true;
+  
+            
+        },$error);
+        Validator::extendDependent('possible_processing_fees',function ($attribute, $value, $parameters, $validator){
+            
+            // $values = $validator->getData();
+            $arr = explode('.', $attribute);
+            $row = (int) explode('.', $attribute)[0];
+
+            $details = $validator->getData()[$row]; //-2 coz row 2 = index 0
+            $loan_amount = (double) $details['loan_amount'];
+
+            $fees_rate = collect([0.05,0.03,0.15]);
+            $possible_fee_amounts =[];
+            $fees_rate->map(function($item) use (&$possible_fee_amounts, $loan_amount){
+                $possible_fee_amounts[] = $loan_amount * $item;
+            });
+            
+
+            $result = in_array($value, $possible_fee_amounts) ? true : false;
+            $customMessage = "Invalid Processing Fee Amount";
+            $validator->addReplacer('possible_processing_fees', 
+                function($message, $attribute, $rule, $parameters) use ($customMessage) {
+                    return \str_replace(':custom_message', $customMessage, $message);
+                }
+            );
+            
+       
+            return $result;
   
             
         },$error);

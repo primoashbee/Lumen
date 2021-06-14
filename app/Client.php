@@ -67,6 +67,9 @@ class Client extends Model
 
     protected $appends = ['full_name'];
 
+    public static $status = ["Active", "In-Arrears", "Closed", "Written-Off"];
+    public static $educational_attainment = ["ELEMENTARY","HIGH SCHOOL","VOCATIONAL","COLLEGE"];
+    public static $service_types = ['AGRICULTURE','TRADING/MERCHANDISING','MANUFACTURING','SERVICES','OTHERS'];
     public static function boot(){
         parent::boot();
         static::created(function($item) {
@@ -84,7 +87,7 @@ class Client extends Model
     }
 
     public function businesses(){
-        return $this->hasMany(Business::class);
+        return $this->hasMany(Business::class,'client_id','client_id');
     }
 
     public static function clientExists($request){

@@ -29,7 +29,7 @@ export default {
             this.$emit('selected',selected)
         },
         fetch(){
-            axios.get('/loan/products?has_page=false')
+            axios.get('/wApi/loan/products?has_page=false')
             .then(res=>{
                 this.list = res.data.loans
                 this.rates = res.data.rates

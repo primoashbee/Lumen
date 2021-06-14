@@ -49,15 +49,19 @@
 								 <div  class="d-block text-center position-absolute mb-4 img-container">
 					                <div>
 					                	<label for="profile_picture_path"> Click to Upload image</label>
+										<img id="profile_picture_path_preview" :src="fields.profile_picture_path_preview" alt="Profile Path"/>
+
 					                </div>
 					                <div class="file-input text-center">
 					                    <input value="" type="file" class="attachment" name="profile_picture_path" @change="onFileSelected($event,'profile_picture_path')" id="profile_picture_path">
-					              	</div>   
-					             </div> 	
+					              	</div>
+					             </div>
 					             <div class="position-absolute img-signature">
 					             	<div class="img-signature-box">
 					             		<div class="text-center pt-1">
-						                	<label for="signature_picture_path" class="mt-2 text-sm"> Click to Upload Signature</label>
+						                	<label for="signature_path" class="mt-2 text-sm"> Click to Upload Signature</label>
+											<img id="signature_path_preview" :src="fields.signature_path_preview" alt="Signature Path" />
+
 						                </div>
 						                <div class="file-input text-center">
 						                    <input value="" type="file" class="attachment" name="signature_picture_path" @change="onFileSelected($event,'signature_picture_path')" id="signature_picture_path">
@@ -569,7 +573,7 @@
 		                <div class="row px-3 my-3">
 		                    <div class="form-group col-4">
 		                        <label class="">Total household income</label>
-		                        <input type="text" class="form-control" v-bind:class="hasErrors('total_household_gross_income')  ? 'is-invalid' : ''"  readonly="true" :value="total_household_gross_income">
+		                        <input type="text" class="form-control" v-bind:class="hasErrors('total_household_gross_income')  ? 'is-invalid' : ''"  readonly="true" :value="displayed_total_household_income">
 		                        <div class="invalid-feedback" v-if="hasErrors('total_household_gross_income') ">
 		                            {{ errors.total_household_gross_income[0]}}
 		                        </div>
@@ -773,7 +777,16 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 	            return total;
 	        },
 	        total_household_gross_income(){
-	            var total = parseFloat(this.fields.service_type_monthly_gross_income) + parseFloat(this.fields.employed_monthly_gross_income) +  parseFloat(this.fields.spouse_service_type_monthly_gross_income) +parseFloat(this.fields.spouse_employed_monthly_gross_income) + parseFloat(this.fields.remittance_amount) + parseFloat(this.fields.pension_amount) 
+				// return 2400;
+	            var total = 
+					parseFloat(this.fields.service_type_monthly_gross_income == null ? 0 : this.fields.service_type_monthly_gross_income ) + 
+					parseFloat(this.fields.employed_monthly_gross_income == null ? 0 : this.fields.employed_monthly_gross_income ) + 
+					parseFloat(this.fields.spouse_service_type_monthly_gross_income == null ? 0 : this.fields.spouse_service_type_monthly_gross_income ) + 
+					parseFloat(this.fields.spouse_employed_monthly_gross_income== null ? 0 : this.fields.spouse_employed_monthly_gross_income ) + 
+					parseFloat(this.fields.remittance_amount== null ? 0 : this.fields.remittance_amount ) + 
+					parseFloat(this.fields.pension_amount== null ? 0 : this.fields.pension_amount )
+
+				
 	            if(isNaN(total)){
 	                return 'Use positive integers for amounts only';
 	            }
@@ -852,10 +865,12 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 	                    })
 	                }else{
 	                    if(k=="profile_picture_path"){
-	                        vm.fields.profile_picture_path_preview = location.origin+ '/'+ v
+	                        // vm.fields.profile_picture_path_preview = location.origin+ '/'+ v
+	                        vm.fields.profile_picture_path_preview = v
 	                    }
 	                    if(k=="signature_path"){
-	                        vm.fields.signature_path_preview = location.origin+ '/'+ v
+	                        // vm.fields.signature_path_preview = location.origin+ '/'+ v
+	                        vm.fields.signature_path_preview =  v
 	                    }else{
 	                        vm.fields[k] = v
 	                    }
@@ -895,6 +910,9 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 
 	        onFileSelected(e,id) {
 	              const file = e.target.files[0]
+				  
+				  console.log(file);
+
 	              if(id == "profile_picture_path"){
 	                  this.fields.photo_changed = true
 	                  this.fields.profile_picture_path_preview = URL.createObjectURL(file)
@@ -945,7 +963,7 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 	            });
 
 	            this.isLoading = true
-	            axios.post('/edit/client/'+this.clientInfo.client_id, this.fields)
+	            axios.post('/client/'+this.clientInfo.client_id+'/edit', this.fields)
 	                .then(res=>{
 	                    this.isLoading = false
 	                    setTimeout(()=>{

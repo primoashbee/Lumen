@@ -95,6 +95,27 @@ class Fee extends Model
         return $months * 30;
     }
     public function cgliRates($months){   
+        if($months == 1){
+            return 0.45;
+        }
+        if($months == 2){
+            return 0.9;
+        }
+        if($months == 3){
+            return 1.35;
+        }
+        if($months == 4){
+            return 1.8;
+        }
+        if($months == 5){
+            return 2.5;
+        }
+        if($months == 6){
+            return 2.7;
+        }
+        if($months == 7){
+            return 3.15;
+        }
         if($months == 8){
             return 3.65;
         }
@@ -116,59 +137,81 @@ class Fee extends Model
     public static function miPremiumRates(){
         
         $rates[] = (object) array(
+            'months'=>1,
+            'member'=>125,
+            'adult'=>115,
+            'young'=>15
+        );
+        $rates[] = (object) array(
+            'months'=>2,
+            'member'=>125,
+            'adult'=>115,
+            'young'=>15
+        );
+
+        $rates[] = (object) array(
             'months'=>3,
             'member'=>125,
             'adult'=>115,
             'young'=>15
         );
+
         $rates[] = (object) array(
             'months'=>4,
             'member'=>185,
             'adult'=>170,
             'young'=>19
         );
+
         $rates[] = (object) array(
             'months'=>5,
             'member'=>230,
             'adult'=>211,
             'young'=>22
         );
+
         $rates[] = (object) array(
             'months'=>6,
             'member'=>240,
             'adult'=>218,
             'young'=>23
         );
+
         $rates[] = (object) array(
             'months'=>7,
             'member'=>275,
             'adult'=>253,
             'young'=>27
         );
+
         $rates[] = (object) array(
             'months'=>8,
             'member'=>320,
             'adult'=>295,
             'young'=>31
         );
+
         $rates[] = (object) array(
             'months'=>9,
             'member'=>365,
             'adult'=>335,
             'young'=>35
         );
+
         $rates[] = (object) array(
             'months'=>10,
             'member'=>410,
             'adult'=>378,
             'young'=>38
         );
+
         $rates[] = (object) array(
             'months'=>11,
             'member'=>434,
             'adult'=>417,
             'young'=>40
         );
+
         $rates[] = (object) array(
             'months'=>12,
             'member'=>454,
@@ -186,7 +229,6 @@ class Fee extends Model
         $amount = $rate->member;
         $unit_of_plan =1;
         
-
         if ($dependent != null) {
             foreach ($dependent as $item) {
                 if (!$item->is_member) {

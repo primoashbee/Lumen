@@ -147,7 +147,7 @@ export default {
                 cv_number: null,
             },
             selected_list : [],
-            url : '/bulk/predisbursement/loans/list',
+            url : '/wApi/bulk/predisbursement/loans/list',
             post_url: null,
             modal :{
                 modalState : false,
@@ -163,7 +163,7 @@ export default {
         AmountInputComponent,
     },
     mounted(){
-        this.post_url = '/bulk/'+this.type+'/loans'
+        this.post_url = '/wApi/bulk/'+this.type+'/loans'
 
    
     },

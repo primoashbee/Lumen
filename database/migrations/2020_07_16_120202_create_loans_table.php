@@ -33,6 +33,9 @@ class CreateLoansTable extends Migration
             $table->string('installment_method');
             
             $table->string('interest_interval');
+
+            $table->unsignedDouble('monthly_rate');
+            $table->unsignedDouble('annual_rate')->default(0.36);
             $table->string('interest_rate');
             
 
@@ -59,6 +62,9 @@ class CreateLoansTable extends Migration
 
             $table->unsignedInteger('created_by');
             $table->boolean('status')->default(1);
+
+            $table->boolean('has_optional_fees')->default(false);
+            $table->string('type');
             $table->timestamps();
         });
     }

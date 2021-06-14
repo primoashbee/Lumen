@@ -89,10 +89,39 @@
             <div class="clearfix"></div>
             <paginator :dataset="lists" @updated="fetch"></paginator>
         </div>
-        
-        <button class="btn btn-primary" @click.prevent="submit">Create</button>
-        <loading :is-full-page="true" :active.sync="isLoading" ></loading>
+
+            <button class="btn btn-primary" @click.prevent="review">Create</button>
+            <loading :is-full-page="true" :active.sync="isLoading" ></loading>
+        <b-modal id="loan-modal" v-model="modal.modalState" size="lg" hide-footer :title="modal.modal_title" :header-bg-variant="background" :body-bg-variant="background"  v-if="form.accounts.length > 0">
+            <form>
+                <table class="table">
+                    <thead style="color:white">
+                        <tr>
+                            <td><p class="title">Client ID</p></td>
+                            <td><p class="title">Name</p></td>
+                            <td><p class="title">Loan Amount</p></td>
+                        </tr>
+                    </thead>
+                    <tbody style="color:white">
+                        <tr v-for="(item, key) in form.accounts" :key="key">
+                            <td><p class="title">{{item.client_id}}</p></td>
+                            <td><p class="title">{{item.full_name}}</p></td>
+                            <td><p class="title">{{moneyFormat(item.amount)}}</p></td>
+                        </tr>
+                        <tr>
+                            <td><p class="title"># of Accounts: </p></td>
+                            <td><p class="title">{{form.accounts.length}}</p></td>
+                            <td><p class="title">{{moneyFormat(totalLoanAmount())}}</p></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <button type="button" class="btn btn-primary float-right" @click="submit" >Submit</button>
+                <button type="button" class="btn btn-warning float-right mr-2" >Cancel</button>
+            </form>
+        </b-modal>
     </div>
+
 </template>
 
 <script>
@@ -131,10 +160,16 @@ export default {
                 disbursement_date:null,
                 first_payment:null,
                 interest_rate:null,
-
             },
+            page: 1,
             key: 1,
-            rates: []
+            rates: [],
+            variants: ['primary', 'secondary', 'success', 'warning', 'danger', 'info', 'light', 'dark'],
+			background:'dark',
+			modal:{
+				modalState:false,
+				modal_title: 'Review Loan Accounts',
+            },
         }
     },
     components:{
@@ -142,6 +177,9 @@ export default {
         AmountInputComponent,
     },
     methods :{
+        review(){
+            this.modal.modalState = true
+        },
         checkAll(e){
             
             if(e.target.checked){
@@ -162,17 +200,17 @@ export default {
         submit(e){
             e.preventDefault()
             this.isLoading=true
-            axios.post('/bulk/create/loans',this.form)
+            
+            axios.post('/wApi/bulk/create/loans',this.form)
             .then(res=>{
                 this.isLoading = false
-                
                 Swal.fire(
 					'Success',
 					res.data.msg,
 					'success'
                 )
                .then(()=>{
-                    location.reload()
+                    // location.reload()
                 })
             })
             .catch(err=>{
@@ -267,28 +305,31 @@ export default {
 
         },
 
-        fetch(page){
+        fetch(){
             this.isLoading = true;
             this.form.accounts = []
-            if(page==undefined){
-                axios.get(this.queryString)
-                .then(res => {
-                    this.lists = res.data
-                    // this.checkIfHasRecords()
-                    this.isLoading =false
-                })
-            }else{
-                axios.get(this.queryString+'&page='+page)
-                .then(res => {
-                    this.lists = res.data
-                    // this.checkIfHasRecords()
-                    this.isLoading =false
-                })
-            }
+            axios.get(this.queryString+'&page='+this.page)
+            // axios.get()
+            .then(res => {
+                this.lists = res.data
+                // this.checkIfHasRecords()
+                this.isLoading =false
+            })
 
+        },
+        moneyFormat(value){
+            return moneyFormat(value)
         },
         url(page=1){
             return `/clients/list?office_id=`+this.office_id+`&page=`+page
+        },
+        totalLoanAmount(){
+            let total = 0;
+            if(this.form.accounts.length > 0){
+                this.form.accounts.map((x)=>{ total+= parseInt(x.amount)})
+                return total;
+            }
+            return total;
         },
         
         
@@ -313,7 +354,7 @@ export default {
                     str+="search="+this.query
                 }
             }
-            return '/clients/list'+str
+            return '/wApi/client/list'+str
         },
         totalRecords(){
             return numeral(this.lists.total).format('0,0')
@@ -321,6 +362,8 @@ export default {
         viewableRecords(){
             return Object.keys(this.lists.data).length
         },
+
+
         selected_interest(){
             let vm = this;
 			if(vm.installment_list==null){

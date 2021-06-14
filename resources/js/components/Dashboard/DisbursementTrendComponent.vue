@@ -103,6 +103,7 @@ export default {
     getData(){
       axios.get(this.url)
         .then(res=>{ 
+          console.log(res.data)
             this.chart_options.data.labels = res.data.disbursement_trend.labels
             this.chart_options.data.datasets[0].data = res.data.disbursement_trend.disbursements
             this.chart_options.data.datasets[1].data = res.data.disbursement_trend.repayment_interest
@@ -148,7 +149,7 @@ export default {
 
   computed : {
     url(){
-      return '/dashboard/v1/true/'+this.office_id+'/disbursement_trend'
+      return '/wApi/dashboard/'+this.office_id+'/disbursement_trend'
     },
     repaymentChannel(){
       return 'dashboard.charts.repayment.'+this.office_id

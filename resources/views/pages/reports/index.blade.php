@@ -27,6 +27,21 @@
 				
 				<ul class="settings" id="setting-tabs" role="tablist">
 				
+					<li class="settings-item client reports detailed">
+						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['detailed','client'])}}">
+							<i class="fas fa-3x fa-users"></i>
+							<p class="title text-center mt-2">Clients - Detailed</p>
+						</a>
+						
+					</li>
+					<li class="settings-item loans reports detailed">
+						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['detailed','dst'])}}">
+							
+							<i class="fas fa-3x fa-file-contract"></i>
+							<p class="title text-center mt-2">Disclosure Statements </p>
+						</a>
+						
+					</li>
 					<li class="settings-item loans reports detailed">
 						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['detailed','disbursements'])}}">
 							
@@ -39,10 +54,12 @@
 						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['summary','disbursements'])}}">
 							
 							<i class="fas fa-3x fa-sign-out-alt"></i>
+							
 							<p class="title text-center mt-2">Disbursements - Summary </p>
 						</a>
 						
 					</li>
+
 					<li class="settings-item loans reports detailed">
 						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['detailed','repayments'])}}">
 							

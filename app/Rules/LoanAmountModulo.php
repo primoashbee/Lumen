@@ -2,6 +2,7 @@
 
 namespace App\Rules;
 
+use App\Loan;
 use Illuminate\Contracts\Validation\Rule;
 
 class LoanAmountModulo implements Rule
@@ -11,9 +12,10 @@ class LoanAmountModulo implements Rule
      *
      * @return void
      */
-    public function __construct()
+    protected $loan_id;
+    public function __construct($loan_id)
     {
-        //
+        $this->loan_id = $loan_id;
     }
 
     /**
@@ -25,7 +27,13 @@ class LoanAmountModulo implements Rule
      */
     public function passes($attribute, $value)
     {
-        return $value % 1000 == 0;
+        $loan = Loan::findOrFail($this->loan_id);
+
+        if($loan->isDRP()){
+            return true;
+        }else{
+            return $value % 1000 == 0;
+        }
     }
 
     /**

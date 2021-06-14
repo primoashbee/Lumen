@@ -2,6 +2,7 @@
 
 namespace App\Rules;
 
+use App\Loan;
 use App\Client;
 use Illuminate\Contracts\Validation\Rule;
 
@@ -26,7 +27,8 @@ class HasNoUnusedDependent implements Rule
      */
     public function passes($attribute, $value)
     {
-       
+        $r = request()->all();
+        $loan = Loan::find($r['loan_id']);
         return Client::where('client_id',$value)->first()->hasUnusedDependent();
     }
 

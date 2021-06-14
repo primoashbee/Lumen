@@ -2,6 +2,7 @@
 
 namespace App\Rules;
 
+use App\Client;
 use Illuminate\Contracts\Validation\Rule;
 
 class ServiceType implements Rule
@@ -11,9 +12,10 @@ class ServiceType implements Rule
      *
      * @return void
      */
-    public function __construct()
+    public $is_array;
+    public function __construct($is_array = false)
     {
-        //
+        $this->is_array = $is_array;
     }
 
     /**
@@ -25,8 +27,24 @@ class ServiceType implements Rule
      */
     public function passes($attribute, $value)
     {
-        $list = ['AGRICULTURE','TRADING/MERCHANDISING','MANUFACTURING','SERVICES','OTHERS'];
-        return in_array($value,$list) ? true : false;
+        $list = Client::$service_types;
+
+        if($this->is_array){
+            $value = collect($value);
+            if ($value->count() > 0) {
+                $result = false;
+            
+                $value->map(function ($item) use (&$result, $list) {
+                    $result =in_array($item, $list) ? true : false;
+                });
+    
+                return $result;
+            }
+            return true;
+        }else{
+            return in_array($value,$list) ? true : false;
+        }
+        
     }
 
     /**
@@ -36,6 +54,6 @@ class ServiceType implements Rule
      */
     public function message()
     {
-        return 'Invalid value.';
+        return 'Invalid value for service type';
     }
 }

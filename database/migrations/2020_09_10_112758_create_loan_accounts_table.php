@@ -22,6 +22,8 @@ class CreateLoanAccountsTable extends Migration
             $table->unsignedDouble('principal');
             $table->unsignedDouble('interest');
             $table->unsignedDouble('total_loan_amount');
+
+            
             $table->unsignedDouble('interest_rate');
 
             $table->integer('number_of_months');
@@ -57,6 +59,7 @@ class CreateLoanAccountsTable extends Migration
 
             $table->longText('notes')->nullable();
             $table->string('status')->default('Pending Approval');
+
 
             $table->timestamps();
         });

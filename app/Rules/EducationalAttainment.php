@@ -2,6 +2,7 @@
 
 namespace App\Rules;
 
+use App\Client;
 use Illuminate\Contracts\Validation\Rule;
 
 class EducationalAttainment implements Rule
@@ -11,9 +12,10 @@ class EducationalAttainment implements Rule
      *
      * @return void
      */
-    public function __construct()
+    public $is_array;
+    public function __construct($is_array = false)
     {
-        //
+        $this->is_array = $is_array;
     }
 
     /**
@@ -25,7 +27,18 @@ class EducationalAttainment implements Rule
      */
     public function passes($attribute, $value)
     {
-        $types = ["ELEMENTARY","HIGH SCHOOL","VOCATIONAL","COLLEGE"];
+        $types = Client::$educational_attainment;
+        if($this->is_array){
+            if(collect($value)->count() > 0){
+                $result = false;
+                collect($value)->map(function($item) use ($types, &$result){
+                    $result = in_array($item,$types) ? true : false;
+                });
+                return $result;
+            }
+            return true;
+        }
+        
         return in_array($value,$types) ?  true : false;
     }
 

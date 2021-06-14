@@ -188,7 +188,7 @@ export default {
         },
         search(page=1){
             this.isLoading = true
-            axios.post('/reports/disbursements?page='+this.request.page, this.request)
+            axios.post('/wApi/reports/disbursements?page='+this.request.page, this.request)
                 .then(res=>{
                     this.isLoading = false
                     this.list = res.data.list.data
@@ -211,7 +211,7 @@ export default {
         download(){
             var data = Object.assign({},this.request);
             data['export'] = true;
-            axios.post('/reports/disbursements?page='+this.request.page, data,
+            axios.post('/wApi/reports/disbursements?page='+this.request.page, data,
             {
                 headers : {
                     'Accept': 'application/vnd.ms-excel' 

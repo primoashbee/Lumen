@@ -531,10 +531,10 @@ export default {
             return this.list.length > 0;
         },
         fetchUrl(){
-            return '/scheduled/list'
+            return '/wApi/scheduled/list'
         },
         paymentUrl(){
-            return '/bulk/repayments'
+            return '/wApi/bulk/repayments'
         },
         _hasDeposit(){
             return this.request.deposit_product_ids.length > 0;

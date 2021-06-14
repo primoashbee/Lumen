@@ -11,9 +11,10 @@ class Gender implements Rule
      *
      * @return void
      */
-    public function __construct()
+    public $is_array;
+    public function __construct($is_array = false)
     {
-        //
+        $this->is_array = $is_array;
     }
 
     /**
@@ -25,9 +26,20 @@ class Gender implements Rule
      */
     public function passes($attribute, $value)
     {
-        
-       $genders = ["MALE","FEMALE"];
-       return in_array($value,$genders) ?  true : false;
+        $genders = ["MALE","FEMALE"];
+
+        if ($this->is_array) {
+            $value = collect($value);
+            if ($value->count() > 0) {
+                $result = false;
+                $value->map(function ($item) use ($genders, &$result) {
+                    $result =  in_array($item, $genders) ?  true : false;
+                });
+                return $result;
+            }
+            return true;
+        }
+        return in_array($value, $genders) ?  true : false;
     }
 
     /**

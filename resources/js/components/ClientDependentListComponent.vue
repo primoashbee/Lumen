@@ -3,7 +3,7 @@
       
     <div class="card">
 		<div class="card-header">
-			<h3 class="h3"><b><a :href="clientLink" style="text-decoration:none;color:white">{{full_name}}</a></b> - Dependents</h3>
+			<h3 class="h3"><b><a :href="clientLink" style="text-decoration:none;color:white">{{full_name}}</a></b> - Micro-Insurance</h3>
 		</div>
 		<div class="card-body">
             <a :href="linkCreateDependent"><button class="btn btn-primary float-right">Create Dependents</button></a>
@@ -34,7 +34,7 @@
                     </tr>
                 </thead>
                 <tbody v-if="list!=null">
-                     <tr v-for="item in list" :key="item.id">
+                     <tr v-for="(item, key) in list" :key="key">
                         <td>{{item.application_number}}</td>
                         <td>{{item.unit_of_plan}}</td>
                         <td>{{item.count}}</td>
@@ -69,7 +69,7 @@
                         <th>Relationship</th>
                     </thead>
                     <tbody v-if="selected_application_number!=null">
-                        <tr v-for="(item,key) in selected_pivot_list" :key="key">
+                        <tr v-for="(item, key) in selected_pivot_list" :key="key">
                             <td> {{key+1}}</td>
                          
                             <td> {{item.fullname}}</td>
@@ -78,8 +78,9 @@
                         </tr>
                         <tr>
                             <td></td>
-                            <td class="text-right"># of Dependents</td>
-                            <td class="text-right">{{key}}</td>
+                            <td class="text-right pr-2"># of Dependents</td>
+                            <td class="text-left">{{selected_pivot_list.length}}</td>
+                            <td></td>
                         </tr>
                     </tbody>
                 </table>

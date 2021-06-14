@@ -1,31 +1,7 @@
 <?php
 // ini_set('xdebug.max_nesting_level', 9999);
-
-use App\User;
-use App\Client;
-use App\Office;
-use App\Deposit;
-use App\Dashboard;
-use App\LoanAccount;
-use App\Transaction;
-use App\BulkDisbursement;
-use App\Events\TestEvent;
-use App\Events\LoanPayment;
-use App\Imports\TestImport;
-use App\LoanAccountDisbursement;
-use App\Events\BulkLoanDisbursed;
-use App\Events\PresenceTestEvent;
-use App\Events\LoanAccountPayment;
-use Spatie\Permission\Models\Role;
-use App\Exports\DisbursementExport;
 use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Route;
-use App\Events\LoanAccountPaymentEvent;
-use Spatie\Permission\Models\Permission;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Symfony\Component\HttpFoundation\Request;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -55,6 +31,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/loan/products','LoanController@');
     Route::get('/fees','FeeController@getList');    
     Route::get('/transactions', 'TransactionController@list');
+    
     Route::prefix('/download')->group(function(){
         Route::post('/ccr','DownloadController@ccr');
         Route::get('/dst/{loan_account_id}','DownloadController@dst');
@@ -64,7 +41,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/stepper','ClientController@step');
     Route::get('/pay','RepaymentController@repayLoan');
     Route::post('/loan/calculator', 'LoanAccountController@calculate')->name('loan.calculator');
-    Route::post('/products','ProductController@index');
+    
 
     Route::prefix('/client')->group(function(){
         Route::get('/{client_id}/create/dependents', 'ClientController@toCreateDependents')->name('client.create.dependents');
@@ -75,15 +52,47 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/create/loan', 'LoanAccountController@createLoan')->name('client.loan.create.post');
         Route::get('/{client_id}/loans', 'LoanAccountController@clientLoanList')->name('client.loan.list');
         Route::get('/{client_id}/loans/{loan_id}','LoanAccountController@account')->name('loan.account');
-        Route::get('/list','ClientController@getList')->name('get.client.list');    
-        Route::get('/{client_id}','ClientController@view')->name('client.profile');
+        // Route::get('/{client_id}','ClientController@view')->name('client.profile');
+        Route::get('/{clients:client_id}','ClientController@view')->name('client.profile');
+        Route::get('/{client_id}/edit','ClientController@editClient')->name('edit.client');
+        Route::post('/{client_id}/edit','ClientController@update');
+
     });
 
     Route::prefix('/wApi')->group(function(){
         Route::prefix('/list')->group(function(){
             Route::post('/accounts','AccountController@getList');
         });
+        
+        Route::get('/client/list','ClientController@getList')->name('get.client.list');    
+        Route::get('/product','ProductController@getItems');
+        Route::get('/usr/branches','UserController@branches');
+        Route::get('/deposits','DepositAccountController@showList');
+        Route::post('/bulk/withdraw', 'DepositAccountController@bulkWithdraw')->name('bulk.deposit.withdraw.post');
+        Route::post('/bulk/post_interest', 'DepositAccountController@bulkPostInterest')->name('bulk.deposit.interst_post.post');
+        Route::post('/bulk/deposit', 'DepositAccountController@bulkDeposit')->name('bulk.deposit.deposit.post');
+        Route::get('/payment/methods','PaymentMethodController@fetchPaymentMethods');
+
+        Route::get('/loan/products','LoanController@loanProducts')->name('loan.products');
+
+        //bulk create loan
+        // Route::post('/bulk/create/loans', 'LoanAccountController@bulkCreateLoan')->name('bulk.create.loans.post');
+        Route::post('/bulk/predisbursement/loans/list','LoanAccountController@preDisbursementList');
+        Route::post('/bulk/{type}/loans','LoanAccountController@bulkLoanTransact');
+        Route::get('/dashboard/{office_id}/{type}','DashboardController@type');
+
+
+        Route::post('/scheduled/list','RepaymentController@scheduledListV2');
+        Route::post('/bulk/repayments','RepaymentController@bulkRepaymentV2')->name('bulk.repayment.post');
+        Route::post('/products','ProductController@index');
+
+        Route::post('/reports/{type}','ReportController@getReport');
+
+
     });
+    Route::get('/bulk/approve/loans','LoanAccountController@bulkApproveForm')->name('bulk.approve.loans');
+    Route::get('/bulk/disburse/loans','LoanAccountController@bulkDisburseForm')->name('bulk.disburse.loans');
+    
     Route::get('/clients','ClientController@list')->name('client.list');
     
     Route::get('/dependents/{client_id}', 'ClientController@listDependents')->name('client.dependents.list');
@@ -95,7 +104,9 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/loans/preterm','RepaymentController@preTerminate');
     Route::post('/revert','RevertController@revert')->name('revert.action');
     Route::get('/dashboard','DashboardController@dashboard')->name('dashboard');
-    Route::get('/dashboard/v1/{reload?}/{office_id}/{type}','DashboardController@type');
+
+
+    
 
 
     //Reports
@@ -110,9 +121,9 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/scopes', function(){
         return auth()->user()->scopesBranch();
     });
-    Route::get('/usr/branches','UserController@branches');
-    Route::get('/edit/client/{client}','ClientController@editClient');
-    Route::post('/edit/client/{client}','ClientController@update');
+    
+    // Route::get('/edit/client/{client}','ClientController@editClient');
+    // Route::post('/edit/client/{client}','ClientController@update');
     
     Route::post('/create/office/', 'OfficeController@createOffice');
 
@@ -126,7 +137,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::post('/deposit/{deposit_account_id}','DepositAccountController@deposit')->name('client.make.deposit'); //make deposit transaction individually
     Route::post('/withdraw/{deposit_account_id}','DepositAccountController@withdraw')->name('client.make.withdrawal'); //make deposit transaction individually
-    Route::get('/payment/methods','PaymentMethodController@fetchPaymentMethods');
+    
 
 
     Route::prefix('/bulk')->group(function () {
@@ -135,38 +146,33 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/post_interest', 'DepositAccountController@showBulkView')->name('bulk.deposit.post_interest');
         Route::get('/create/loans', 'LoanAccountController@bulkCreateForm')->name('bulk.create.loans');
         // Route::post('/loans/pending/list', 'LoanAccountController@pendingLoans');
-        Route::post('/create/loans', 'LoanAccountController@bulkCreateLoan')->name('bulk.create.loans.post');
-        Route::post('/predisbursement/loans/list','LoanAccountController@preDisbursementList');
-        Route::get('/approve/loans','LoanAccountController@bulkApproveForm')->name('bulk.approve.loans');
-        Route::get('/disburse/loans','LoanAccountController@bulkDisburseForm')->name('bulk.disburse.loans');
-        Route::post('/{type}/loans','LoanAccountController@bulkLoanTransact');
-        Route::post('/deposit', 'DepositAccountController@bulkDeposit')->name('bulk.deposit.deposit.post');
-        Route::post('/withdraw', 'DepositAccountController@bulkWithdraw')->name('bulk.deposit.withdraw.post');
-        Route::post('/post_interest', 'DepositAccountController@bulkPostInterest')->name('bulk.deposit.interst_post.post');
+        
         
         Route::get('/repayment','RepaymentController@showBulkForm')->name('bulk.repayment');
-        Route::post('/repayments','RepaymentController@bulkRepaymentV2')->name('bulk.repayment.post');
+
     });
 
     Route::post('/loans/scheduled/list','RepaymentController@scheduledList');
-    Route::post('/scheduled/list','RepaymentController@scheduledListV2');
     
     
-    Route::get('/deposits','DepositAccountController@showList');
-    Route::get('/product','ProductController@getItems');
+    
+    
+    
     Route::post('/deposit/{deposit_account_id}','DepositAccountController@deposit')->name('client.make.deposit');
     Route::post('/deposit/account/post/interest','DepositAccountController@postInterest')->name('deposit.account.post.interest');
 
 
     Route::get('/accounts/{type}','AccountController@index')->name('accounts.list');
 
-    Route::get('/loan/products','LoanController@loanProducts')->name('loan.products');
     Route::get('/auth/structure', 'UserController@authStructure')->name('auth.structure');
     Route::post('/search','SearchController@search');
     Route::get('/user/{user}','UserController@get');
 
 
     Route::prefix('/settings')->group(function () {
+        Route::get('/import', 'MigrationController@index')->name('settings.import');
+        Route::post('/import', 'MigrationController@upload')->name('settings.import.post');
+        Route::get('/settings/import/{migration}', 'MigrationController@logs')->name('settings.import.logs');
         Route::get('/create/role', function(){
             return view('pages.create-role');
         });
@@ -208,7 +214,6 @@ Route::group(['middleware' => ['auth']], function () {
     
         Route::get('/v2/repayments','ReportController@rp');
         Route::get('/{class}/{type}','ReportController@view')->name('reports.view');
-        Route::post('/{type}','ReportController@getReport');
     });
 
 

@@ -28,9 +28,10 @@ class MaxLoanableAmount implements Rule
      */
     public function passes($attribute, $value)
     {  
-        $max_loanable_amount = Loan::find($this->loan_id)->loan_maximum_amount;
+        $value = (int) $value;
+        $max_loanable_amount = (int) Loan::find($this->loan_id)->loan_maximum_amount;
         $this->max_loanable_amount = $max_loanable_amount;
-        return  $max_loanable_amount > $value ? true : false;
+        return   $value > $max_loanable_amount ? false : true;
     }
 
     /**

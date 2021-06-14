@@ -54,7 +54,7 @@ export default {
       }
     },
     fetchAllLevels(){
-      axios.get('/usr/branches')
+      axios.get('/wApi/usr/branches')
         .then(res=>{
           this.options=res.data
             if(this.default_value!==undefined){
@@ -69,7 +69,7 @@ export default {
         })
     },
     fetchListByLevel(level){
-        axios.get('/usr/branches?level='+level)
+        axios.get('/wApi/usr/branches?level='+level)
         .then(res=>{
           this.options=res.data
             if(this.default_value!==undefined){

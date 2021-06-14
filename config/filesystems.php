@@ -51,6 +51,10 @@ return [
             'driver'=>'local',
             'root'=>public_path('temp')
         ],
+        'migrations' => [
+            'driver'=>'local',
+            'root' =>public_path('migrations')
+        ],
 
         'reports'=>[
             'driver'=>'local',

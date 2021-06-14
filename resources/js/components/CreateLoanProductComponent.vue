@@ -297,6 +297,7 @@
 			</form>
 		</div>
 	</div>
+
 </div>
 </template>
 
@@ -347,6 +348,7 @@ export default {
                 
             },
             errors : [],
+
         }
     },
     methods: {

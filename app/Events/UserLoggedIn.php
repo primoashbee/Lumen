@@ -3,6 +3,8 @@
 namespace App\Events;
 
 use App\Room;
+use App\User;
+
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Session;
@@ -22,14 +24,15 @@ class UserLoggedIn
      * @return void
      */
     protected $user;
-    public function __construct($user)
+    public function __construct(User $user)
     {
         $this->user = $user;
+        $user->log('User Logged In',200);
         // $office_list = $user->office->first()->getLowerOfficeIDS();
         // session(['office_list' => $office_list]);
 
         
-        $user->setSessions($user->id);
+        // $user->setSessions($user->id);
         
         
     }

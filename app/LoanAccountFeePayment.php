@@ -51,8 +51,7 @@ class LoanAccountFeePayment extends Model
         if($this->paidBy!=null){
             $mutated['paid_by'] = $this->paidBy->fullname;
             $mutated['payment_method'] = $this->paymentMethod->name;
-            
-        }else{
+                               }else{
             $mutated['paid_by'] = null;
             $mutated['payment_method'] = null;
             

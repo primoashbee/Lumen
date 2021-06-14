@@ -134,7 +134,7 @@ export default {
   },
   computed : {
     url(){
-      return '/dashboard/v1/true/'+this.office_id+'/par_movement'
+      return '/wApi/dashboard/'+this.office_id+'/par_movement'
     },
   }
 }
