@@ -67,6 +67,11 @@ class Client extends Model
 
     protected $appends = ['full_name'];
 
+    public function getRouteKeyName()
+    {
+        return 'client_id';
+    }
+
     public static function boot(){
         parent::boot();
         static::created(function($item) {

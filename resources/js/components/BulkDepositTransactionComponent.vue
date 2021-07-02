@@ -1,26 +1,25 @@
 <template>
     <div>
         <div class="row">
-            <div class="col-lg-5">
+            <div class="col-lg-4">
                 <label for="" style="color:white" class="lead mr-2">Filter:</label>
-                <product-component product_type="deposit" @productSelected="productSelected" class="d-inline-block" style="width:500px" v-model="office_id"></product-component>
+                <product-component product_type="deposit" @productSelected="productSelected" class="d-inline-block" style="width:100%" v-model="office_id"></product-component>
                 <!-- <button type="button" class="btn btn-primary" @click="filter">Add New</button> -->
             </div>
-            <div class="col-lg-5">
+            <div class="col-lg-4">
                 <label for="" style="color:white" class="lead mr-2">Filter:</label>
-                <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px" v-model="office_id"></v2-select>
+                <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:100%" v-model="office_id"></v2-select>
                 <!-- <button type="button" class="btn btn-primary" @click="filter">Add New</button> -->
             </div>
-            <div class="col-lg-2">
+            <div class="col-lg-2 mt-8">
                 <button type="button" class="btn btn-primary" @click="submit">Search</button>
             </div>
             <div class="col-lg-6 float-right d-flex"  v-if="false">
                 <label for="" style="color:white" class="lead mr-2">Search:</label>
                 <input type="text" id="search_client" class="form-control border-light pb-2" v-model="query" v-debounce:300ms="inputSearch"/>
                 <div>
-            </div>  
+        	</div>
         </div>
-        
 		<div class="w-100 px-3 mt-6" >
 			<table class="table" >
 				<thead>
@@ -65,7 +64,7 @@
 				<tbody v-else>
 					<tr  v-for="(item, key) in lists.data" :key="item.id">
 
-						<td><input type="checkbox" class="   00"  :id="item.id" @change="checked(item,$event)" :checked="accountOnList(item.id)"></td>
+						<td><input type="checkbox" class="00"  :id="item.id" @change="checked(item,$event)" :checked="accountOnList(item.id)"></td>
 						
 						<td><label :for="item.id">{{item.type.name}}</label></td>
 						<td><a :href="clientLink(item.client.client_id)">{{item.client.client_id}}</a></td>

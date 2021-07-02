@@ -20,7 +20,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'firstname','lastname','middlename','gender','birthday','notes','email', 'password','created_by','send_to','is_disabled'
+        'firstname','lastname','middlename','gender','birthday','notes','email', 'password','created_by','send_to','is_active'
    ]; 
 
     /**
@@ -44,7 +44,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'is_disabled' => 'boolean'
+        'is_active' => 'boolean'
     ];
 
     protected $appends = ['fullname'];
@@ -188,7 +188,24 @@ class User extends Authenticatable
         return $scopes;
     }
 
-    public static function search($query, $office_id){
+    public static function search($query){
+        $me = new static;
+        $searchables = $me->searchables;
+        if($query==""){
+            return null;
+        }
+        $users = User::where(function(Builder $dbQuery) use ($query,$searchables){
+            foreach($searchables as $item){  
+                $dbQuery->orWhere($item,'LIKE','%'.$query.'%');
+            }
+        });
+        
+        return $users->get();
+    }
+
+    
+
+    public static function searchOfficeUsers($query, $office_id){
         $me = new static;
         $searchables = $me->searchables;
         

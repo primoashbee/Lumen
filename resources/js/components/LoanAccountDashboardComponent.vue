@@ -15,17 +15,17 @@
                   </nav>
 				<div class="card-header">
                     <div class="row px-4">
-                        <div class="x">
-                            <h3 class="h3">{{client.full_name}} Multi-Purpose Loan</h3>
+                        <div class="text-left col-lg-6 pl-0">
+                            <h3 class="h3">{{client.full_name}}</h3>
                         </div>
-                        <div class="col-lg-6 text-right" v-if="account.disbursed!=0 && account.closed_at==null">
-                            <button  type="button" class="btn btn-primary" data-toggle="modal" @click="modal.modalState=true">
+                        <div class="text-right col-lg-6" v-if="account.disbursed!=0 && account.closed_at==null">
+                            <button v-if="can('enter_repayment') || is('Super Admin')" type="button" class="btn btn-primary" data-toggle="modal" @click="modal.modalState=true">
                                 Pay
                             </button>
-                            <button  type="button" class="btn btn-primary" data-toggle="modal" @click="preTerm">
+                            <button v-if="can('enter_repayment') || is('Super Admin')"   type="button" class="btn btn-primary" data-toggle="modal" @click="preTerm">
                                 PreTerminate
                             </button>
-                            <button  type="button" class="btn btn-primary" data-toggle="modal" @click="exportDST">
+                            <button   type="button" class="btn btn-primary" data-toggle="modal" @click="exportDST">
                                 <i class="fas fa-file-invoice"></i> 
                             </button>
                         </div>
@@ -96,9 +96,9 @@
                     </div>
                 </div>
                 
-				<div class="card-body">
+				<div class="card-body profile-menu-tabs">
 
-                    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                    <ul class="nav nav-tabs mb-3" id="pills-tab" role="tablist">
                         <li class="nav-item">
                             <a class="nav-link active" id="account-installments-tab" data-toggle="pill" href="#account-installment" role="tab" aria-controls="account-installment" aria-selected="true">Installments</a>
                         </li>
@@ -107,9 +107,9 @@
                         </li>
 
                     </ul>
-                    <h3> Amortization Schedule </h3>
                     <div class="tab-content" id="pills-tabContent">
                         <div class="tab-pane fade show active" id="account-installment" role="tabpanel" aria-labelledby="account-installments-tab">
+                            <h3 class="h3"> Amortization Schedule </h3>
                             <table class="table table-condensed">
                                 <thead>
                                     <tr>

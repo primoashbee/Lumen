@@ -2,7 +2,7 @@
 <div class="modal fade modal-search" id="search_bar" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
 <div class="modal-dialog" role="document">
     <div class="modal-content">
-    <div class="modal-header">
+    <div class="modal-header search">
  
         <!-- <input type="text" class="form-control search_text" placeholder="SEARCH" name="" v-model="query">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -35,7 +35,11 @@
 </div>
 </div>
 </template>
-
+<style>
+    .search .multiselect__input{
+        background: rgb(241 242 255)!important;
+    }
+</style>
 <script>
 import Multiselect from 'vue-multiselect'
 import { debounce } from 'lodash';

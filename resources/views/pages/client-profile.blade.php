@@ -152,7 +152,7 @@
 		    </div>
 
 		    <div class="col-md-4">
-		      <div class="card">
+		      <div class="card mb-4">
 		        <div class="card-header">
 		          @can('view_loan_account')
 		          <div class="float-left text-center">
@@ -213,7 +213,7 @@
 		        </div>
 		      </div>
 
-		      <div class="card">
+		      <div class="card mb-4">
 			        <div class="card-header">
 			          <div class="float-left text-center">
 			          	<h4 class="mt-2 text-2xl">Deposit Accounts</h4>
@@ -273,7 +273,7 @@
 			        </div>
 		      </div>
 
-		      <div class="card">
+		      <div class="card mb-4">
 		        <div class="card-header">
 		          <div class="float-left text-center">
 		          	<h4 class="mt-2 h5">Dependents</h4>

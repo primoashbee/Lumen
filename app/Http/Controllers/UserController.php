@@ -28,7 +28,7 @@ class UserController extends Controller
         $users = User::with('office:id,name','roles:id,name')->paginate(25);
 
         if (request()->has('search') || request()->has('office_id')) {
-            $users = User::search(request()->search, request()->office_id)->paginate(25);
+            $users = User::searchOfficeUsers(request()->search, request()->office_id)->paginate(25);
         }
         
         return response()->json($users);

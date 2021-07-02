@@ -27,6 +27,7 @@ class ClientController extends Controller
 
     public function __construct(){
 
+        $this->middleware('permission:view_deposit_account', ['only' => ['depositAccount']]);
         $this->middleware('permission:view_client', ['only' => ['index','list']]);
         $this->middleware('permission:edit_client', ['only' => ['editClient','update']]);
         $this->middleware('permission:create_client', ['only' => ['step','createV1']]);
@@ -37,6 +38,7 @@ class ClientController extends Controller
     public function index(){
         $branches = auth()->user()->scopesBranch();
         return view('pages.create-client',compact('branches'));
+
     }
     
 
@@ -44,7 +46,7 @@ class ClientController extends Controller
         return view('pages.create-client');
     }
 
-    public function createV1(Request $request){
+    public function createV1(ClientRequest $request){
         $req = Client::clientExists($request);
         if($req['exists']){
             return response()->json($req,422);
@@ -76,7 +78,7 @@ class ClientController extends Controller
                     'monthly_net_income'=>round($business['monthly_gross_income'] - $business['monthly_operating_expense'],2)
                 ]);
             }
-
+            
         
             $client->household_income()->create($this->household_income_request());
 
@@ -210,7 +212,6 @@ class ClientController extends Controller
         }
         $client->load('household_income','businesses');
         return view('pages.client-profile',compact('client'));
-        
     }
 
     public function editClient(Client $client){
@@ -224,7 +225,7 @@ class ClientController extends Controller
     }
 
     public function update(ClientRequest $request, Client $client){
-        
+        // dd($client);
         // $request = $this->antiNullStrings($request);
         $filename = $client->client_id.'.jpeg';
 

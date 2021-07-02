@@ -27,6 +27,8 @@
         csrfToken: "{{ csrf_token() }}",
         userPermissions: {!! auth()->check()?auth()->user()->userPermissions():null !!}
     }
+
+    console.log(Laravel.userPermissions);
 </script>
 
 </script>

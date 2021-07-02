@@ -5229,7 +5229,7 @@ body.dark-mode .card{
 }
 
 body.dark-mode a.l-text,.sidebar-nav ul.main-nav li:not(.sub-list):hover a:not(.sub-nav):not(.second-sub-nav),
-.sidebar-nav ul.main-nav li.active a:not(.sub-nav),
+.sidebar-nav ul.main-nav li.active a:not(.sub-nav):not(.second-sub-nav),
 body.dark-mode h1,
 body.dark-mode h2,
 body.dark-mode h3,
@@ -5239,7 +5239,7 @@ body.dark-mode h6,
 body.dark-mode input[type=text].form-control:not(.search_text){
 	color: #fff;
 }
-a[aria-expanded="true"] p,a[aria-expanded="true"] i,.sub-list:hover a.sub-nav,.second-sub-list:hover a.second-sub-nav{
+ul:not(.sub-collapse) a[aria-expanded="true"] p,ul:not(.sub-collapse) a[aria-expanded="true"] i,.sub-list:hover a.sub-nav,.second-sub-list:hover a.second-sub-nav{
     color: #fff!important;
 }
 option:selected { background-color: transparent; }
@@ -5662,7 +5662,7 @@ a.dropdown-toggle.l-text+.dropdown-menu {
     height: auto;
     white-space: nowrap;
 }
-.sidebar-nav ul.main-nav:not(.sub-collapse) li.active a:not(.sub-nav):after{
+.sidebar-nav ul.main-nav:not(.sub-collapse) li.active a:not(.sub-nav):not(.second-sub-nav):after{
 	content: " ";
     position: absolute;
     height: 6px;

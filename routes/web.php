@@ -37,11 +37,7 @@ use Symfony\Component\HttpFoundation\Request;
 |
 */
 
-
-
-
 // Route::post('/download/dst/{id}','DownloadController@dst');
-
 
 Route::get('/log', function(){
     return view('pages.login-page');
@@ -57,6 +53,8 @@ Route::get("/gg",function(){
 });
 Route::group(['middleware' => ['auth']], function () {
 
+        Route::post('/user/changepass/{user}', 'UserController@changepass')->name('changepass');
+
     Route::group(['middleware' => ['permission:extract_reports']], function () 
     {
 
@@ -64,7 +62,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/download/dst/{loan_account_id}','DownloadController@dst');
         Route::get('/download/dst/bulk/{bulk_transaction_id}','DownloadController@dstBulk');
         Route::post('/download/ccr','DownloadController@ccr');
-    
+        
     });
 
 
@@ -85,7 +83,6 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/create/user', 'UserController@storeUser')->name('create.user');
         Route::get('/users', 'UserController@users')->name('users.list');
         Route::get('/users/list', 'UserController@getUsers')->name('users.list');
-        Route::post('/user/changepass/{user}', 'UserController@changepass')->name('changepass');
         Route::post('/edit/user/{user}', 'UserController@update')->name('update.user');
         Route::get('/edit/user/{user}', 'UserController@edit')->name('update.user');
 
@@ -110,6 +107,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/settings/create/penalty', function(){
             return view('pages.create-penalty');
         });
+        
         Route::get('/settings', function(){
             return view('pages.settings');
         })->name('administration');
@@ -127,6 +125,9 @@ Route::group(['middleware' => ['auth']], function () {
     });
 
 
+    Route::get('/create/office/cluster', 'ClusterController@create');
+
+
     Route::get('/loan/products','LoanController@');
     Route::get('/fees','FeeController@getList');
 
@@ -136,41 +137,49 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/loan/calculator', 'LoanAccountController@calculate')->name('loan.calculator');
     Route::post('/products','ProductController@index');
 
-    Route::get('/client/{client_id}/create/dependents', 'ClientController@toCreateDependents')->name('client.create.dependents');
+
     Route::post('/client/create/dependent', 'DependentController@createDependents')->name('create.dependents.post');
     Route::get('/client/update/dependent', 'DependentController@updateDependentStatus')->name('create.dependents.activate');
-    Route::get('/client/{client_id}/manage/dependents', 'ClientController@dependents')->name('client.manage.dependents');
-    Route::get('/dependents/{client_id}', 'ClientController@listDependents')->name('client.dependents.list');
-    Route::get('/client/{client_id}/create/loan', 'LoanAccountController@index')->name('client.loan.create');
+    
+    
+    
     Route::post('/client/create/loan', 'LoanAccountController@createLoan')->name('client.loan.create.post');
-    Route::get('/client/{client_id}/loans', 'LoanAccountController@clientLoanList')->name('client.loan.list');
+    
     Route::get('/loan/approve/{loan_id}','LoanAccountController@approve')->name('loan.approve');
     Route::get('/loan/disburse/{loan_id}','LoanAccountController@disburse')->name('loan.disburse');
     
-    Route::get('/client/{client_id}/loans/{loan_id}','LoanAccountController@account')->name('loan.account');
+    
     Route::post('/loans/repay','RepaymentController@accountPayment');
     Route::post('/loans/preterm','RepaymentController@preTerminate');
     Route::post('/revert','RevertController@revert')->name('revert.action');
     Route::get('/dashboard','DashboardController@dashboard')->name('dashboard');
     Route::get('/dashboard/v1/{reload?}/{office_id}/{type}','DashboardController@type');
 
-
-    //Reports
-
-
-
     
     Route::get('/create/client','ClientController@index')->name('precreate.client');
     Route::post('/create/client','ClientController@createV1')->name('create.client'); 
     Route::get('/clients','ClientController@list')->name('client.list');
     Route::get('/clients/list','ClientController@getList')->name('get.client.list');
-    Route::get('/client/{client_id}','ClientController@view')->name('client.profile');
-    Route::get('/edit/client/{client}','ClientController@editClient');
-    Route::post('/edit/client/{client}','ClientController@update');
+
+    Route::middleware(['user_client_scope'])->group(function() {
+        
+        Route::get('/client/{client_id}','ClientController@view')->name('client.profile');
+        Route::get('/client/{client_id}/create/loan', 'LoanAccountController@index')->name('client.loan.create');
+        Route::get('/client/{client_id}/loans', 'LoanAccountController@clientLoanList')->name('client.loan.list');
+        Route::get('/client/{client_id}/deposit/{deposit_account_id}', 'ClientController@depositAccount')->name('client.deposit'); 
+        Route::get('/client/{client_id}/loans/{loan_id}','LoanAccountController@account')->name('loan.account');   
+        Route::get('/client/{client_id}/create/dependents', 'ClientController@toCreateDependents')->name('client.create.dependents');
+        Route::get('/dependents/{client_id}', 'ClientController@listDependents')->name('client.dependents.list');
+        Route::get('/client/{client_id}/manage/dependents', 'ClientController@dependents')->name('client.manage.dependents');
+        Route::get('/edit/client/{client}','ClientController@editClient');
+        Route::post('/edit/client/{client}','ClientController@update');
+
+    });
+
     
     
 
-    Route::get('/client/{client_id}/deposit/{deposit_account_id}', 'ClientController@depositAccount')->name('client.deposit'); 
+    
 
     Route::post('/deposit/{deposit_account_id}','DepositAccountController@deposit')->name('client.make.deposit'); //make deposit transaction individually
     Route::post('/withdraw/{deposit_account_id}','DepositAccountController@withdraw')->name('client.make.withdrawal'); //make deposit transaction individually

@@ -3,7 +3,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="csrf-token" content="{{ csrf_token() }}" />
-	<title>{{ ENV('APP_NAME') }}</title>
+	<title>LUMEN</title>
 	<link rel="icon" href="{{asset('favico.png')}}">
 
 	{{-- <link rel="stylesheet" type="text/css" href="{{ asset('css/main.css') }}"> --}}

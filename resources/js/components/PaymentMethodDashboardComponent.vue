@@ -236,9 +236,12 @@
 	tr td .form-check-sign{
 		position: absolute;
 	}
-	tr td .form-check-sign,table .form-check .form-check-sign::before,table .form-check .form-check-sign::after{
-		top: 5px;
+
+	table#payment_method .form-check input[type=checkbox]:checked + .form-check-sign::after{
+		top: -8px;
 	}
+
+	
 </style>
 <script type="text/javascript">
 	export default{

@@ -47,13 +47,13 @@ class LoginController extends Controller
         return [
             'email'     => request()->email,
             'password'  => request()->password,
-            'is_disabled' => 0
+            'is_active' => 1
         ];
     }
 
     public function logout(){
         Auth::logout();
         session()->flush();
-        return redirect('/');
+        return redirect('/login');
     }
 }

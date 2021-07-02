@@ -66,6 +66,7 @@ Vue.component('date-picker', require('./components/DatePickerComponent.vue').def
 Vue.component('v2-select', require('./components/SelectComponentV2.vue').default);
 
 Vue.component('create-client', require('./components/CreateClientComponent.vue').default);
+Vue.component('create-cluster', require('./components/CreateClusterComponent.vue').default);
 // Vue.component('create-client-form', require('./components/ClientCreateFormComponent.vue').default);
 Vue.component('update-client-form', require('./components/ClientUpdateFormComponent.vue').default);
 Vue.component('create-client-form', require('./components/CreateClientFormComponent.vue').default);

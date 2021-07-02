@@ -1,7 +1,7 @@
 <template>
 <div>
         <div class="row">
-            <div class="col-lg-3">
+            <div class="col-lg-4">
                 <label for="" style="color:white" class="lead mr-2">Level:</label>
                 <v2-select class="d-inline-block" style="width:100%;" @officeSelected="officeSelected" ></v2-select>
             </div>
@@ -13,28 +13,18 @@
                 <label for="" style="color:white" class="lead"  >Status</label>
                 <status @statusSelected="statusSelected"></status>
             </div>
-            <button type="button" class="btn btn-primary" @click="filter"> Submit </button>
-        </div>
-
-        <div class="row">
-            <div class="col-1">
-            <label for="" class="lead" style="color:white"> Per Page: </label>
-            <select v-model="request.per_page" class="form-control" @change="filter">
-                <option value="10">10</option>
-                <option value="15">15</option>
-                <option value="20">20</option>
-                <option value="25">25</option>
-                <option value="30">30</option>
-                <option value="40">40</option>
-                <option value="50">50</option>
-            </select>
+            
+            <div class="my-4 col-12">
+                <button type="button" class="btn btn-primary" @click="filter"> Filter </button>
             </div>
-            <div class="col-6"></div>
+
             <div class="col-4">
-                <label for="search" class="lead" style="color:white"> Search </label>
+                <label for="search" class="lead text-white"> Search </label>
                 <input type="text" v-model="request.search" class="form-control">
             </div>
         </div>
+        
+        
         <div class="w-100 px-3 mt-6" >
             <table class="table" >
                 <thead>
@@ -56,7 +46,21 @@
                     </tr>
                 </tbody>
             </table>
-            
+            <div class="row">
+                <div class="col-1">
+                <label for="" class="lead" style="color:white"> Per Page: </label>
+                <select v-model="request.per_page" class="form-control" @change="filter">
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                    <option value="30">30</option>
+                    <option value="40">40</option>
+                    <option value="50">50</option>
+                </select>
+                </div>
+                
+            </div>
             <div class="clearfix"></div>
             <paginator :dataset="lists" @updated="fetch"></paginator>
         </div>

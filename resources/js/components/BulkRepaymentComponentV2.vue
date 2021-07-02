@@ -17,12 +17,12 @@
                     <label for="" style="color:white" class="lead">Loan Product</label>
                     <products @productSelected="loanProductSelected" list="loan" status="1" multi_values="false"></products>
                 </div>
-                <div class="col-4">
+                <div class="col-4 mt-4">
                     <label for="" style="color:white" class="lead">Deposit</label>
                     <products @productSelected="depositProductSelected" list="deposit" status="1" multi_values="true"></products>
                 </div>
-                <div class="col-1">
-                    <button class="btn btn-primary mt-4">Filter</button>
+                <div class="w-100 pl-3">
+                    <button class="btn btn-primary mt-12">Filter</button>
                 </div>
                 <div class="col-1" v-if="hasRecords">
                     <button class="btn btn-primary mt-4" @click.prevent="download">Print CCR</button>

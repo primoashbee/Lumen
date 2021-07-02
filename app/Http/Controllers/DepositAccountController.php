@@ -24,7 +24,7 @@ class DepositAccountController extends Controller
     public function __construct(){
 
         $this->middleware('permission:enter_deposit|enter_withdraw|interest_posting', ['only' => ['showBulkView']]);
-        $this->middleware('permission:interest_posting', ['only' => ['postInterest','bulkPostInterest']])
+        $this->middleware('permission:interest_posting', ['only' => ['postInterest','bulkPostInterest']]);
     }
 
 

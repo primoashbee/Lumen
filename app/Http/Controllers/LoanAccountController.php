@@ -28,7 +28,8 @@ class LoanAccountController extends Controller
 {
 
     public function __construct(){
-
+        
+        $this->middleware('permission:view_loan_account', ['only' => ['account']]);
         $this->middleware('permission:approve_loan', ['only' => ['bulkApproveForm']]);
         $this->middleware('permission:disburse_loan', ['only' => ['bulkDisburseForm','preDisbursementList','disburse']]);
 

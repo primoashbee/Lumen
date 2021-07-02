@@ -25,12 +25,12 @@
                             </div>
                             <div class="form-group ml-10 d-inline-block align-top mt-8">
                                 <div class="p0 form-check">
-                                    <label class="form-check-label" for="is_disabled">
-                                        <input class="form-check-input cb-type" type="checkbox" id="is_disabled" v-model="fields.is_disabled">
+                                    <label class="form-check-label" for="is_active">
+                                        <input class="form-check-input cb-type" type="checkbox" id="is_active" v-model="fields.is_active">
                                         <span class="form-check-sign">
                                         <span class="check"></span>
                                         </span>
-                                        <label for="is_disabled">Active</label>
+                                        <label for="is_active">Active</label>
                                     </label>
                                 </div>
                             </div>  
@@ -117,7 +117,7 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 					role_ids:[],
 					gender:"",
 					email:"",
-					is_disabled:false
+					is_active:true
 				},
 				errors:{}
 			}	

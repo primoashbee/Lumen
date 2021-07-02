@@ -55,7 +55,7 @@
 					</a>
 				</li>
 				@endcan
-				@can('view_clusters')
+				@can('view_cluster')
 				<li class="py-2 {{ request()->is('cluster') ? 'active' : '' }}">
 					<a href="">
 						<i class="fas fa-2x fa-user-friends"></i>
@@ -63,7 +63,13 @@
 					</a>
 				</li>
 				@endcan	
-				<li class="py-2 {{ request()->is('bulk') ? 'active' : '' }}">
+				@canany(['enter_withdrawal',
+				'interest_posting',
+				'enter_deposit',
+				'enter_withdrawal',
+				'interest_posting',
+				'enter_deposit'])
+				<li class="py-2 {{ request()->is('bulk/*') ? 'active' : '' }}">
 					<a data-toggle="collapse" href="#bulk" role="button" aria-expanded="false" aria-controls="create" class="has-sub">
 						<i class="fas fa-2x fa-layer-group"></i>
 						<p>Bulk<b class="caret"></b></p>
@@ -71,10 +77,12 @@
 					<div class="collapse" id="bulk">
 						  <ul class="sub-collapse">
 							<li class="sub-list">
-								<a class="sub-nav" data-toggle="collapse" href="#bulk-deposit" role="button" aria-expanded="false" aria-controls="create" class="has-sub">
-									<i class="fas fa-piggy-bank"></i>
-									<p>Deposit<b class="caret"></b></p>
-								</a>
+								@canany(['enter_withdrawal','interest_posting','enter_deposit'])
+									<a class="sub-nav" data-toggle="collapse" href="#bulk-deposit" role="button" aria-expanded="false" aria-controls="create" class="has-sub">
+										<i class="fas fa-piggy-bank"></i>
+										<p>Deposit<b class="caret"></b></p>
+									</a>
+								@endcanany
 								<div class="collapse" id="bulk-deposit">
 									<ul class="sub-collapse">
 										@can('enter_withdrawal')
@@ -114,7 +122,7 @@
 										@can('create_loan_account')
 										<li class="second-sub-list">
 											<a class="second-sub-nav" href="{{route('bulk.create.loans')}}">
-												<i class="fas fa-plus-square"></i>
+												<i>CL</i>
 												<p>Create Loans</p>
 											</a>
 										</li>
@@ -122,7 +130,7 @@
 										@can('approve_loan')
 										<li class="second-sub-list">
 											<a class="second-sub-nav" href="{{route('bulk.approve.loans')}}">
-												<i class="fas fa-thumbs-up"></i>
+												<i>AL</i>
 												<p> Approve Loans</p>
 											</a>
 										</li>
@@ -130,7 +138,7 @@
 										@can('disburse_loan')
 										<li class="second-sub-list">
 											<a class="second-sub-nav" href="{{route('bulk.disburse.loans')}}">
-												<i class="fas fa-cash-register"></i>
+												<i>DL</i>
 												<p>Disburse Loans</p>
 											</a>
 										</li>
@@ -149,7 +157,9 @@
 						</ul>
 					 </div>
 				</li>
-				<li class="{{ request()->is('accounts/') ? 'active' : '' }} py-2">
+				@endcanany
+				@canany(['view_loan_account','view_deposit_account','view_loan_account','view_deposit_account'])
+				<li class="{{ request()->is('accounts/*') ? 'active' : '' }} py-2">
 					<a data-toggle="collapse" href="#accounts" role="button" aria-expanded="false" aria-controls="create" class="has-sub">
 						<i class="fas fa-2x fa-cubes"></i>
 						<p>Accounts <b class="caret"></b></p>
@@ -183,6 +193,7 @@
 						</ul>
 					 </div>
 				</li>
+				@endcanany
 				<li class="py-2 {{ request()->is('accounting') ? 'active' : '' }}">
 					<a href="">
 						<i class="far fa-2x fa-money-bill-alt"></i>
