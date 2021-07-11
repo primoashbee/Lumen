@@ -286,26 +286,38 @@ class Loan extends Model
                             ]
                         ]),
                     ],
-                    (object) ['code'=>'GML',
+                    (object) [
+                    'code'=>'GML',
                     'rates'=>
-                        [
+                        collect([
                             (object) [
-                                'code'=>'MPL',
-                                'installments'=>24,
-                                'rate'=>5.475225,
+                                'code'=>'GML',
+                                'installments'=>12,
+                                'rate'=>5.210394,
                                 'term'=>6
-                            ]
-                        ]
+                            ],
+                            (object) [
+                                'code'=>'GML',
+                                'installments'=>24,
+                                'rate'=>5.184610,
+                                'term'=>12
+                            ],
+                        ])
+                        
                     ]
                 ];
 
         if($id!=null){
             $code = Loan::select('code')->find($id)->code;
             return collect($data)->where('code',$code)->first()->rates;
+            
         }
         return collect($data);
     }
 
+    public function sample(){
+
+    }
     public static function getRateFromInstallment($loan_id,$number_of_installments){
         return Loan::rates(1)->rates->where('installments', $number_of_installments)->first();
 

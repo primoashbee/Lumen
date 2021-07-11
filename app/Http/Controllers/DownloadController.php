@@ -837,4 +837,8 @@ class DownloadController extends Controller
         return ['file'=>$newFile, 'filename' => $filename, 'headers'=>$headers];
     }
 
+    public static function templateDataImport(){
+        return 'hey';
+    }
+
 }

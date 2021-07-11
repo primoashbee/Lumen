@@ -36,6 +36,9 @@ class Fee extends Model
         if($loan_product->installment_method=="weeks"){
             $weeks = $installment;
         }
+        if($loan_product->installment_method=="days"){
+            $weeks = $installment;
+        }
 
         
         if($this->calculation_type=="fixed"){

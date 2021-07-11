@@ -64,16 +64,16 @@ class LoanAccountController extends Controller
         }
         
         $disbursed_amount = $loan_amount - $total_deductions;
-        $annual_rate = $loan->annual_rate;
+        $annual_rate = (double) $loan->annual_rate;
         $start_date = $request->first_payment;
         
         $loan_interest_rate = Loan::rates($loan->id)->where('installments',$number_of_installments)->first()->rate;
-
+        
         $data = array(
             'principal'=>$loan_amount,
             'annual_rate'=>$annual_rate,
             'interest_rate'=>$loan_interest_rate,
-            'monthly_rate'=>$loan->monthly_rate,
+            'monthly_rate'=>(double) $loan->monthly_rate,
             'interest_interval'=>$loan->interest_interval,
             'disbursement_date'=>$loan->disbursement_date,
             'term'=>$loan->installment_method,

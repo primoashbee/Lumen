@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class Scheduler extends Model
 {
     
-    public function hasHoliday($date,$office_id){
+    public static function hasHoliday($date,$office_id){
         $date = Carbon::parse($date);
         $count = Holiday::where('date',$date)->where('office_id',$office_id)->count();
         if($count > 0){
@@ -19,12 +19,12 @@ class Scheduler extends Model
     }
 
 
-    public static function getDate($date,$office_id){
+    public static function getDate($date,$office_id, $interval=  7){
         $me = new static;
         $date = Carbon::parse($date);
         
-        if($me->hasHoliday($date, $office_id)){
-            return $me->getDate($date->copy()->addWeek(),$office_id);
+        if(self::hasHoliday($date, $office_id)){
+            return self::getDate($date->copy()->addDays($interval),$office_id,$interval);
         }
         return $date;
     }

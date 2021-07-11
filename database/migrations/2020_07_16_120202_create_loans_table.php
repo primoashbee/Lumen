@@ -64,6 +64,7 @@ class CreateLoansTable extends Migration
             $table->boolean('status')->default(1);
 
             $table->boolean('has_optional_fees')->default(false);
+            $table->boolean('next_working_day_if_holiday')->default(false);
             $table->string('type');
             $table->timestamps();
         });

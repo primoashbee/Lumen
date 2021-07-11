@@ -8,6 +8,7 @@
 			<div class="card">
 				<div class="card-header">
 					<h3 class="h3"> General Data Import </h3>
+					<a href="{{route('download.data-import')}}"> Download Template </a>
 				</div>
 				<div class="card-body">
 					@if(Session::has('message'))
@@ -41,7 +42,8 @@
 							<tr>
 								<td>{{$item->name}}</td>
 								<td>{{$item->user->name()}}</td>
-								<td>{{!is_null($item->logs) ? $item->logs->last()->message : 'Processing'}}</td>
+								<td></td>
+								{{-- <td>{{!is_null($item->logs) ? $item->logs->last()->message : 'Processing'}}</td> --}}
 								<td>{{$item->created_at->format('F d, Y - g:i A')}}</td>
 								<td><a href="{{route('settings.import.logs',$item->id)}}"><button class="btn btn-success"> View Logs <i class="fas fa-align-right"></i> </button></a></td>
 							</tr>

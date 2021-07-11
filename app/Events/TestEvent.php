@@ -23,6 +23,8 @@ class TestEvent implements ShouldBroadcast, ShouldQueue
     public $msg;
     public function __construct($msg)
     {
+        $repayment_date = now();
+        
         
         $this->msg = $msg;
     }

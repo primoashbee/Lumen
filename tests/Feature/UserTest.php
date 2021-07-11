@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\User;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -10,42 +11,44 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class UserTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * A basic feature test example.
      *
      * @return void
      */
-    public function testUserSuccessLogIn()
-    {
+    // public function testUserSuccessLogIn()
+    // {
+    //     Session::start();
+    //     $user = factory(User::class)->create([
+    //         'password' => bcrypt('sv9h4pld'),
+    //     ]);
+       
+    //     $response = $this->from('/login')->post('/login', [
+    //         'email' => $user->email,
+    //         'password' => 'sv9h4pld',
+    //     ]);
+        
+    //     $response->assertRedirect('/dashboard');
+    //     $this->assertEquals(302, $response->getStatusCode());
+
+        
+    // }
+
+    public function testUserRegistration(){
         Session::start();
-        $response = $this->post('/login', [
+        $credentials = [
             'email' => 'ashbee.morgado@icloud.com',
-            'password' => 'sv9h4pld',
-            'csrf_token' => csrf_token()
-        ]);
-        $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals('auth.login', $response->original->name());
-        // $response->assertSessionHasErrors();
-
-    
-        // //this works
-        // // $response->assertRedirect('/dashboard');
-    
-        // //this fails 
-        // $this->assertTrue(Auth::check());
-        
-    }
-
-    public function signIn(){
-        $credential = [
-            'email' => 'ashbee.morgado@icloud.com',
-            'password' => 'sv94hpld'
+            'password' => bcrypt('sv94hpld')
         ];
-    
-        
-        $response = $this->post('login',$credential);
-        // $response->assertRedirect('/dashboard');
 
+        $response = $this->post('/register', $credentials);
+
+        $response->assertRedirect('/dashboard');
+        $this->assertEquals(302, $response->getStatusCode());
 
     }
+
+
 }

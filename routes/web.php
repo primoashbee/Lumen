@@ -34,6 +34,7 @@ Route::group(['middleware' => ['auth']], function () {
     
     Route::prefix('/download')->group(function(){
         Route::post('/ccr','DownloadController@ccr');
+        Route::get('/template/data-import','DownloadController@templateDataImport')->name('download.data-import');
         Route::get('/dst/{loan_account_id}','DownloadController@dst');
         Route::get('/dst/bulk/{bulk_transaction_id}','DownloadController@dstBulk');
     });

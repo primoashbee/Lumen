@@ -55,7 +55,6 @@ export default {
     data(){
         return {
             lists: [],
-            hasRecords: false,
             isLoading:false,
             query:"",
             toLink: '/settings/loan/',
@@ -100,13 +99,7 @@ export default {
             this.office_id = value['id']
             this.fetch()
         },
-        checkIfHasRecords(){
-            this.hasRecords = false
-            if (this.viewableRecords > 0){
-                this.hasRecords = true
-            }
-            
-        },
+
         noOfficeSelected(){
             if(this.office_id == null){
                 return true
@@ -161,6 +154,12 @@ export default {
         },
         viewableRecords(){
             return Object.keys(this.lists.data).length
+        },
+        hasRecords(){
+            if(this.lists.hasOwnProperty('data')){
+                return true;
+            }
+            return false;
         }
 
     }

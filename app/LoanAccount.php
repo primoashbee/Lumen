@@ -367,6 +367,251 @@ class LoanAccount extends Model
             
             return $data;
         }
+        if ($data['term'] == 'days'){
+            $interval = 7;
+            $number_of_weeks = 52;
+
+            $term_length = $data['term_length'];
+
+            $exponent = $number_of_weeks * ($term_length/$number_of_weeks);
+            
+            $base = 1+((double) $data['annual_rate']/$number_of_weeks);
+            
+            $principal = $data['principal'];
+            
+            $total_amount = $principal * pow($base, $exponent);
+            $monthly_rate = ($data['monthly_rate'] * ($term_length / 4));
+            // $total_interest = round($total_amount - $principal, 2);
+            $total_interest = round($principal * $monthly_rate, 2);
+            
+            $amortization = $total_amount / $term_length;
+
+            $principal_balance = $principal;
+            $installments = array();
+
+            $interest_rate = $data['interest_rate'];
+            // $interest_rate = 0;
+
+            $weekly_compounding_rate = ($interest_rate / 4) / 100;
+            
+            $interest_balance = round($total_interest, 2);
+
+            // $sched = new Scheduler($start_date,$office_id);
+            $office_id = $data['office_id'];
+            $start_date = Scheduler::getDate($data['start_date'], $office_id);
+            $current_date = now()->startOfDay();
+            // $end_date;
+            $late = false;
+            $date = 'now';
+
+            for ($x=0;$x<=$term_length;$x++){
+                if ($x>0){
+                    if ($x==1) {
+                        $date = $start_date;
+                    }else{
+                        $previous_installment_date  = Carbon::parse($installments[$x-1]->date);
+                        $date = Scheduler::getDate($previous_installment_date->addWeek(), $office_id);
+                    }
+                    $days_diff = $current_date->diffInDays($date, false);
+                    $late = $days_diff <= 0; //is due
+                }
+                //first row
+                if ($x == 0) {
+                    $interest = 0;
+                    $principal = 0;
+                    $installments[] = (object)array(
+                        'installment'=>$x,
+                        'date'=>"----",
+                        'principal_balance'=>$principal_balance,
+                        'interest'=>$interest,
+                        'interest_balance'=>$interest_balance,
+                        'principal'=>$principal,
+                        'amortization'=>$principal + $interest,
+                        'interest_days_incurred' =>0,
+
+                        'formatted_principal_balance'=>money($principal_balance, 2),
+                        'formatted_interest'=>money($interest, 2),
+                        'formatted_interest_balance'=>money($interest_balance, 2),
+                        'formatted_principal'=>money($principal, 2),
+                        'formatted_amortization'=>money($principal + $interest, 2)
+
+                    );
+                    $principal_balance = round($principal_balance - $principal, 2);
+                    $interest_balance = round($interest_balance - $interest, 2);
+
+                //last row
+                } elseif ($x==$term_length) {
+                    $principal = $installments[$x-1]->principal_balance;
+                    $interest = $installments[$x-1]->interest_balance;
+                    
+                    $principal_balance = $installments[$x-1]->principal_balance - $principal;
+                    $interest_balance = $installments[$x-1]->interest_balance - $interest;
+                    $amortization = $interest + $principal;
+
+                    $diff_in_days = $date->diffInDays(now()->startOfDay(), false);
+                    $interest_days_incurred =  0;
+                    if ($diff_in_days >= -6) {
+                        $interest_days_incurred =   $diff_in_days > 0 ? 7 : $diff_in_days + 7;
+                    }
+                    
+                    $per_day_interest = round($interest / 7, 2);
+                    
+                    $interest_due = round($per_day_interest * ($interest_days_incurred), 2);
+
+                    
+                    $principal_due = 0;
+                    $amount_due = 0;
+                
+                    if ($late) {
+                        $interest_due = $interest;
+                        $principal_due = $principal;
+                        $amount_due = $interest + $principal;
+                    }
+                    
+
+                    $installments[] = (object)array(
+                        'installment'=>$x,
+                        'date'=>$date,
+                        'principal_balance'=>$principal_balance,
+                        'interest'=>$interest,
+                        'principal'=>$principal,
+                        'interest_balance'=>$interest_balance,
+                        'amortization'=>$amortization,
+                        
+                        'interest_due'=>$interest_due,
+                        'principal_due'=>$principal_due,
+                        'amount_due'=>$amount_due,
+                        'interest_days_incurred'=>$interest_days_incurred,
+                        'formatted_amount_due'=>money($amount_due, 2),
+
+                        'formatted_principal_balance'=>money($principal_balance, 2),
+                        'formatted_interest'=>money($interest, 2),
+                        'formatted_interest_balance'=>money($interest_balance, 2),
+                        'formatted_principal'=>money($principal, 2),
+                        'formatted_amortization'=>money($amortization, 2)
+
+                    );
+                    $principal_balance = $principal_balance - $principal;
+                    $end_date = $date;
+
+                //first payment
+                } elseif ($x==1) {
+
+                    $interest = round($principal_balance * $weekly_compounding_rate, 2);
+                    $principal = round($amortization - $interest, 2);
+                    
+                    $principal_balance = round($principal_balance - $principal, 2);
+                    $interest_balance =round($interest_balance - $interest, 2);
+                    $amortization = round($interest + $principal, 2);
+
+                    $diff_in_days = $start_date->diffInDays(now()->startOfDay(), false);
+                    $interest_days_incurred =  0;
+                    if ($diff_in_days >= -6) {
+                        $interest_days_incurred =   $diff_in_days > 0 ? 7 : $diff_in_days + 7;
+                    }
+                    
+                    $per_day_interest = round($interest / 7, 2);
+                    $interest_due = round($per_day_interest * ($interest_days_incurred), 2);
+                    
+                    $principal_due = 0;
+                    $amount_due = 0;
+                    
+                    if ($late) {
+                        $interest_due = $interest;
+                        $principal_due = $principal;
+                        $amount_due = $interest + $principal;
+                    }
+                    $installments[] = (object)array(
+                            'installment'=>$x,
+                            'date'=>$start_date,
+                            'principal_balance'=>$principal_balance,
+                            
+                            'interest'=>$interest,
+                            'principal'=>$principal,
+                            
+                            'interest_due'=>$interest_due,
+                            'principal_due'=>$principal_due,
+                            'amount_due'=>$amount_due,
+
+                            'interest_balance'=>$interest_balance,
+                            'amortization'=>$amortization,
+                            'interest_days_incurred' =>$interest_days_incurred,
+                            
+
+                            'formatted_amount_due'=>money($amount_due, 2),
+                            'formatted_principal_balance'=>money($principal_balance, 2),
+                            'formatted_interest'=>money($interest, 2),
+                            'formatted_interest_balance'=>money($interest_balance, 2),
+                            'formatted_principal'=>money($principal, 2),
+                            'formatted_amortization'=>money($amortization, 2)
+
+                        );
+                } else {
+                    $interest = round($principal_balance * $weekly_compounding_rate, 2);
+                    $principal = round($amortization - $interest, 2);
+                    
+                    $principal_balance = round($principal_balance - $principal, 2);
+                    $interest_balance = round($interest_balance - $interest, 2);
+                    $amortization = round($interest + $principal, 2);
+
+                    $diff_in_days = $date->diffInDays(now()->startOfDay(), false);
+                    $interest_days_incurred =  0;
+                    if ($diff_in_days >= -6) {
+                        $interest_days_incurred =   $diff_in_days > 0 ? 7 : $diff_in_days + 7;
+                    }
+                    
+                    $per_day_interest = round($interest / 7, 2);
+                    $interest_due = round($per_day_interest * ($interest_days_incurred), 2);
+       
+                    $principal_due = 0;
+                    $amount_due = 0;
+                    if ($late) {
+                        $interest_due = $interest;
+                        $principal_due = $principal;
+                        $amount_due = $interest + $principal;
+                    }
+
+                    
+
+                    $installments[] = (object)array(
+                            'installment'=>$x,
+                            'date'=>$date,
+                            'principal_balance'=>$principal_balance,
+                            'interest'=>$interest,
+                            'principal'=>$principal,
+                            'interest_balance'=>$interest_balance,
+                            'amortization'=>$amortization,
+
+                            'interest_due'=>$interest_due,
+                            'principal_due'=>$principal_due,
+                            'amount_due'=>$amount_due,
+                            'interest_days_incurred' =>$interest_days_incurred,
+                            
+                            'formatted_amount_due'=>money($amount_due, 2),
+                            'formatted_principal_balance'=>money($principal_balance, 2),
+                            'formatted_interest'=>money($interest, 2),
+                            'formatted_interest_balance'=>money($interest_balance, 2),
+                            'formatted_principal'=>money($principal, 2),
+                            'formatted_amortization'=>money($amortization, 2)
+
+                        );
+                }
+            }
+            
+            $disbursement_date = $data['disbursement_date'];
+            $total_loan_amount =  round($data['principal'] + $total_interest, 2);
+            $data = new stdClass;
+            $data->installments = collect($installments);
+            $data->total_interest = $total_interest;
+            $data->total_loan_amount = $total_loan_amount;
+            $data->disbursement_date = $disbursement_date;
+            $data->start_date = $start_date;
+            $data->end_date = $end_date;
+            
+            
+            
+            return $data;
+        }
     }
 
     public function feePayments()
