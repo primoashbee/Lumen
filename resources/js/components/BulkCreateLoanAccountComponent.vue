@@ -1,57 +1,53 @@
 <template>
     <div>
-        <div class="row">
-            <div class="col-lg-12">
-                <label for="" style="color:white" class="lead mr-2">Filter:</label>
-                <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px;" v-model="office_id"></v2-select>
+        <div class="row col-8">
+            <div class="col-lg-6 pl-0">
+                <div class="form-group">
+                    <label for="" style="color:white" class="lead mr-2">Filter:</label>
+                    <v2-select @officeSelected="assignOffice" style="width:500px;" v-model="office_id"></v2-select>
+                </div>
             </div>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-6">
+            <div class="col-lg-6 pl-0">
                 <div class="form-group">
                     <label for="product_id" > Product </label>
                     <loan-product-list id="product_id" @selected="selected"></loan-product-list>
                 </div>
             </div>
-            <div class="col-lg-2">
+            <div class="col-lg-6 pl-0">
                 <div class="form-group">
                     <label for="disbursement_date">Disbursement Date</label> 
                     <input type="date" class="form-control" v-model="form.disbursement_date">
                 </div>
+            </div>
+            <div class="col-lg-6 pl-0">
                 <div class="form-group">
                     <label for="repayment_date">First Repayment Date</label> 
                     <input type="date" class="form-control" v-model="form.first_payment">
                 </div>
             </div>
-        
-  
-            
-            <div class="d-table-row pl-3 mt-4">
-                <div class="d-table-cell form-group">
-                    <label for="installment" class="title text-xl">Number of Installment</label>
-                    <select id="installment" class="form-control" v-model="form.number_of_installments">
-                        <option :value="null"> Please Select</option>
-                        <option v-for="item in installment_list" :value="item.installments" :key="item.id"> {{item.installments}}</option>
-                    </select>
-                </div>
-                <div class="form-group d-table-cell pl-4">
-                    <label for="Interest" class="title text-xl">Interest</label>
-                    <input type="text" class="form-control" id="Interest" readonly :value="selected_interest">
-                </div>
-            </div>
-             <button class="btn btn-primary" @click.prevent="fetch"> Filter </button>
-              
-
-            
         </div>
+        <div class="d-table-row pl-3 mt-4">
+            <div class="d-table-cell form-group">
+                <label for="installment" class="title text-xl">Number of Installment</label>
+                <select id="installment" class="form-control" v-model="form.number_of_installments">
+                    <option :value="null"> Please Select</option>
+                    <option v-for="item in installment_list" :value="item.installments" :key="item.id"> {{item.installments}}</option>
+                </select>
+            </div>
+            <div class="d-table-cell form-group pl-4">
+                <label for="Interest" class="title text-xl">Interest</label>
+                <input type="text" class="form-control" id="Interest" readonly :value="selected_interest">
+            </div>
+
+        </div>
+         <button class="btn btn-primary my-4" @click.prevent="fetch"> Filter </button>   
 
 
  
       
 
         
-        <div class="w-100 px-3 mt-6" >
+        <div class="w-100 mt-6" >
             
             <table class="table" >
                 <thead>

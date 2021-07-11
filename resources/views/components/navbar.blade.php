@@ -26,7 +26,10 @@
       <a class="nav-link dropdown-toggle l-text" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">{{auth()->user()->name()}}</a>
       <div class="dropdown-menu">
         <ul>
-          <li>
+          <li class="px-0">
+            <change-password user_id="{{auth()->user()}}"></change-password>
+          </li>
+          <li class="px-0">
           <a class="dropdown-item d-text" href="#one">Profile</a>
           </li>
           <li class="">

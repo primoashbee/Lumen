@@ -29,6 +29,11 @@ use App\Http\Controllers\DownloadController;
 
 class RepaymentController extends Controller
 {
+    public function __construct(){
+
+        $this->middleware('permission:enter_repayment', ['only' => ['showBulkForm','bulkRepaymentV2']]);
+
+    }
     
     public function accountPayment(Request $request){
         

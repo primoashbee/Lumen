@@ -44,7 +44,7 @@
 <script>
 import SelectComponentV2 from './SelectComponentV2';
 import Swal from 'sweetalert2';
-import Paginator from './PaginatorComponent';
+import Paginator from './PaginatorComponentV2';
 import vueDebounce from 'vue-debounce'
 
 Vue.use(vueDebounce, {

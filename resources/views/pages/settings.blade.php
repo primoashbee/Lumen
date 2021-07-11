@@ -69,14 +69,14 @@
 					</li>
 					
 					<li class="settings-item user">
-						<a class="nav-link" id="home-tab" href="">
+						<a class="nav-link" id="home-tab" href="/users">
 							<i class="fas fa-3x fa-users"></i>
 							<p class="title text-center mt-2">Users</p>
 						</a>
 						
 					</li>
 					<li class="settings-item user">
-						<a class="nav-link" id="home-tab" href="">
+						<a class="nav-link" id="home-tab" href="/roles">
 							<i class="fas fa-3x fa-user-tag"></i>
 							<p class="title text-center mt-2">Role</p>
 						</a>

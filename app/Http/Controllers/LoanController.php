@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Validator;
 
 class LoanController extends Controller
 {
-    //
+    
 
     public function index(){
         return view('pages.settings.loan-list');

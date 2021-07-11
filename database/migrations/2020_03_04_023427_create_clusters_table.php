@@ -16,6 +16,7 @@ class CreateClustersTable extends Migration
         Schema::create('clusters', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedInteger('office_id');
+            $table->string('name');
             $table->unsignedInteger('officer_id');
             $table->string('notes');
             $table->unsignedInteger('client_id'); //assigned cluster president

@@ -74,7 +74,7 @@
                     <div class="row pr-3">
                         <div class="form-group col-md-6 col-lg-3">
                             <label for="client_id" class="text-lg">Linked To</label>
-                            <v2-select @officeSelected="assignOffice" v-bind:class="hasErrors('office_id') ? 'is-invalid' : ''"></v2-select>
+                            <v2-select @officeSelected="assignOffice" v-bind:class="hasErrors('office_id') ? 'is-invalid' : ''" :default_value ="fields.office_id"></v2-select>
                             <div class="invalid-feedback" v-if="hasErrors('office_id')">
                                 {{ errors.office_id[0]}}
                             </div>

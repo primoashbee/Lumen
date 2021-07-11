@@ -50,6 +50,12 @@ Vue.use(Money)
 Vue.use(BootstrapVue)
 Vue.use(IconsPlugin)
 
+Vue.prototype.can = function(value){
+    return window.Laravel.userPermissions.permissions.includes(value);
+}
+Vue.prototype.is = function(value){
+    return window.Laravel.userPermissions.roles.includes(value);
+}
 Vue.directive('mask', VueMaskDirective);
 Vue.component('products', require('./components/ProductsComponent.vue').default);
 Vue.component('notifications', require('./components/NotificationsComponent.vue').default);
@@ -60,6 +66,7 @@ Vue.component('date-picker', require('./components/DatePickerComponent.vue').def
 Vue.component('v2-select', require('./components/SelectComponentV2.vue').default);
 
 Vue.component('create-client', require('./components/CreateClientComponent.vue').default);
+Vue.component('create-cluster', require('./components/CreateClusterComponent.vue').default);
 // Vue.component('create-client-form', require('./components/ClientCreateFormComponent.vue').default);
 Vue.component('update-client-form', require('./components/ClientUpdateFormComponent.vue').default);
 Vue.component('create-client-form', require('./components/CreateClientFormComponent.vue').default);
@@ -126,6 +133,23 @@ Vue.component('report-client', require('./components/Reports/ClientStatusCompone
 Vue.component('report-dst', require('./components/Reports/BulkDSTComponent.vue').default);
 Vue.component('user-list', require('./components/UserListComponent.vue').default);
 Vue.component('transaction-method', require('./components/TransactionMethodComponent.vue').default);
+
+
+Vue.component('change-password', require('./components/ChangePasswordModalComponent.vue').default);
+
+// Users
+Vue.component('create-user', require('./components/Users/CreateUserComponent.vue').default);
+Vue.component('edit-user', require('./components/Users/EditUserComponent.vue').default);
+Vue.component('users-list', require('./components/Users/UsersListViewComponent.vue').default);
+
+// Roles and Permissions
+Vue.component('create-role', require('./components/Roles_Permissions/CreateRoleComponent.vue').default);
+Vue.component('edit-role', require('./components/Roles_Permissions/EditRoleComponent.vue').default);
+Vue.component('role-filter', require('./components/Roles_Permissions/RoleFilterComponent.vue').default);
+Vue.component('role-list', require('./components/Roles_Permissions/RoleListComponent.vue').default);
+Vue.component('permission-list', require('./components/Roles_Permissions/PermissionListComponent.vue').default);
+Vue.component('permission-filter', require('./components/Roles_Permissions/PermissionFilterComponent.vue').default);
+// Vue.component('create-list', require('./components/Roles/RoleListComponent.vue').default);
 
 
 

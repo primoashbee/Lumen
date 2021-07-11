@@ -47,7 +47,9 @@
 					</div>
 
 					<div class="col-lg-8 profile-wrapper">
-						<a href="{{route('edit.client',$client->client_id)}}" type="submit" class="btn btn-primary float-right mr-4">Edit Client</a>
+						@can('edit_client')
+						<a href="/edit/client/{{$client->client_id}}" type="submit" class="btn btn-primary float-right mr-4">Edit Client</a>
+						@endcan
 						<div class="p-details">
 							
 							<p class="title text-2xl">{{$client->name()}}</p>
@@ -177,12 +179,16 @@
 		    </div>
 
 		    <div class="col-md-4">
-		      <div class="card">
+		      <div class="card mb-4">
 		        <div class="card-header">
+		          @can('view_loan_account')
 		          <div class="float-left text-center">
 		          	<a href="{{route('client.loan.list',$client->client_id)}}"><h4 class="mt-2 text-2xl">Loan Accounts</h4></a>
 		          </div>
+		          @endcan
+		          @can('create_loan_account')
 		           <a href="{{route('client.loan.create',$client->client_id)}}" class="text-base float-right btn-create">Create Account</a>
+		          @endcan
 		        </div>
 		        <div class="card-body">
 		          <div class="table-accounts table-full-width table-responsive">
@@ -234,12 +240,14 @@
 		        </div>
 		      </div>
 
-		      <div class="card">
+		      <div class="card mb-4">
 			        <div class="card-header">
 			          <div class="float-left text-center">
 			          	<h4 class="mt-2 text-2xl">Deposit Accounts</h4>
 			          </div>
+			          @can('create_deposit_account')
 			          <a href="" data-toggle="modal" data-target=".bd-example-modal-lg" class="float-right btn-create text-base">Create Account</a>
+			          @endcan
 
 			        </div>
 			        <div class="card-body">
@@ -292,7 +300,7 @@
 			        </div>
 		      </div>
 
-		      <div class="card">
+		      <div class="card mb-4">
 		        <div class="card-header">
 		          <div class="float-left text-center">
 		          	<h4 class="mt-2 h5">Micro-Insurance</h4>

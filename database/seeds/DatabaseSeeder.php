@@ -19,7 +19,8 @@ class DatabaseSeeder extends Seeder
         generateDefaultPaymentMethods();
         generateFees();
         generateLoanProducts();
-
+        createPermission();
+        createRole();
         // $this->call(ClientTableSeeder::class);
         // createLoanAccount();
         // generateMPLLoan();

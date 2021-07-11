@@ -21,7 +21,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'firstname','lastname','middlename','gender','birthday','notes','email', 'password','created_by','send_to'
+        'firstname','lastname','middlename','gender','birthday','notes','email', 'password','created_by','send_to','is_active'
    ]; 
 
     /**
@@ -45,6 +45,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_active' => 'boolean'
     ];
 
     protected $appends = ['fullname'];
@@ -207,6 +208,65 @@ class User extends Authenticatable
         return $users->get();
     }
 
+    
+
+    public static function searchOfficeUsers($query, $office_id){
+        $me = new static;
+        $searchables = $me->searchables;
+        
+        if($query != ""){
+
+            if ($office_id != "" && $query != "") {
+                
+                $lower_office_ids = Office::find($office_id)->getLowerOfficeIDS();
+                $offices = Office::with('user:id')->whereIn('id', $lower_office_ids)->get();
+                $users_ids = [];
+                foreach ($offices as $office) {
+                    if ($office->user->isNotEmpty()) {
+                        foreach ($office->user as $user) {
+                            array_push($users_ids, $user->id);
+                        }
+                    }
+                  
+                }
+                $users = User::with('office:name,id','roles:name,id')->whereIn('id', $users_ids)->where(function(Builder $dbQuery) use ($query,$searchables){
+                    foreach($searchables as $item){  
+                        $dbQuery->orWhere($item,'LIKE','%'.$query.'%');
+                    }
+                });
+                
+                return $users;
+            }else{
+                $users = User::with('office:name,id','roles:name,id')->where(function(Builder $dbQuery) use ($query,$searchables){
+                    foreach($searchables as $item){  
+                        $dbQuery->orWhere($item,'LIKE','%'.$query.'%');
+                    }
+                });
+                return $users;
+            }
+            
+        }
+        
+        if ($office_id != "") {
+            
+            $lower_office_ids = Office::find($office_id)->getLowerOfficeIDS();
+            $offices = Office::with('user:id')->whereIn('id', $lower_office_ids)->get();
+            $users_ids = [];
+            foreach ($offices as $office) {
+                if ($office->user->isNotEmpty()) {
+                    foreach ($office->user as $user) {
+                        array_push($users_ids, $user->id);
+                    }
+                }
+              
+            }
+            $users = User::with('office:name,id','roles:name,id')->whereIn('id', $users_ids);
+            
+            return $users;
+        }
+        
+    }
+
     public function officeListIDS(){
         \DB::select(
             DB::raw('')
@@ -260,5 +320,13 @@ class User extends Authenticatable
         $ids = Office::find($office_id)->getLowerOfficeIDS();
         $rooms = Room::whereIn('office_id',$ids)->pluck('id');
         return $this->rooms()->sync($rooms);
+    }
+
+    public function userPermissions()
+    {
+        return json_encode([
+                'roles' => $this->getRoleNames(),
+                'permissions' => $this->getAllPermissions()->pluck('name'),
+            ]);
     }
 }

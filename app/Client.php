@@ -70,6 +70,12 @@ class Client extends Model
     public static $status = ["Active", "In-Arrears", "Closed", "Written-Off"];
     public static $educational_attainment = ["ELEMENTARY","HIGH SCHOOL","VOCATIONAL","COLLEGE"];
     public static $service_types = ['AGRICULTURE','TRADING/MERCHANDISING','MANUFACTURING','SERVICES','OTHERS'];
+    
+    public function getRouteKeyName()
+    {
+        return 'client_id';
+    }
+
     public static function boot(){
         parent::boot();
         static::created(function($item) {

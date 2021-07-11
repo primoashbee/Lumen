@@ -21,6 +21,13 @@ use App\Rules\PreventLaterThanLastTransactionDate;
 
 class DepositAccountController extends Controller
 {
+    public function __construct(){
+
+        $this->middleware('permission:enter_deposit|enter_withdraw|interest_posting', ['only' => ['showBulkView']]);
+        $this->middleware('permission:interest_posting', ['only' => ['postInterest','bulkPostInterest']]);
+    }
+
+
     public function deposit($deposit_account_id,Request $request){
         
         $this->validator($request->all())->validate();

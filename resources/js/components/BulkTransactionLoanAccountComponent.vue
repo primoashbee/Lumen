@@ -1,28 +1,28 @@
 <template>
     <div>
         <form @submit.prevent="fetch">
-        <div class="row">
-            <div class="col-lg">
-                <div class="form-group">
-                    <label for="" style="color:white" class="lead mr-2">Filter:</label>
-                    <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px;" v-model="request.office_id"></v2-select>
+            <div class="row">
+                <div class="col-4">
+                    <div class="form-group">
+                        <label for="" style="color:white" class="lead mr-2">Filter:</label>
+                        <v2-select @officeSelected="assignOffice" style="width:500px;" v-model="request.office_id"></v2-select>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="form-group">
+                        <label for="product_id" > Product: </label>
+                        <loan-product-list id="product_id" @selected="selected"></loan-product-list>
+                    </div>
+                </div>
+                <div class="w-100">
+                    <button class="btn btn-primary ml-3">Filter</button>
                 </div>
             </div>
-            <div class="col-lg">
-                <div class="form-group">
-                    <label for="product_id" > Product </label>
-                    <loan-product-list id="product_id" @selected="selected"></loan-product-list>
-                </div>
-
-                <button  class="btn btn-primary" >Filter</button>
-            </div>
-            
-        </div>
         </form>
 
         <div class="w-100 px-3 mt-6" >
             
-            <table class="table" >
+            <table class="table">
                 <thead>
                     <tr>
                         <td><p class="title"><input type="checkbox" @change="checkAll($event)" v-if="this.hasRecords" id="check_all"></p></td>
@@ -55,7 +55,7 @@
             <paginator :dataset="lists" @updated="fetch"></paginator>
         </div>
         
-        <button class="btn btn-primary" @click="submit">Submit</button>
+        <button class="ml-3 btn btn-primary" @click="submit">Submit</button>
       
         <loading :is-full-page="true" :active.sync="isLoading" ></loading>
 

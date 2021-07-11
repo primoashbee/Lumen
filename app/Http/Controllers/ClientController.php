@@ -25,10 +25,20 @@ class ClientController extends Controller
     protected $profile_path = 'storage/profile_photos/';
     protected $signature_path = 'storage/signatures/';
 
+    public function __construct(){
+
+        $this->middleware('permission:view_deposit_account', ['only' => ['depositAccount']]);
+        $this->middleware('permission:view_client', ['only' => ['index','list']]);
+        $this->middleware('permission:edit_client', ['only' => ['editClient','update']]);
+        $this->middleware('permission:create_client', ['only' => ['step','createV1']]);
+
+    }
+
     //get branches of logged in user upon creating client
     public function index(){
         $branches = auth()->user()->scopesBranch();
         return view('pages.create-client',compact('branches'));
+
     }
     
 
@@ -36,7 +46,7 @@ class ClientController extends Controller
         return view('pages.create-client');
     }
 
-    public function createV1(Request $request){
+    public function createV1(ClientRequest $request){
         $req = Client::clientExists($request);
         
         if($req['exists']){
@@ -68,7 +78,6 @@ class ClientController extends Controller
                     'monthly_net_income'=>round($business['monthly_gross_income'] - $business['monthly_operating_expense'],2)
                 ]);
             }
-
             $client->household_income()->create($this->household_income_request());
 
             // if($request->hasFile('profile_picture_path')){
@@ -201,7 +210,6 @@ class ClientController extends Controller
         }
         $client->load('household_income','businesses');
         return view('pages.client-profile',compact('client'));
-        
     }
 
     public function editClient($client_id){
@@ -216,7 +224,6 @@ class ClientController extends Controller
     }
 
     public function update(ClientRequest $request, $client_id){
-        
         // $request = $this->antiNullStrings($request);
         $client = Client::fcid($client_id);
         

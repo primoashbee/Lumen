@@ -21,6 +21,8 @@ use App\DefaultPaymentMethod;
 use App\Imports\OfficeImport;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\LoanAccountController;
 
@@ -315,6 +317,168 @@ use App\Http\Controllers\LoanAccountController;
         return collect($struc);
         
     }
+
+    function createPermission(){
+        $permission = array(
+            [
+                'name' => 'view_client',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'create_client',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'edit_client',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'change_status_client',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'view_user',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'create_user',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'edit_user',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'change_status_user',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'change_status_deposit_account',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'view_deposit_account',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'create_deposit_account',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'edit_deposit_account',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'enter_deposit',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'enter_withdrawal',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'interest_posting',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'edit_loan_account',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'view_loan_account',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'create_loan_account',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'enter_repayment',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'approve_loan',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'disburse_loan',
+                'guard_name' => 'web'
+            ],   
+            [
+                'name' => 'change_status_loan_account',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'view_dashboard',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'view_reports',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'view_transactions',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'revert_transactions',
+                'guard_name' => 'web'
+            ],
+            [
+              'name' => 'create_cluster',
+              'guard_name' => 'web'  
+            ],
+            [
+              'name' => 'edit_cluster',
+              'guard_name' => 'web'  
+            ],
+            [
+              'name' => 'view_cluster',
+              'guard_name' => 'web'  
+            ],
+            [
+              'name' => 'extract_reports',
+              'guard_name' => 'web'  
+            ],
+        );
+        Permission::insert($permission);
+    }
+
+    function createRole(){
+        $role = array(
+            [
+                'name' => 'Super Admin',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'Branch Manager',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'Branch Accountant',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'Area Manager',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'Area Accountant',
+                'guard_name' => 'web'
+            ],
+            [
+                'name' => 'Unit Supervisor',
+                'guard_name' => 'web'
+            ]
+        );
+        Role::insert($role);
+
+        $user = User::find(4);
+
+        $user->syncRoles(1);
+    }
+
+
     function createAdminAccount(){
         $user = User::create([
             'firstname' => 'Scheduler',
@@ -363,7 +527,7 @@ use App\Http\Controllers\LoanAccountController;
             'birthday' => Carbon::parse('1995-11-28'),
             'email' => 'nelsontan1128@gmail.com',
             'notes'=>'ajalksdjfdlksafjaldf',
-            'password' => Hash::make('      ')
+            'password' => Hash::make('tannelsona')
         ]);
     
         $user->assignToOffice(1);
