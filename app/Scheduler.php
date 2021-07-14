@@ -11,7 +11,7 @@ class Scheduler extends Model
     
     public static function hasHoliday($date,$office_id){
         $date = Carbon::parse($date);
-        $count = Holiday::where('date',$date)->where('office_id',$office_id)->count();
+        $count = Holiday::whereDate('date',$date)->where('office_id',$office_id)->count();
         if($count > 0){
             return true;
         }

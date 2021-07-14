@@ -16,21 +16,6 @@ class UserClientScopeMiddleware
      */
     public function handle($request, Closure $next)
     {
-        $client_office_id = null;
-        if ($request->client_id) {
-            $client_office_id = Client::where('client_id',$request->client_id)->first()->office_id;
-        }
-
-        if ($request->client) {
-            $client_office_id = $request->client->office_id;
-        }   
-        if (!in_array($client_office_id, $request->session()->get('scopes')))
-        {
-            abort(403);
-        }
-        return $next($request);
-       
-        
-        
+        return in_array(Client::fcid($request->client_id)->office_id,auth()->user()->scopesID()) ? $next($request) : abort(403);
     }
 }

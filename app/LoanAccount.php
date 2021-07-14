@@ -124,7 +124,7 @@ class LoanAccount extends Model
         $interval = 0;
         if ($data['interest_interval']=='Monthly') {
             $interval = 4;
-        }
+        }   
         if ($data['term'] == 'weeks') {
             $number_of_weeks = 52;
             $term_length = $data['term_length'];
@@ -410,7 +410,13 @@ class LoanAccount extends Model
                         $date = $start_date;
                     }else{
                         $previous_installment_date  = Carbon::parse($installments[$x-1]->date);
-                        $date = Scheduler::getDate($previous_installment_date->addWeek(), $office_id);
+                        // $date = Scheduler::getDate($previous_installment_date->addWeek(), $office_id);
+                        $date = Scheduler::hasHoliday($previous_installment_date->copy()->addDays(14), $office_id);
+
+                        //has holiday
+                        if($date){
+                            $previous_installment_date->addDays(15);
+                        }
                     }
                     $days_diff = $current_date->diffInDays($date, false);
                     $late = $days_diff <= 0; //is due
@@ -553,7 +559,9 @@ class LoanAccount extends Model
                     $principal_balance = round($principal_balance - $principal, 2);
                     $interest_balance = round($interest_balance - $interest, 2);
                     $amortization = round($interest + $principal, 2);
-
+                    // dd($date);
+                    $x = 1;
+                    $date;
                     $diff_in_days = $date->diffInDays(now()->startOfDay(), false);
                     $interest_days_incurred =  0;
                     if ($diff_in_days >= -6) {
