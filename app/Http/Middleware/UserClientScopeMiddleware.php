@@ -16,10 +16,6 @@ class UserClientScopeMiddleware
      */
     public function handle($request, Closure $next)
     {
-        $client = Client::fcid($request->client_id);
-        if (is_null($client)) {
-            abort(404);
-        }
-        return in_array($client->office_id,auth()->user()->scopesID()) ? $next($request) : abort(403);
+        return in_array(Client::fcid($request->client_id)->office_id,auth()->user()->scopesID()) ? $next($request) : abort(403);
     }
 }
