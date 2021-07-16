@@ -5,7 +5,7 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="/settings">Settings</a></li>
-                    <li class="breadcrumb-item"><a href="/users">User List</a></li>
+                    <li class="breadcrumb-item"><a href="/settings/users">User List</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Add User</li>
                     </ol>
                 </nav>
@@ -125,7 +125,7 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 		
 		methods:{
 			submit(){
-				axios.post('/create/user', this.fields)
+				axios.post('/settings/create/user', this.fields)
 				.then(res => {
 						Swal.fire({
 	                        icon: 'success',

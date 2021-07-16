@@ -38,7 +38,7 @@ class CreateHouseholdIncomesTable extends Migration
 
             $table->boolean('has_pension')->default(false)->nullable();;
             $table->unsignedDouble('pension_amount')->nullable();
-
+            $table->unsignedDouble('total_household_expense');
             $table->unsignedDouble('total_household_income');
 
             $table->timestamps();

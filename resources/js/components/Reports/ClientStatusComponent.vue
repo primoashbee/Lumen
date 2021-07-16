@@ -2,40 +2,68 @@
 <div>
     <div class="row">
         <div class="col-lg-12">
-            <div class="card">                
-                <div class="card-header">   
-                    <h3 class="h3"> Client Report </h3>    
-                    <div class="col-4">
-                        <label for="" style="color:white" class="lead mr-2">Filter:</label>
-                        <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px;" ></v2-select>
+            <div class="card pb-12">         
+                    
+                <div class="card-header">
+                    
+                    <h3 class="h3"> Client Report </h3> 
+                    <div class="row">
+                        <div class="col-lg-6 mt-4">
+                            <label for="" style="color:white" class="lead mr-2">Branch:</label>
+                            <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px;" ></v2-select>
+                        </div>
+                        <div class="col-lg-6 text-right">
+                            <button class="btn btn-primary" @click="download" v-if="exportable">Export Report</button>
+                        </div>
+                    </div>     
+                    <div class="row mt-4">
+                        <div class="filters-container col-md-12 d-inline-block">
+                            <h4 class="h4 d-inline-block mr-4">Filters:</h4>
+                            <div class="btn-filter-group d-inline-block">
+                                <button @click="addToFilter('age')" class="btn-filters" :class="{'active':filter.includes('age')}">Age</button>
+                                <button @click="addToFilter('service')" class="btn-filters" :class="{'active':filter.includes('service')}">Service Type</button>
+                                <button @click="addToFilter('education')" class="btn-filters" :class="{'active':filter.includes('education')}">Educational Attainment</button>
+                                <button @click="addToFilter('status')" class="btn-filters" :class="{'active':filter.includes('status')}">Status</button>
+                            </div>
+                        </div>   
                     </div>
-                    <div class="col-4">
-                        <label for="" style="color:white" class="lead mr-2">Age From:</label>
-                        <input type="number" min="0" step="1" class="form-control" v-model="request.age_from"/>
-                    </div>
-                    <div class="col-4">
-                        <label for="" style="color:white" class="lead mr-2">Age To:</label>
-                        <input type="number" min="0" step="1" class="form-control" v-model="request.age_to"/>
-                    </div>
-                    <div class="col-4">
-                        <label for="" style="color:white" class="lead mr-2">Educational Attainment:</label>
-                        <status :multi_values="true" type="educational_attainment" @statusSelected="statusSelected($event,'educational_attainment')"></status>
-                    </div>
-                    <div class="col-4">
-                        <label for="" style="color:white" class="lead mr-2" >Gender:</label>
-                        <status :multi_values="true" type="gender" @statusSelected="statusSelected($event,'gender')"></status>
-                    </div>
-                    <div class="col-4">
-                        <label for="" style="color:white" class="lead mr-2">Service Type:</label>
-                        <status :multi_values="true" type="service_type" @statusSelected="statusSelected($event,'service_type')"></status>
-                    </div>
-                    <div class="col-4">
-                        <label for="" style="color:white" class="lead mr-2">Status</label>
-                        <status :multi_values="true" type="client" @statusSelected="statusSelected($event,'status')"></status>
+                    <div class="row mt-4" v-if="filter.includes('age')">
+                       <div class="col-lg-2">
+                            <label for="" style="color:white" class="lead mr-2">Age From:</label>
+                            <input type="number" min="0" step="1" class="form-control" v-model="request.age_from"/>
+                        </div>
+                        <div class="col-lg-2">
+                            <label for="" style="color:white" class="lead mr-2">Age To:</label>
+                            <input type="number" min="0" step="1" class="form-control" v-model="request.age_to"/>
+                        </div>
                     </div>
 
-                    <button class="btn btn-primary" @click="search">Search</button>
-                    <button class="btn btn-primary" @click="download" v-if="exportable">Export</button>
+                    <div class="row mt-4" v-if="filter.includes('education')">
+                        <div class="col-lg-4">
+                            <label for="" style="color:white" class="lead mr-2">Educational Attainment:</label>
+                            <status :multi_values="true" type="educational_attainment" @statusSelected="statusSelected($event,'educational_attainment')"></status>
+                        </div>
+                    </div>
+                    <div class="row mt-4" v-if="filter.includes('gender')">
+                        <div class="col-lg-4">
+                            <label for="" style="color:white" class="lead mr-2" >Gender:</label>
+                            <status :multi_values="true" type="gender" @statusSelected="statusSelected($event,'gender')"></status>
+                        </div>
+                    </div>
+                    <div class="row mt-4" v-if="filter.includes('service')">
+                        <div class="col-lg-4">
+                            <label for="" style="color:white" class="lead mr-2">Service Type:</label>
+                            <status :multi_values="true" type="service_type" @statusSelected="statusSelected($event,'service_type')"></status>
+                        </div>
+                    </div>
+                    <div class="row mt-4" v-if="filter.includes('status')">
+                        <div class="col-lg-4">
+                            <label for="" style="color:white" class="lead mr-2">Status</label>
+                            <status :multi_values="true" type="client" @statusSelected="statusSelected($event,'status')"></status>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary mt-4" @click="search">Search</button>
+                    
 
                 </div>
                 <div class="card-body">
@@ -78,7 +106,7 @@
                         </tbody>
                     </table>
                     <paginator :dataset="list.data" @pageSelected="pageSelected"></paginator>
-                </div>
+                </div> 
             </div>
             
         </div>
@@ -86,6 +114,11 @@
  <loading :is-full-page="true" :active.sync="isLoading" ></loading>
 </div>
 </template>
+<style scoped>
+.btn-filters.active{
+    background: rgb(253 173 125);
+}
+</style>
 <script>
 import _ from 'lodash'
 import Paginator from './../PaginatorComponent';
@@ -100,6 +133,7 @@ export default {
         return {
             isLoading: false,
             exportable : false,
+            filter:[],
             list: [],
             request : {
                 is_summarized: false,
@@ -147,6 +181,21 @@ export default {
         download(){
 
         },
+        addToFilter(value){
+            if (this.filter.includes(value)) {
+                const index = this.filter.indexOf(value);
+                if(index > -1){
+                    this.filter.splice(index,1)
+                }
+
+                console.log(this.filter);
+            }else{
+                this.filter.push(value) 
+                console.log(this.filter)
+            }
+            
+            
+        }
     }
 }
 </script>

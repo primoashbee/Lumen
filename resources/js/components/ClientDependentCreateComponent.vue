@@ -12,7 +12,7 @@
 						<div class="form-group row">
 							<div class="col-lg-12 form-group">
 								<label class="d-inline-block col-form-label" for="application_number">Application Number:</label>
-								<div class="ml-6 d-inline-block w8">
+								<div class="d-inline-block w8">
 									<input type="text" id="application_number" class="form-control" v-bind:class="hasError('application_number') ? 'is-invalid' : 'suce'" v-model="application_number" >
 									<div class="invalid-feedback" v-if="hasError('application_number')">
 										{{ errors.application_number[0]}}

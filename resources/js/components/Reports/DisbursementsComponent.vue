@@ -6,29 +6,34 @@
                 
                 <div class="card-header">
                     <h3 class="h3"> Disbursements Report</h3>
-
-                    <div class="col-4">
-                        <label for="" style="color:white" class="lead mr-2">Filter:</label>
-                        <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px;" ></v2-select>
-                        <!-- <button type="button" class="btn btn-primary" @click="filter">Add New</button> -->
+                    <div class="row">
+                        <div class="co-lg-4 pl-3">
+                            <label for="" style="color:white" class="lead mr-2">Branch:</label>
+                            <v2-select @officeSelected="assignOffice" style="width:500px;" ></v2-select>
+                            <!-- <button type="button" class="btn btn-primary" @click="filter">Add New</button> -->
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <label for="date" style="color:white" class="lead mr-2"> Disbursed By:</label>
+                            <user-list @userSelected="userSelected" :multiple="true"></user-list>
+                        </div>
+                        <div class="col-lg-4">
+                            <button class="btn btn-primary" @click="download" v-if="exportable">Export Report</button>
+                        </div>
+                        
                     </div>
-                    <div class="col-4">
-                        <label for="date" style="color:white" class="lead mr-2"> From:</label>
-                        <input type="date" class="form-control" v-model="request.from_date">
+                    <div class="row mt-4">
+                        <div class="col-lg-4">
+                            <label for="date" style="color:white" class="lead"> From:</label>
+                            <input type="date" class="form-control" v-model="request.from_date">
+                        </div>
+                        <div class="col-lg-4 pl-0">
+                            <label for="date" style="color:white" class="lead"> To:</label>
+                            <input type="date" class="form-control" v-model="request.to_date">
+                        </div>
                     </div>
+                    <button class="btn btn-primary mt-4" @click="search">Filter</button>
                     
-                    <div class="col-4">
-                        <label for="date" style="color:white" class="lead mr-2"> To:</label>
-                        <input type="date" class="form-control" v-model="request.to_date">
-                    </div>
-                    
-                    <div class="col-4">
-                        <label for="date" style="color:white" class="lead mr-2"> Disbursed By:</label>
-                        <user-list @userSelected="userSelected" :multiple="true"></user-list>
-                    </div>
-
-                    <button class="btn btn-primary" @click="search">Search</button>
-                    <button class="btn btn-primary" @click="download" v-if="exportable">Export</button>
 
                 </div>
                 <div class="card-body">

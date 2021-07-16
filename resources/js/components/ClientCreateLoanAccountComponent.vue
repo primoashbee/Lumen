@@ -9,7 +9,7 @@
           </ol>
         </nav>
 		<div class="card-header">
-			<h1 class="title text-2xl">{{name}}</h1>
+			<h1 class="title text-3xl">{{name}}</h1>
 			<h4 class="title text-base">{{client_id}}</h4>
 		</div>
 		<div class="card-body">
@@ -30,73 +30,77 @@
 							<div class="form-group">
 							</div>
 						</div>
-						<div class="col-lg-2">
-							<div class="form-group">
-								<label for="disbursement_date">Disbursement Date</label>
-                        		<!-- <date-picker @datePicked="getDate($event, 'disbursement_date')" id="disbursement_date" v-model="form.disbursement_date"></date-picker> -->
-								<input type="date" class="form-control" v-model="form.disbursement_date"/>
+						<div class="row pl-3">
+							<div class="col-lg-6">
+								<div class="form-group">
+									<label for="disbursement_date">Disbursement Date</label>
+									<!-- <date-picker @datePicked="getDate($event, 'disbursement_date')" id="disbursement_date" v-model="form.disbursement_date"></date-picker> -->
+									<input type="date" class="form-control" v-model="form.disbursement_date"/>
+								</div>
 							</div>
-							<div class="form-group">
-								<label for="repayment_date">First Repayment Date</label>
-								<input type="date" class="form-control" v-model="form.first_payment"/>
-                        		<!-- <date-picker  @datePicked="getDate($event, 'first_payment_date')" id="repayment_date" v-model="form.first_payment_date"></date-picker> -->
+							<div class="col-lg-6">
+								<div class="form-group">
+									<label for="repayment_date">First Repayment Date</label>
+									<input type="date" class="form-control" v-model="form.first_payment"/>
+									<!-- <date-picker  @datePicked="getDate($event, 'first_payment_date')" id="repayment_date" v-model="form.first_payment_date"></date-picker> -->
+								</div>
+							</div>	
+						</div>
+						
+					</div>	
+
+					<hr>
+					<h1 class="text-2xl title">Loan Terms</h1>
+					<div class="row pb-4">
+						<div class="col-lg-8"> 
+							<div class="row">
+								<div class="form-group col-lg-4 pl-3">
+									<label for="loan_amount" class="title text-xl">Loan Amount</label>
+									<input type="number" class="form-control" id="loan_amount" v-model="form.amount" step="1000">
+								</div>
+
+								<div class="col-lg-4 form-group">
+									<label for="installment" class="title text-xl">Number of Installment</label>
+									<select id="installment" class="form-control" v-model="form.number_of_installments">
+										<option :value="null"> Please Select</option>
+										<option v-for="item in installment_list" :value="item.installments" :key="item.id"> {{item.installments}}</option>
+									</select>
+								</div>
+								<div class="form-group col-lg-4 pl-4">
+									<label for="Interest" class="title text-xl">Interest</label>
+									<input type="text" class="form-control" id="Interest" readonly :value="selected_interest">
+								</div>
 							</div>
 						</div>	
 					</div>	
-
-					<hr>
-						<h1 class="text-2xl title">Loan Terms</h1>
-					<div class="row pb-4">
-						
-						<div class="d-table-row px-3 mt-4">
-
-							<div class="form-group d-table-cell pl-4">
-								<label for="loan_amount" class="title text-xl">Loan Amount</label>
-								<input type="number" class="form-control" id="loan_amount" v-model="form.amount" step="1000">
-							</div>
-
-						</div>
-						
-						<div class="d-table-row pl-3 mt-4">
-							<div class="d-table-cell form-group">
-								<label for="installment" class="title text-xl">Number of Installment</label>
-								<select id="installment" class="form-control" v-model="form.number_of_installments">
-									<option :value="null"> Please Select</option>
-									<option v-for="item in installment_list" :value="item.installments" :key="item.id"> {{item.installments}}</option>
-								</select>
-							</div>
-							<div class="form-group d-table-cell pl-4">
-								<label for="Interest" class="title text-xl">Interest</label>
-								<input type="text" class="form-control" id="Interest" readonly :value="selected_interest">
-							</div>
-						</div>
-						
-					</div>	
 					<hr>
 					<h1 class="text-2xl title mt-4">Fees</h1>
-					<div v-if="calculator!=null	">
-						<div class="form-inline py-2" v-for="fee in calculator.fees" :key="fee.id">
-							<div class="form-group pl-3">
-								<label :for="fee.name">{{fee.name}}</label>
-								<input type="text" :id="fee.name" class="form-control ml-3" disabled :value="fee.amount">
+					<div v-if="calculator!=null	" class="col-lg-12">
+						<div class="row">
+							<div v-for="fee in calculator.fees" :key="fee.id">
+								<div class="form-group col-lg-12 col-sm-12 pl-0 pb-0">
+									<label :for="fee.name">{{fee.name}}</label>
+									<input type="text" :id="fee.name" class="form-control" disabled :value="fee.amount">
+								</div>
 							</div>
 						</div>
 					</div>
 
 					<hr>
 					<h1 class="title text-2xl">Minimum Deposit Balance</h1>
-					<div class="row">
-						<div class="d-flex w-8 px-3 mt-4">
-							<div class="w-full form-group">
+					<div class="col-lg-12 col-md-10">
+						<div class="mt-4 row">
+
+							<div class="col-lg-4 col-sm-12 pl-0 form-group">
 								<label for="deposit_account" class="title text-xl">Deposit Account</label>
 								<select id="deposit_account" class="form-control">
 									<option value="">MCBU</option>
 									<option value="">RCBU</option>
 								</select>
 							</div>
-							<div class="form-group pl-4 w-full">
+							<div class="form-group col-lg-4 col-sm-12 pl-0">
 								<label for="minimum_balance" class="title text-xl">Minimum Balance</label>
-								<input type="number" class="form-control w-7" id="minimum_balance">
+								<input type="number" class="form-control" id="minimum_balance">
 							</div>
 						</div>
 					</div>
@@ -108,17 +112,17 @@
 
 				
 					<div v-if="calculated">
-						<h1> Loan {{calculator.code}} </h1>
-						<h1> Number of Installments {{calculator.number_of_installments}} </h1>
-						<h1> Start Date {{calculator.start_date}} </h1>
-						<h1> End Date {{calculator.end_date}} </h1>
+						<h1 class="text-2xl"> Loan {{calculator.code}} </h1>
+						<h1 class="text-lg"> Number of Installments {{calculator.number_of_installments}} </h1>
+						<h1 class="text-lg"> Start Date {{calculator.start_date}} </h1>
+						<h1 class="text-lg"> End Date {{calculator.end_date}} </h1>
 
-						<h1> Principal {{calculator.formatted_principal}} </h1>
-						<h1> Interest {{calculator.formatted_interest}} </h1>
-						<h1> Total Loan Amount {{calculator.formatted_total_loan_amount}} </h1>
+						<h1 class="text-lg"> Principal {{calculator.formatted_principal}} </h1>
+						<h1 class="text-lg"> Interest {{calculator.formatted_interest}} </h1>
+						<h1 class="text-lg"> Total Loan Amount {{calculator.formatted_total_loan_amount}} </h1>
 
-						<h1> Disbursement Amount {{calculator.formatted_disbursement_amount}} </h1>
-						<h1> Total Deductions {{calculator.formatted_total_deductions}} </h1>
+						<h1 class="text-lg"> Disbursement Amount {{calculator.formatted_disbursement_amount}} </h1>
+						<h1 class="text-lg"> Total Deductions {{calculator.formatted_total_deductions}} </h1>
 						<table class="table"  v-if="calculated">
 							<thead>
 								<tr>

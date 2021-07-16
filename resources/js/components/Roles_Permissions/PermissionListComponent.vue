@@ -87,12 +87,12 @@
             fetch(page){
 
             	if(page==undefined){
-                    axios.get('/permissions/list?paginate=true').then(res => {                        
+                    axios.get('/settings/permissions/list?paginate=true').then(res => {                        
                         this.permissionList = res.data
                         this.checkIfHasRecords()
                     })
                 }else{
-                    axios.get('/permissions/list?paginate=true&page='+page)
+                    axios.get('/settings/permissions/list?paginate=true&page='+page)
                     .then(res => {
                         this.permissionList = res.data
                         this.checkIfHasRecords()
@@ -109,7 +109,7 @@
                 this.show = true
             },
             submit(){
-                axios.post('/create/permission', this.fields)
+                axios.post('/settings/create/permission', this.fields)
                 .then(res => {
                     Swal.fire({
                         icon: 'success',

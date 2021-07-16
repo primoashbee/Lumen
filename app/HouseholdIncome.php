@@ -28,6 +28,7 @@ class HouseholdIncome extends Model
         'has_pension',
         'pension_amount',
         'total_household_income',
+        'total_household_expense',
     ];
 
     protected $casts = [
@@ -46,7 +47,7 @@ class HouseholdIncome extends Model
         'remittance_amount' =>'integer',
         'pension_amount' =>'integer',
         'total_household_income' =>'integer',
-
+        'total_household_expense' => 'integer',
 
     ];
 

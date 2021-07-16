@@ -114,39 +114,6 @@
     @endcan
    <actions-notification office_id="{{auth()->user()->office->first()->id}}"></actions-notification>
 
-<!-- </div> 
-    <div class="row">
-        <div class="col-md-5">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Tables</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table">
-                        <tbody>
-                            <tr>
-                                <td>ID</td>
-                                <td>Body</td>
-                                <td>Actions</td>
-                            </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>
-                                    <p class="title">Sample Data</p>
-                                    <p class="text-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-                                </td>
-                                <td class="float-right">
-                                    <a href="">
-                                        <i class="fas fa-2x fa-edit"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
 
-            </div>
-        </div>
-    </div>
-</div>  -->
+</div>
 @endsection

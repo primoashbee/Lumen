@@ -38,8 +38,10 @@ class MigrationController extends Controller
                 'link'=>'/migrations',
                 'user_id'=>auth()->user()->id
             ];
-            $migration = DataMigration::create($data);
 
+            
+            $migration = DataMigration::create($data);
+            
             dispatch(new DataMigrationJob($migration, $path));
             // Excel::import(new GeneralDataImport($migration), $path);
             

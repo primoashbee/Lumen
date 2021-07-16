@@ -30,6 +30,4 @@
 
     console.log(Laravel.userPermissions);
 </script>
-
-</script>
 </html>
