@@ -473,9 +473,15 @@ use App\Http\Controllers\LoanAccountController;
         );
         Role::insert($role);
 
-        $user = User::find(4);
+        $user = User::find(4)->syncRoles(1);
+        $user = User::find(3)->syncRoles(1);
+        
+        $role = Role::find(2)->syncPermissions([1,4,9,10,17,20,21,22,23,24,25,26,27]);
+        $role = Role::find(3)->syncPermissions([1,2,3,4,10,11,12,13,14,15,16,17,18,19,20,24,25,26,28,29,3]);
+        $role = Role::find(5)->syncPermissions([1,2,3,4,10,11,12,13,14,15,16,17,18,19,20,24,25,26,28,29,30]);
+        $role = Role::find(4)->syncPermissions([1,2,3,4,10,11,12,13,14,15,16,17,18,19,20,24,25,26,28,29,30]);
+        $role = Role::find(5)->syncPermissions([1,2,3,10,17]);
 
-        $user->syncRoles(1);
     }
 
 

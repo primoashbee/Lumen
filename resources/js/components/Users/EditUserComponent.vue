@@ -19,7 +19,7 @@
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="/settings">Settings</a></li>
-                            <li class="breadcrumb-item"><a href="/users">User List</a></li>
+                            <li class="breadcrumb-item"><a href="/settings/users">User List</a></li>
                             <li class="breadcrumb-item active" aria-current="page">Edit User</li>
                             </ol>
                         </nav>
@@ -158,7 +158,7 @@ import 'vue-loading-overlay/dist/vue-loading.css';
                 this.fields.office_ids = value;
             },
             userLink(value){
-                return '/edit/user/'+value
+                return '/settings/edit/user/'+value
             },
             submit(){
                 axios.post(this.userLink(this.fields.id), this.fields).then(res =>

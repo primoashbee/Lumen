@@ -47,6 +47,7 @@ class ClientController extends Controller
     }
 
     public function createV1(ClientRequest $request){
+        
         $req = Client::clientExists($request);
         
         if($req['exists']){
@@ -78,6 +79,7 @@ class ClientController extends Controller
                     'monthly_net_income'=>round($business['monthly_gross_income'] - $business['monthly_operating_expense'],2)
                 ]);
             }
+        //    dd($this->household_income_request());
             $client->household_income()->create($this->household_income_request());
 
             // if($request->hasFile('profile_picture_path')){
@@ -113,7 +115,6 @@ class ClientController extends Controller
     }
 
     public function household_income_request($update=false){
-
         request()->is_self_employed =  filter_var(request()->is_self_employed, FILTER_VALIDATE_BOOLEAN);
         
         request()->is_employed =  filter_var(request()->is_employed, FILTER_VALIDATE_BOOLEAN);
@@ -138,7 +139,7 @@ class ClientController extends Controller
                 $spouse_service_type_monthly_gross_income + 
                 $spouse_employed_monthly_gross_income + 
                 $remittance + 
-                $pension;
+                $pension - request()->total_household_expense;
         }else{
         $service_type_monthly_gross_income = round(request()->service_type_monthly_gross_income,2);
         $employed_monthly_gross_income = round(request()->employed_monthly_gross_income,2);
@@ -178,7 +179,7 @@ class ClientController extends Controller
             'remittance_amount' => $remittance,
             'has_pension'=>request()->has_pension,
             'pension_amount' => $pension,
-
+            'total_household_expense' => request()->total_household_expense,
             
             'total_household_income'=>$total_household_income 
         ]; 

@@ -4,9 +4,9 @@ a<template>
         <div class="col-lg-12">
             <div class="card">                
                 <div class="card-header">   
-                    <h3 class="h3"> Deposit Report</h3>    
+                    <h3 class="h3"> Deposit Reports</h3>    
                     <div class="col-4">
-                        <label for="" style="color:white" class="lead mr-2">Filter:</label>
+                        <label for="" style="color:white" class="lead mr-2">Branch:</label>
                         <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px;" ></v2-select>
                     </div>
                     <div class="col-4">
@@ -38,7 +38,7 @@ a<template>
                         <label for="date" style="color:white" class="lead mr-2"> Deposit Type:</label>
                         <transaction-method @transactionSelected="transactionSelected" allow_multiple="0" type="deposit"></transaction-method>
                     </div>
-                    <button class="btn btn-primary" @click="search">Search</button>
+                    <button class="btn btn-primary" @click="search">Filter</button>
                     <button class="btn btn-primary" @click="download" v-if="exportable">Export</button>
 
                 </div>

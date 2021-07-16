@@ -13,7 +13,7 @@ import VoerroTagsInput from '@voerro/vue-tagsinput';
     export default {
         props: ['default'],
         mounted() { 
-            axios.get('/roles/list') 
+            axios.get('/settings/roles/list') 
                 .then(res=>{
                     this.roles = res.data
                 })

@@ -1011,7 +1011,7 @@
 	                        confirmButtonText: 'OK'
 	                    })
 	                    .then(res=>{
-	                        location.reload();
+	                        // location.reload();
 	                    })
 	                })
 	                .catch(error=>{

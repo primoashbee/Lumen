@@ -15,9 +15,11 @@ use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
 
 // class HouseholdIncomeSheet implements ToModel, WithHeadingRow, WithStartRow
-class HouseholdIncomeSheet implements ToModel, WithStartRow, WithHeadingRow, WithValidation,SkipsEmptyRows, WithBatchInserts, WithMapping
+class HouseholdIncomeSheet implements ToModel, WithStartRow, WithHeadingRow, WithValidation,SkipsEmptyRows, WithBatchInserts, WithMapping,WithCalculatedFormulas
+
 {
     
     protected $migration;

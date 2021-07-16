@@ -4,7 +4,7 @@
             <div class="col-lg-6 pl-0">
                 <div class="form-group">
                     <label for="" style="color:white" class="lead mr-2">Filter:</label>
-                    <v2-select @officeSelected="assignOffice" style="width:500px;" v-model="office_id"></v2-select>
+                    <v2-select @officeSelected="assignOffice" style="width:100%;" v-model="office_id"></v2-select>
                 </div>
             </div>
             <div class="col-lg-6 pl-0">

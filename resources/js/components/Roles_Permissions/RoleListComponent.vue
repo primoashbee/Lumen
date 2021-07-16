@@ -110,12 +110,12 @@
         methods:{
             fetch(page){
                 if(page==undefined){
-                    axios.get('/roles/list?paginate=true').then(res => {
+                    axios.get('/settings/roles/list?paginate=true').then(res => {
                         this.rolesList = res.data
                         this.checkIfHasRecords()
                     })
                 }else{
-                    axios.get('/roles/list?paginate=true&page='+page)
+                    axios.get('/settings/roles/list?paginate=true&page='+page)
                     .then(res => {
                         this.checkIfHasRecords()
                         this.rolesList = res.data
@@ -166,7 +166,7 @@
                 }
             },
             roleLink(value){
-                return '/edit/role/'+value
+                return '/settings/edit/role/'+value
             },
             hasError(value){
                 return this.errors.hasOwnProperty(value)

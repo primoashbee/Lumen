@@ -12,7 +12,7 @@
 				</nav>
 				<div class="card-header">
 					<h3 class="h3 w-5 d-inline-block">Users List</h3>
-					<a href="/create/user" class="btn btn-primary d-inline-block float-right">Create User</a>
+					<a href="/settings/create/user" class="btn btn-primary d-inline-block float-right">Create User</a>
 				</div>
 				<div class="card-body">
 					<users-list></users-list>

@@ -96,7 +96,7 @@
                 office_id:"",
                 isLoading:false,
                 hasRecords: false,
-                link:'/users/list',
+                link:'/settings/users/list',
                 variants: ['primary', 'secondary', 'success', 'warning', 'danger', 'info', 'light', 'dark'],
                 background:'dark',
                 show:false,
@@ -184,7 +184,7 @@
                 }
             },
             userLink(value){
-                return '/edit/user/'+value
+                return '/settings/edit/user/'+value
             }
         }
     }

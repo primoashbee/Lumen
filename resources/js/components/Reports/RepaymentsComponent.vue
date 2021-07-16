@@ -7,33 +7,37 @@
                 
                 <div class="card-header">   
                     <h3 class="h3"> Repayments Report</h3>    
-                    <div class="col-4">
-                        <label for="" style="color:white" class="lead mr-2">Filter:</label>
-                        <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px;" ></v2-select>
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <label for="" style="color:white" class="lead mr-2">Branch:</label>
+                            <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px;" ></v2-select>
+                        </div>
+                            <div class="col-lg-3">
+                            <label for="date" style="color:white" class="lead mr-2"> Disbursed By:</label>
+                            <user-list @userSelected="userSelected" :multiple="true" ></user-list>
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="date" style="color:white" class="lead mr-2"> Repayment Type:</label>
+                            <transaction-method @transactionSelected="transactionSelected" :multiple="true" type="loan"></transaction-method>
+                        </div>
+                        <div class="col-lg-2 text-center">
+                            <button class="mt-8 btn btn-primary" @click="download" v-if="exportable">Export Report</button>
+                        </div>
+                    </div>    
+                    <div class="row mt-4">
+                        <div class="col-lg-4">
+                            <label for="date" style="color:white" class="lead mr-2"> From:</label>
+                            <input type="date" class="form-control" v-model="request.from_date">
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <label for="date" style="color:white" class="lead mr-2"> To:</label>
+                            <input type="date" class="form-control" v-model="request.to_date">
+                        </div>
                     </div>
                     
-                    <div class="col-4">
-                        <label for="date" style="color:white" class="lead mr-2"> From:</label>
-                        <input type="date" class="form-control" v-model="request.from_date">
-                    </div>
+                    <button class="mt-4 btn btn-primary" @click ="search">Filter</button>
                     
-                    <div class="col-4">
-                        <label for="date" style="color:white" class="lead mr-2"> To:</label>
-                        <input type="date" class="form-control" v-model="request.to_date">
-                    </div>
-                    
-                    <div class="col-4">
-                        <label for="date" style="color:white" class="lead mr-2"> Disbursed By:</label>
-                        <user-list @userSelected="userSelected" :multiple="true" ></user-list>
-                    </div>
-                    <div class="col-4">
-                        <label for="date" style="color:white" class="lead mr-2"> Repayment Type:</label>
-                        <transaction-method @transactionSelected="transactionSelected" :multiple="true" type="loan"></transaction-method>
-                    </div>
-
-
-                    <button class="btn btn-primary" @click="search">Search</button>
-                    <button class="btn btn-primary" @click="download" v-if="exportable">Export</button>
 
                 </div>
                 <div class="card-body">

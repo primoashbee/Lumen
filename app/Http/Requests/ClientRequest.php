@@ -38,7 +38,7 @@ class ClientRequest extends FormRequest
         
         return [
 
-            'client_id'=>['required', 'exists:clients,client_id'],
+            'client_id'=>['exists:clients,client_id'],
             'office_id'=>['required', 'exists:offices,id'],
             'firstname'=>['required'],
             'lastname'=>['required'],

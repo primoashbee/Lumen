@@ -26,7 +26,7 @@ import VoerroTagsInput from '@voerro/vue-tagsinput';
     export default {
         props: ['default'],
         mounted() { 
-            axios.get('/permissions/list') 
+            axios.get('/settings/permissions/list') 
                 .then(res=>{
                     this.permissions = res.data
                 })   

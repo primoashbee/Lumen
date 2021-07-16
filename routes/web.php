@@ -15,23 +15,23 @@ use Illuminate\Support\Facades\Route;
 
 // Route::post('/download/dst/{id}','DownloadController@dst');
 
-Route::get('/log', function(){
-    return view('pages.login-page');
+
+Route::get('/', function(){
+    return view('auth.login');
 });
-
-Route::get('/z', function(){
-    return 2000;
-});
-
-Route::get('/', 'DashboardController@index');
-
 
 Auth::routes();
 Route::group(['middleware' => ['auth']], function () {
     Route::get('/loan/products','LoanController@');
     Route::get('/fees','FeeController@getList');    
     Route::get('/transactions', 'TransactionController@list');
-    
+    Route::post('/user/changepass/{user}', 'UserController@changepass')->name('changepass');
+
+    Route::post('/search','SearchController@search');
+
+
+    Route::get('/logout','Auth\LoginController@logout')->name('logout');
+
     Route::prefix('/download')->group(function(){
         Route::post('/ccr','DownloadController@ccr');
         Route::get('/template/data-import','DownloadController@templateDataImport')->name('download.data-import');
@@ -40,7 +40,7 @@ Route::group(['middleware' => ['auth']], function () {
     });
     
 
-        Route::post('/user/changepass/{user}', 'UserController@changepass')->name('changepass');
+    
 
     Route::group(['middleware' => ['permission:extract_reports']], function () 
     {
@@ -62,7 +62,7 @@ Route::group(['middleware' => ['auth']], function () {
     });
 
     
-    Route::group(['middleware' => ['role:Super Admin']], function () 
+    Route::prefix('settings')->middleware(['role:Super Admin'])->group(function () 
     {
         // Users
 
@@ -88,7 +88,7 @@ Route::group(['middleware' => ['auth']], function () {
 
 
 
-        Route::get('/settings/create/fee', function(){
+        Route::get('/create/fee', function(){
             return view('pages.create-fees');
         });
         Route::get('/settings/create/penalty', function(){
@@ -98,7 +98,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/settings', function(){
             return view('pages.settings');
         })->name('administration');
-        Route::get('/settings/create/office/{level}', 'OfficeController@createLevel')->name('create.office');
+        Route::get('/create/office/{level}', 'OfficeController@createLevel')->name('create.office');
         Route::post('/create/office/', 'OfficeController@createOffice');
 
         Route::get('/office/{level}', 'OfficeController@viewOffice')->name('offices.view');
@@ -109,13 +109,38 @@ Route::group(['middleware' => ['auth']], function () {
 
         Route::get('/payment/methods','PaymentMethodController@fetchPaymentMethods');
 
+        Route::get('/import', 'MigrationController@index')->name('settings.import');
+        Route::post('/import', 'MigrationController@upload')->name('settings.import.post');
+        Route::get('/import/{migration}', 'MigrationController@logs')->name('settings.import.logs');
+        Route::get('/create/fee', function(){
+            return view('pages.create-fees');
+        });
+    
+        Route::get('/create/penalty', function(){
+            return view('pages.create-penalty');
+        });
+        Route::get('/loan','LoanController@index')->name('settings.loan-products');
+        Route::get('/api/get/loans','LoanController@loanProducts')->name('settings.loan-list');
+    
+        Route::get('/create/office/{level}', 'OfficeController@createLevel')->name('create.office');
+
+        Route::get('/create/loan', function(){
+            return view('pages.create-loan');
+        });
+    
+        Route::get('/loan/edit/{loan}','LoanController@updateLoan'); //render view
+        Route::get('/loan/product/edit/{id}','LoanController@loanProduct'); //get product via id
+    
+        Route::post('/loan/edit/{id}','LoanController@updateLoanProduct'); //post view
+        
+        Route::get('/loan/view/{loan}','LoanController@viewLoan');
+        
+        Route::post('/create/loan','LoanController@create');
+
     });
 
 
     Route::get('/create/office/cluster', 'ClusterController@create');
-
-
-    Route::get('/loan/products','LoanController@');
     Route::get('/fees','FeeController@getList');
 
 
@@ -124,7 +149,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/loan/calculator', 'LoanAccountController@calculate')->name('loan.calculator');
     
 
-    Route::prefix('/client')->group(function(){
+    Route::prefix('/client')->middleware(['user_client_scope'])->group(function(){
         Route::get('/{client_id}/create/dependents', 'ClientController@toCreateDependents')->name('client.create.dependents');
         Route::post('/create/dependent', 'DependentController@createDependents')->name('create.dependents.post');
         Route::get('/update/dependent', 'DependentController@updateDependentStatus')->name('create.dependents.activate');
@@ -133,12 +158,18 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/create/loan', 'LoanAccountController@createLoan')->name('client.loan.create.post');
         Route::get('/{client_id}/loans', 'LoanAccountController@clientLoanList')->name('client.loan.list');
         Route::get('/{client_id}/loans/{loan_id}','LoanAccountController@account')->name('loan.account');
-        // Route::get('/{client_id}','ClientController@view')->name('client.profile');
+        Route::get('/{client_id}','ClientController@view')->name('client.profile');
         Route::get('/{clients:client_id}','ClientController@view')->name('client.profile');
         Route::get('/{client_id}/edit','ClientController@editClient')->name('edit.client');
         Route::post('/{client_id}/edit','ClientController@update');
-
+        Route::get('/client/{client_id}/deposit/{deposit_account_id}', 'ClientController@depositAccount')->name('client.deposit'); 
+        Route::get('/dependents/{client_id}', 'ClientController@listDependents')->name('client.dependents.list');
     });
+    Route::get('/create/client','ClientController@index')->name('precreate.client');
+    Route::post('/create/client','ClientController@createV1')->name('create.client'); 
+    Route::get('/clients','ClientController@list')->name('client.list');
+    Route::get('/clients/list','ClientController@getList')->name('get.client.list');
+
 
     Route::prefix('/wApi')->group(function(){
         Route::prefix('/list')->group(function(){
@@ -174,16 +205,14 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/bulk/approve/loans','LoanAccountController@bulkApproveForm')->name('bulk.approve.loans');
     Route::get('/bulk/disburse/loans','LoanAccountController@bulkDisburseForm')->name('bulk.disburse.loans');
     
-    Route::get('/clients','ClientController@list')->name('client.list');
     
-    Route::get('/dependents/{client_id}', 'ClientController@listDependents')->name('client.dependents.list');
 
-    Route::post('/client/create/dependent', 'DependentController@createDependents')->name('create.dependents.post');
-    Route::get('/client/update/dependent', 'DependentController@updateDependentStatus')->name('create.dependents.activate');
     
     
     
-    Route::post('/client/create/loan', 'LoanAccountController@createLoan')->name('client.loan.create.post');
+    
+    
+    
     
     Route::get('/loan/approve/{loan_id}','LoanAccountController@approve')->name('loan.approve');
     Route::get('/loan/disburse/{loan_id}','LoanAccountController@disburse')->name('loan.disburse');
@@ -201,40 +230,16 @@ Route::group(['middleware' => ['auth']], function () {
     //Reports
 
 
-
-    Route::group(['middleware' => []], function () { 
-        Route::get('/create/client','ClientController@index')->name('precreate.client');
-        Route::post('/create/client','ClientController@createV1')->name('create.client'); 
-    });
     Route::get('/logout','Auth\LoginController@logout')->name('logout');
     Route::get('/scopes', function(){
         return auth()->user()->scopesBranch();
     });
     
-    // Route::get('/edit/client/{client}','ClientController@editClient');
-    // Route::post('/edit/client/{client}','ClientController@update');
-    
     Route::post('/create/office/', 'OfficeController@createOffice');
+
+  
+
     
-    Route::get('/create/client','ClientController@index')->name('precreate.client');
-    Route::post('/create/client','ClientController@createV1')->name('create.client'); 
-    Route::get('/clients','ClientController@list')->name('client.list');
-    Route::get('/clients/list','ClientController@getList')->name('get.client.list');
-
-    Route::middleware(['user_client_scope'])->group(function() {
-        
-        Route::get('/client/{client_id}','ClientController@view')->name('client.profile');
-        Route::get('/client/{client_id}/create/loan', 'LoanAccountController@index')->name('client.loan.create');
-        Route::get('/client/{client_id}/loans', 'LoanAccountController@clientLoanList')->name('client.loan.list');
-        Route::get('/client/{client_id}/deposit/{deposit_account_id}', 'ClientController@depositAccount')->name('client.deposit'); 
-        Route::get('/client/{client_id}/loans/{loan_id}','LoanAccountController@account')->name('loan.account');   
-        Route::get('/client/{client_id}/create/dependents', 'ClientController@toCreateDependents')->name('client.create.dependents');
-        Route::get('/dependents/{client_id}', 'ClientController@listDependents')->name('client.dependents.list');
-        Route::get('/client/{client_id}/manage/dependents', 'ClientController@dependents')->name('client.manage.dependents');
-        Route::get('/edit/client/{client}','ClientController@editClient');
-        Route::post('/edit/client/{client}','ClientController@update');
-
-    });
 
     
     
@@ -286,43 +291,7 @@ Route::group(['middleware' => ['auth']], function () {
 
 
     Route::prefix('/settings')->group(function () {
-        Route::get('/import', 'MigrationController@index')->name('settings.import');
-        Route::post('/import', 'MigrationController@upload')->name('settings.import.post');
-        Route::get('/settings/import/{migration}', 'MigrationController@logs')->name('settings.import.logs');
-        Route::get('/create/role', function(){
-            return view('pages.create-role');
-        });
-        Route::get('/create/user', function(){
-            return view('pages.create-user');
-        })->name('create.user');
-    
-        Route::get('/create/fee', function(){
-            return view('pages.create-fees');
-        });
-    
-        Route::get('/create/penalty', function(){
-            return view('pages.create-penalty');
-        });
-        Route::get('/loan','LoanController@index')->name('settings.loan-products');
-        Route::get('/api/get/loans','LoanController@loanProducts')->name('settings.loan-list');
-    
-        Route::get('/create/office/{level}', 'OfficeController@createLevel')->name('create.office');
-        Route::get('/', function(){
-            return view('pages.settings');
-        })->name('administration');
-
-        Route::get('/create/loan', function(){
-            return view('pages.create-loan');
-        });
-    
-        Route::get('/loan/edit/{loan}','LoanController@updateLoan'); //render view
-        Route::get('/loan/product/edit/{id}','LoanController@loanProduct'); //get product via id
-    
-        Route::post('/loan/edit/{id}','LoanController@updateLoanProduct'); //post view
         
-        Route::get('/loan/view/{loan}','LoanController@viewLoan');
-        
-        Route::post('/create/loan','LoanController@create');
     });
 
     Route::prefix('reports')->group(function () {
@@ -333,16 +302,6 @@ Route::group(['middleware' => ['auth']], function () {
     });
 
 
-
-    Route::post('/search','SearchController@search');
-
-    Route::get('/user/{user}','UserController@get');
-
-
-    Route::get('/logout','Auth\LoginController@logout')->name('logout');
-    Route::get('/scopes', function(){
-        return auth()->user()->scopesBranch();
-    });
     Route::get('/usr/branches','UserController@branches');
 
 });

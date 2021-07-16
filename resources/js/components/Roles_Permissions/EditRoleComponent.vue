@@ -327,7 +327,7 @@ import 'vue-loading-overlay/dist/vue-loading.css';
                 })
 			},
 			roleLink(){
-				return '/edit/role/'+this.role.id
+				return '/settings/edit/role/'+this.role.id
 			},
 			hasError(value){
 				return this.errors.hasOwnProperty(value)

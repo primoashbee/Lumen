@@ -5305,8 +5305,33 @@ body.dark-mode select,.multiselect__tags{
     }
 /*END OF DARK MODE*/
 
+.card{
+    margin-bottom: 80px;
+}
 
-
+.business-item .btn-link:hover,.business-item .btn-link:focus{
+    color: #fff!important;
+    text-decoration: none;
+}
+.business-item:hover:after{
+    border-color:rgb(253 173 125);
+    transition: ease-in .4s;
+}
+.business-item:after{
+    content: '';
+    position: relative;
+    top: 0;
+    right: 0;
+    border: solid #fff;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+    transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+}
+.business-item{
+   position: relative; 
+}
 /*LIGHT MODE CSS*/
 body.light-mode .navbar.fixed-top{
     padding-bottom: 0!important;

@@ -48,7 +48,7 @@
 
 					<div class="col-lg-8 profile-wrapper">
 						@can('edit_client')
-						<a href="/edit/client/{{$client->client_id}}" type="submit" class="btn btn-primary float-right mr-4">Edit Client</a>
+						<a href="/client/{{$client->client_id}}/edit" type="submit" class="btn btn-primary float-right mr-4">Edit Client</a>
 						@endcan
 						<div class="p-details">
 							
@@ -102,10 +102,10 @@
 									<div class="accordion" id="businesses">
 										@foreach ($client->businesses as $key=>$business)
 										<div class="card">
-										  <div class="card-header" id="business_{{$key+1}}">
-											<h2 class="mb-0">
-											  <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapse_{{$key+1}}" aria-expanded="false" aria-controls="collapse_{{$key+1}}">
-												<span class="title text-xl= mr-8">Business #{{$key + 1}}</span>
+										  <div class="card-header" id="business_{{$key+1}}" class="businesses-wrapper">
+											<h2 class="mb-0 business-item">
+											  <button class="btn btn-link collapsed w-9 text-left pl-0" type="button" data-toggle="collapse" data-target="#collapse_{{$key+1}}" aria-expanded="false" aria-controls="collapse_{{$key+1}}">
+												<span class="title text-xl mr-8 text-white">Business #{{$key + 1}}</span>
 											  </button>
 											</h2>
 										  </div>
