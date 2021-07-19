@@ -884,10 +884,12 @@ use App\Http\Controllers\LoanAccountController;
             "status"=>1,
             "type"=>'NORMAL'
         ])->id;
-        Loan::find($id)->fees()->attach([Fee::find(1)->id]);
-        Loan::find($id)->fees()->attach([Fee::find(3)->id]);
-        Loan::find($id)->fees()->attach([Fee::find(4)->id]);
-        Loan::find($id)->fees()->attach([Fee::find(5)->id]);
+        Loan::find($id)->fees()->attach([Fee::find(3)->id]); //MI FEE
+        Loan::find($id)->fees()->attach([Fee::find(4)->id]); // MI PREMIUM
+        Loan::find($id)->fees()->attach([Fee::find(6)->id]); // PF 1.5%
+        Loan::find($id)->fees()->attach([Fee::find(5)->id]); //DST
+        Loan::find($id)->fees()->attach([Fee::find(2)->id]); //CGLI 
+        Loan::find($id)->fees()->attach([Fee::find(1)->id]); //CGLI PREMIUM
         
     }
     function generatePaymentMethods(){

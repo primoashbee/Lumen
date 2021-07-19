@@ -151,6 +151,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::prefix('/client')->middleware(['user_client_scope'])->group(function(){
         Route::get('/{client_id}/create/dependents', 'ClientController@toCreateDependents')->name('client.create.dependents');
+        Route::post('/client/create/dependent', 'DependentController@createDependents')->name('create.dependents.post');
         Route::post('/create/dependent', 'DependentController@createDependents')->name('create.dependents.post');
         Route::get('/update/dependent', 'DependentController@updateDependentStatus')->name('create.dependents.activate');
         Route::get('/{client_id}/manage/dependents', 'ClientController@dependents')->name('client.manage.dependents');

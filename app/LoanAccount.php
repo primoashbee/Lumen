@@ -11,6 +11,7 @@ use App\Events\LoanAccountPayment;
 use Illuminate\Support\Facades\DB;
 use App\Events\LoanAccountPaymentEvent;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 use phpDocumentor\Reflection\PseudoTypes\False_;
 
 class LoanAccount extends Model
@@ -155,6 +156,7 @@ class LoanAccount extends Model
             // $sched = new Scheduler($start_date,$office_id);
             $office_id = $data['office_id'];
             $start_date = Scheduler::getDate($data['start_date'], $office_id);
+            
             $current_date = now()->startOfDay();
             // $end_date;
             $late = false;
@@ -165,7 +167,9 @@ class LoanAccount extends Model
                         $date = $start_date;
                     }else{
                         $previous_installment_date  = Carbon::parse($installments[$x-1]->date);
+                        
                         $date = Scheduler::getDate($previous_installment_date->addWeek(), $office_id);
+                        // dd($date);
                     }
                     $days_diff = $current_date->diffInDays($date, false);
                     $late = $days_diff <= 0; //is due
@@ -204,6 +208,7 @@ class LoanAccount extends Model
                     $amortization = $interest + $principal;
 
                     $diff_in_days = $date->diffInDays(now()->startOfDay(), false);
+                    
                     $interest_days_incurred =  0;
                     if ($diff_in_days >= -6) {
                         $interest_days_incurred =   $diff_in_days > 0 ? 7 : $diff_in_days + 7;
@@ -368,7 +373,8 @@ class LoanAccount extends Model
             return $data;
         }
         if ($data['term'] == 'days'){
-            $interval = 7;
+            // dd($data);
+            $interval = 14;
             $number_of_weeks = 52;
 
             $term_length = $data['term_length'];
@@ -380,6 +386,7 @@ class LoanAccount extends Model
             $principal = $data['principal'];
             
             $total_amount = $principal * pow($base, $exponent);
+            
             $monthly_rate = ($data['monthly_rate'] * ($term_length / 4));
             // $total_interest = round($total_amount - $principal, 2);
             $total_interest = round($principal * $monthly_rate, 2);
@@ -392,33 +399,42 @@ class LoanAccount extends Model
             $interest_rate = $data['interest_rate'];
             // $interest_rate = 0;
 
-            $weekly_compounding_rate = ($interest_rate / 4) / 100;
+            $weekly_compounding_rate = ($interest_rate / 2) / 100;
             
             $interest_balance = round($total_interest, 2);
 
             // $sched = new Scheduler($start_date,$office_id);
             $office_id = $data['office_id'];
-            $start_date = Scheduler::getDate($data['start_date'], $office_id);
+            $original_start_date = Carbon::parse($data['start_date'])->startOfDay();
+            $start_date = Scheduler::getDateForDailyInstallment($data['start_date'], $office_id);
             $current_date = now()->startOfDay();
+
+            $adjusted = $start_date->diffInDays($original_start_date,false) < 0 ? true : false;
             // $end_date;
             $late = false;
             $date = 'now';
 
             for ($x=0;$x<=$term_length;$x++){
-                if ($x>0){
-                    if ($x==1) {
-                        $date = $start_date;
-                    }else{
-                        $previous_installment_date  = Carbon::parse($installments[$x-1]->date);
-                        // $date = Scheduler::getDate($previous_installment_date->addWeek(), $office_id);
-                        $date = Scheduler::hasHoliday($previous_installment_date->copy()->addDays(14), $office_id);
+                if ($x==1) {
+                    $date = $start_date;
+                }
+                if ($x>1){
+                        $adjusted = false;
+                        $previous_installment_date  =  Carbon::parse($installments[$x-1]->date);
+                        // $previous_installment_date  =  $installments[$x-1]->date;
+                        
+                        // if (Scheduler::getDateForDailyInstallment($previous_installment_date, $office_id,14)) {
+                        $date = Scheduler::getDateForDailyInstallment($previous_installment_date->addDays(14), $office_id,1);
+                        
+                        $adjusted = $date->diffInDays($previous_installment_date, false) < 0 ?  true : false;
+                        // }else{
+                            // $date = $previous_installment_date->addDays(14);
+                        // }
 
-                        //has holiday
-                        if($date){
-                            $previous_installment_date->addDays(15);
-                        }
-                    }
+                        
+                    
                     $days_diff = $current_date->diffInDays($date, false);
+                    
                     $late = $days_diff <= 0; //is due
                 }
                 //first row
@@ -455,6 +471,7 @@ class LoanAccount extends Model
                     $amortization = $interest + $principal;
 
                     $diff_in_days = $date->diffInDays(now()->startOfDay(), false);
+                    
                     $interest_days_incurred =  0;
                     if ($diff_in_days >= -6) {
                         $interest_days_incurred =   $diff_in_days > 0 ? 7 : $diff_in_days + 7;
@@ -502,7 +519,7 @@ class LoanAccount extends Model
 
                 //first payment
                 } elseif ($x==1) {
-
+                    
                     $interest = round($principal_balance * $weekly_compounding_rate, 2);
                     $principal = round($amortization - $interest, 2);
                     
@@ -512,8 +529,9 @@ class LoanAccount extends Model
 
                     $diff_in_days = $start_date->diffInDays(now()->startOfDay(), false);
                     $interest_days_incurred =  0;
-                    if ($diff_in_days >= -6) {
-                        $interest_days_incurred =   $diff_in_days > 0 ? 7 : $diff_in_days + 7;
+                    if ($diff_in_days >= -13) {
+                        $interest_days_incurred =   $diff_in_days > 0 ? 14 : $diff_in_days + 14;
+                        // dd("bobo");
                     }
                     
                     $per_day_interest = round($interest / 7, 2);
@@ -542,7 +560,7 @@ class LoanAccount extends Model
                             'interest_balance'=>$interest_balance,
                             'amortization'=>$amortization,
                             'interest_days_incurred' =>$interest_days_incurred,
-                            
+                            'adjusted'=>$adjusted,
 
                             'formatted_amount_due'=>money($amount_due, 2),
                             'formatted_principal_balance'=>money($principal_balance, 2),
@@ -559,10 +577,9 @@ class LoanAccount extends Model
                     $principal_balance = round($principal_balance - $principal, 2);
                     $interest_balance = round($interest_balance - $interest, 2);
                     $amortization = round($interest + $principal, 2);
-                    // dd($date);
-                    $x = 1;
-                    $date;
-                    $diff_in_days = $date->diffInDays(now()->startOfDay(), false);
+                    // $diff_in_days = $start_date->diffInDays(now()->startOfDay(), false);
+                    $diff_in_days = $date->diffInDays(now()->startOfDay());
+                    
                     $interest_days_incurred =  0;
                     if ($diff_in_days >= -6) {
                         $interest_days_incurred =   $diff_in_days > 0 ? 7 : $diff_in_days + 7;
@@ -594,7 +611,7 @@ class LoanAccount extends Model
                             'principal_due'=>$principal_due,
                             'amount_due'=>$amount_due,
                             'interest_days_incurred' =>$interest_days_incurred,
-                            
+                            'adjusted' => $adjusted,
                             'formatted_amount_due'=>money($amount_due, 2),
                             'formatted_principal_balance'=>money($principal_balance, 2),
                             'formatted_interest'=>money($interest, 2),
