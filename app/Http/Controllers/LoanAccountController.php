@@ -157,14 +157,14 @@ class LoanAccountController extends Controller
         $this->validator($request->all())->validate();
         $client = Client::where('client_id',$request->client_id)->first();
         $loan =  Loan::find($request->loan_id);
-
+        
         $fees = $loan->fees;
         $total_deductions = 0;
 
         $loan_amount = (double) $request->amount;
         $number_of_installments = $request->number_of_installments;
         $number_of_months = Loan::rates()->where('code',$loan->code)->first()->rates->where('installments',$number_of_installments)->first()->number_of_months;
-
+        // dd($number_of_months);
         $fee_repayments = array();
         
         $dependents = $client->unUsedDependent()->pivotList();
@@ -470,9 +470,11 @@ class LoanAccountController extends Controller
             'activated_at'=>Carbon::now(),
             'expires_at'=>Carbon::now()->addDays(env('INSURANCE_MATURITY_DAYS'))
             ]);
-        $account->account()->update([
+        // dd($account->accountable());
+        $account->accountable->update([
             'status'=>$account->status
         ]);
+        
         \DB::commit();
         return redirect()->back();
         }catch(\Exception $e){
@@ -512,7 +514,7 @@ class LoanAccountController extends Controller
             $pre_term_amount = $account_1->preTermAmount();
             $installment_repayments = \DB::table('loan_account_installment_repayments');
             $installments = \DB::table('loan_account_installments')
-                                ->select('installment','original_principal','original_interest','date','amortization','principal','interest','principal_due','interest_due',
+                                ->select('installment','original_principal','original_interest','date','amortization','principal','interest','principal_due','interest_due','amount_due',
                                 \DB::raw("IF(paid=false, (
                                     CASE 
                                         WHEN `date` > DATE(CURRENT_TIMESTAMP) THEN 'Not Due'
@@ -537,7 +539,7 @@ class LoanAccountController extends Controller
             
             $client = Client::select('firstname','lastname','client_id')->where('client_id',$client_id)->first();
             
-            
+            // dd($amount_due);
             return response()->json([
                 'account'=>$account,
                 'loan_type'=>$loan_type,

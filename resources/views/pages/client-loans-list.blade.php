@@ -56,7 +56,9 @@
                                             @else
                                               
                                             @endif
-                                            <button class="btn btn-light">View</button>
+                                            <a href="{{route('loan.account',[$client->client_id,$item->id])}}">
+                                                <button class="btn btn-light">View</button>
+                                            </a>
                                         </td>
                                     </tr>
                                 @endforeach

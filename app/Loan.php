@@ -293,14 +293,14 @@ class Loan extends Model
                             (object) [
                                 'code'=>'GML',
                                 'installments'=>12,
-                                'rate'=>5.210394,
-                                'term'=>6
+                                'rate'=>5.281394,
+                                'number_of_months'=>6
                             ],
                             (object) [
                                 'code'=>'GML',
                                 'installments'=>24,
-                                'rate'=>5.184610,
-                                'term'=>12
+                                'rate'=> 5.24461,
+                                'number_of_months'=>12
                             ],
                         ])
                         

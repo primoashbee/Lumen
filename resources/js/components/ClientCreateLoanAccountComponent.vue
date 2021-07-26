@@ -220,7 +220,7 @@ export default {
 					text: res.data.msg,
 				})
 				.then(res=>{
-					location.reload()
+					// location.reload()
 				})
 				
 			})
