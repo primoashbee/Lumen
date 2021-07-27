@@ -246,7 +246,7 @@
 			          	<h4 class="mt-2 text-2xl">Deposit Accounts</h4>
 			          </div>
 			          @can('create_deposit_account')
-			          <a href="" data-toggle="modal" data-target=".bd-example-modal-lg" class="float-right btn-create text-base">Create Account</a>
+			          <a href="/client/{{$client->client_id}}/create/deposit" class="float-right btn-create text-base">Create Account</a>
 			          @endcan
 
 			        </div>
@@ -275,7 +275,7 @@
 			                  </td>
 			                  <td>
 									{{money($cbu->balance,2)}}
-								
+
 			                  </td>
 			                  <td>
 								@if($cbu->status)
@@ -300,12 +300,12 @@
 			        </div>
 		      </div>
 
-		      <div class="card mb-4">
+		      <div class="card mb-30">
 		        <div class="card-header">
 		          <div class="float-left text-center">
 		          	<h4 class="mt-2 h5">Micro-Insurance</h4>
 		          </div>
-					<a href="{{route('client.manage.dependents',$client->client_id)}}" class="float-right btn-create">Manage</a>
+					<a href="{{route('client.manage.dependents',$client->client_id)}}" class="float-right btn-create text-base">Manage</a>
 				</div>
 				
 		        <div class="card-body">
@@ -315,8 +315,6 @@
 						<tr>
 							<td> Unit</td>
 							<td> App. #</td>
-							<td> # of Dpnts </td>
-							<td> Expiry</td>
 							<td> Status</td>
 						</tr>
 						<tbody>
@@ -324,8 +322,6 @@
 								<tr>
 									<td>{{$item->unit_of_plan}}</td>
 									<td>{{$item->application_number}}</td>
-									<td>{{$item->count}}</td>
-									<td>{{$item->expires_at}}</td>
 									<td>{{$item->status}}</td>
 								</tr>
 							@endforeach
