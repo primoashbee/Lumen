@@ -811,8 +811,8 @@ use App\Http\Controllers\LoanAccountController;
             "default_installment"=>1,
             "maximum_installment"=>1,
 
-            "installment_length"=>4,
-            "installment_method"=>'weeks',
+            "installment_length"=>1,
+            "installment_method"=>'monthly',
 
             "interest_interval"=>'Monthly',
             
@@ -889,7 +889,52 @@ use App\Http\Controllers\LoanAccountController;
         Loan::find($id)->fees()->attach([Fee::find(6)->id]); // PF 1.5%
         Loan::find($id)->fees()->attach([Fee::find(5)->id]); //DST
         Loan::find($id)->fees()->attach([Fee::find(2)->id]); //CGLI 
-        Loan::find($id)->fees()->attach([Fee::find(1)->id]); //CGLI PREMIUM
+        Loan::find($id)->fees()->attach([Fee::find(1)->id]); //CGLI PREMIUM'
+
+
+        $id = Loan::create([
+            "code"=>'LLP',
+            "name"=>'LIGHT LOAN PROGRAM',
+            "description"=>"Revised 2020
+            Light Loan Program is a business loan for marginalized micro-enterprise sectors as additional capital for existing business, amounting to 1k-2k with 0% interest payable daily for 30 days. Loan must qualify based on credit limit and loan performance criteria of each borrower. This is CLUSTERED with minimum of 10 partner clients. Pre-termination is allowed if 50% of loan is paid and with either of the following reason: (1) Resigning from the program; (2) Transferring to another product.",
+            
+            "account_per_client"=>1,
+            "interest_calculation_method_id"=>0,
+
+            "minimum_installment"=>1,
+            "default_installment"=>1,
+            "maximum_installment"=>8,
+
+            "installment_length"=>1,
+            "installment_method"=>'weekly',
+            
+            "interest_interval"=>'',
+            
+            "monthly_rate"=>0,
+            "interest_rate"=>0,
+
+            "loan_minimum_amount"=>1000,
+            "loan_maximum_amount"=>3000,
+
+            "grace_period"=>'NO GRACE PERIOD',
+            "has_tranches"=>true,
+            "number_of_tranches"=>2,
+
+            "loan_portfolio_active"=>26,
+            "loan_portfolio_in_arrears"=>26,
+            "loan_portfolio_matured"=>26,
+
+            "loan_interest_income_active"=>26,
+            "loan_interest_income_in_arrears"=>26,
+            "loan_interest_income_matured"=>26,
+
+            "loan_write_off"=>26,
+            "loan_recovery"=>26,
+            "created_by"=>2,
+            "status"=>1,
+            "type"=>'NORMAL'
+        ])->id;
+        Loan::find($id)->fees()->attach([Fee::find(5)->id]);
         
     }
     function generatePaymentMethods(){

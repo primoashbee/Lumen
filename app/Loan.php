@@ -73,7 +73,7 @@ class Loan extends Model
                             (object) [
                                 'code'=>'MPL',
                                 'installments'=>22,
-                                'rate'=>5.1097,
+                                'rate'=>5.47297,
                                 'number_of_months'=>6
                             ],
                             (object) [
@@ -92,7 +92,7 @@ class Loan extends Model
                             (object) [
                                 'code'=>'MPL',
                                 'installments'=>48,
-                                'rate'=>5.32911,
+                                'rate'=> 5.32911,
                                 'number_of_months'=>8
                             ]
                         ]),
@@ -302,9 +302,41 @@ class Loan extends Model
                                 'rate'=> 5.24461,
                                 'number_of_months'=>12
                             ],
+                        ]) 
+                    ],
+                    (object)[
+                        'code' => 'AGL',
+                        'rates' => collect([
+                            (object)[
+                                'code'=>'AGL',
+                                'installments'=>6,
+                                'rate'=>2.5,
+                                'number_of_months'=>6
+                            ],
                         ])
-                        
-                    ]
+                    ],
+                    (object)[
+                        'code' => 'LLP',
+                        'rates' => collect([
+                            (object)[
+                                'code'=>'LLP',
+                                'installments'=>4,
+                                'rate'=>0,
+                                'number_of_months'=>1
+                            ]
+                        ])
+                    ],
+                    (object)[
+                        'code' => 'LLP',
+                        'rates' => collect([
+                            (object)[
+                                'code'=>'LLP',
+                                'installments'=>8,
+                                'rate'=>0,
+                                'number_of_months'=>2
+                            ]
+                        ])
+                    ],
                 ];
 
         if($id!=null){

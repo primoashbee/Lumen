@@ -220,7 +220,7 @@ export default {
 					text: res.data.msg,
 				})
 				.then(res=>{
-					// location.reload()
+					location.reload()
 				})
 				
 			})
@@ -243,6 +243,16 @@ export default {
 			})
 			.catch(err=>{
 				this.errors = err.response.data.errors || {}
+				 var html="";
+				$.each(this.errors, function(k, v){ 
+					html += '<p class="text-left">'+ v +'</p>'
+				})
+				Swal.fire({
+						icon: 'error',
+						title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:red;font-size:1em;font-weight:600">Something went wrong!</span>',
+						html: html +'</ul>'
+					})
+				
 				this.calculated = false;
 			});
 			

@@ -39,6 +39,9 @@ class Fee extends Model
         if($loan_product->installment_method=="days"){
             $weeks = $installment;
         }
+        if($loan_product->installment_method=="month"){
+            $weeks = $installment;
+        }
 
         
         if($this->calculation_type=="fixed"){
@@ -221,7 +224,6 @@ class Fee extends Model
             'adult'=>417,
             'young'=>43
         );
-       
         return collect($rates);
     }
 

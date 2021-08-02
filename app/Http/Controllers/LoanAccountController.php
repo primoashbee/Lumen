@@ -436,7 +436,7 @@ class LoanAccountController extends Controller
     public function disburse($loan_id=null){
         
         if($loan_id!=null){
-            $id = $loan_id;
+            $id = $loan_id; 
         }else{
             $id = $this->id;
         }
@@ -470,7 +470,7 @@ class LoanAccountController extends Controller
             'activated_at'=>Carbon::now(),
             'expires_at'=>Carbon::now()->addDays(env('INSURANCE_MATURITY_DAYS'))
             ]);
-        // dd($account->accountable());
+        
         $account->accountable->update([
             'status'=>$account->status
         ]);
