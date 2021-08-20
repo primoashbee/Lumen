@@ -1882,8 +1882,9 @@ class LoanAccount extends Model
             $annual_rate = $product->annual_date;
             $monthly_rate = $product->monthly_rate;
             $loan_interest_rate = Loan::rates($this->product->id)->where('installments', $this->number_of_installments)->first()->rate;
-
+            
             $data = array(
+                'product' => $product->code,
                 'principal'=>$this->amount,
                 'annual_rate'=>$annual_rate,
                 'monthly_rate'=>$monthly_rate,
@@ -1897,7 +1898,6 @@ class LoanAccount extends Model
             );
             
             $calculator = LoanAccount::calculate($data);
-            
             $this->createInstallments($this, $calculator->installments);
             
         }

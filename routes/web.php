@@ -38,7 +38,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/dst/{loan_account_id}','DownloadController@dst');
         Route::get('/dst/bulk/{bulk_transaction_id}','DownloadController@dstBulk');
     });
-    Route::group(['middleware' => ['permission:extract_reports']], function () 
+    Route::group(['middleware' => ['permission:extract_reports','role:Branch Manager|Branch Accountant']], function () 
     {
 
         Route::get('/transactions', 'TransactionController@list');

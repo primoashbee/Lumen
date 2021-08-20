@@ -68,7 +68,8 @@
 				'enter_deposit',
 				'enter_withdrawal',
 				'interest_posting',
-				'enter_deposit'])
+				'enter_deposit',
+				'disburse_loan'])
 				<li class="py-2 {{ request()->is('bulk/*') ? 'active' : '' }}">
 					<a data-toggle="collapse" href="#bulk" role="button" aria-expanded="false" aria-controls="create" class="has-sub">
 						<i class="fas fa-2x fa-layer-group"></i>

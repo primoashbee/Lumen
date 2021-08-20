@@ -639,11 +639,12 @@ class LoanAccountController extends Controller
                     //get first payment of 1st loan account
                     
                     $account->disburse($payment_info,true,$bulk_disbursement_id);
+                    
                     if (is_null($first_payment)) {
                         $first_payment = $account->installments->first()->date->format('d-F');
                     }
                     $disbursed_amount+= $account->disbursed_amount;
-                    // dd($disbursed_amount);    
+                      
                 }
                 
                 
