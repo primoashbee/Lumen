@@ -812,7 +812,7 @@ use App\Http\Controllers\LoanAccountController;
             "maximum_installment"=>1,
 
             "installment_length"=>1,
-            "installment_method"=>'monthly',
+            "installment_method"=>'months',
 
             "interest_interval"=>'Monthly',
             
@@ -906,7 +906,7 @@ use App\Http\Controllers\LoanAccountController;
             "maximum_installment"=>8,
 
             "installment_length"=>1,
-            "installment_method"=>'weekly',
+            "installment_method"=>'weeks',
             
             "interest_interval"=>'',
             
@@ -936,6 +936,88 @@ use App\Http\Controllers\LoanAccountController;
         ])->id;
         Loan::find($id)->fees()->attach([Fee::find(5)->id]);
         
+        $id = Loan::create([
+            "code"=>'RS-GML',
+            "name"=>'GROWTH ORIENTED MICROFINANCE ENTERPRISE LOAN',
+            "description"=>"Growth Oriented Microfinance Enterprise Loan or GML is an individual productive loan for the growth and expansion of micro-enterprise sectors with loan amount of 100k-150k and must qualify based on credit limit and loan performance criteria. Payable in 6 or 12 months only on a Bi-monthly basis thru PDC (Loan and CBU). Pre-termination is allowed if 50% of loan is paid and with either of the following reason: (1) Resigning from the program; (2) Business expansion; (3) Transferring to another product.",
+
+            "account_per_client"=>1,
+            "interest_calculation_method_id"=>101,
+
+            "minimum_installment"=>12,
+            "default_installment"=>22,
+            "maximum_installment"=>48,
+
+            "installment_length"=>14,
+            "installment_method"=>'days',
+
+            "interest_interval"=>'Monthly',
+            "monthly_rate"=>0.02,
+            "interest_rate"=>5.18461,
+
+            "loan_minimum_amount"=>100000,
+            "loan_maximum_amount"=>150000,
+
+            "grace_period"=>'NO GRACE PERIOD',
+            "has_tranches"=>false,
+
+
+            "loan_portfolio_active"=>26,
+            "loan_portfolio_in_arrears"=>26,
+            "loan_portfolio_matured"=>26,
+
+            "loan_interest_income_active"=>26,
+            "loan_interest_income_in_arrears"=>26,
+            "loan_interest_income_matured"=>26,
+
+            "loan_write_off"=>26,
+            "loan_recovery"=>26,
+            "created_by"=>2,
+            "status"=>1,
+            "type"=>'DRP'
+        ])->id;
+
+        $id = Loan::create([
+            "code"=>'RF-GML',
+            "name"=>'GROWTH ORIENTED MICROFINANCE ENTERPRISE LOAN',
+            "description"=>"Growth Oriented Microfinance Enterprise Loan or GML is an individual productive loan for the growth and expansion of micro-enterprise sectors with loan amount of 100k-150k and must qualify based on credit limit and loan performance criteria. Payable in 6 or 12 months only on a Bi-monthly basis thru PDC (Loan and CBU). Pre-termination is allowed if 50% of loan is paid and with either of the following reason: (1) Resigning from the program; (2) Business expansion; (3) Transferring to another product.",
+
+            "account_per_client"=>1,
+            "interest_calculation_method_id"=>101,
+
+            "minimum_installment"=>12,
+            "default_installment"=>22,
+            "maximum_installment"=>48,
+
+            "installment_length"=>14,
+            "installment_method"=>'days',
+
+            "interest_interval"=>'Monthly',
+            "monthly_rate"=>0.02,
+            "interest_rate"=>5.18461,
+
+            "loan_minimum_amount"=>100000,
+            "loan_maximum_amount"=>150000,
+
+            "grace_period"=>'NO GRACE PERIOD',
+            "has_tranches"=>false,
+
+
+            "loan_portfolio_active"=>26,
+            "loan_portfolio_in_arrears"=>26,
+            "loan_portfolio_matured"=>26,
+
+            "loan_interest_income_active"=>26,
+            "loan_interest_income_in_arrears"=>26,
+            "loan_interest_income_matured"=>26,
+
+            "loan_write_off"=>26,
+            "loan_recovery"=>26,
+            "created_by"=>2,
+            "status"=>1,
+            "type"=>'DRP'
+        ])->id;
+
     }
     function generatePaymentMethods(){
         $methods = array(
@@ -1370,4 +1452,11 @@ use App\Http\Controllers\LoanAccountController;
     function addWeek($date){
         return $date = \Carbon\Carbon::parse($date)->addWeek();
     }
+
+    function pmt($rate, $nper, $pv, $fv=0, $type=0){
+        return $PMT = (-$fv - $pv * pow(1 + $rate, $nper)) /
+        (1 + $rate * $type) /
+        ((pow(1 + $rate, $nper) - 1) / $rate);
+    }
+    
 ?>

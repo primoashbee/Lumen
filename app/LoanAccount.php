@@ -123,12 +123,13 @@ class LoanAccount extends Model
     // public static function calculate($principal,$annual_rate,$interest_rate,$interest_interval,$term,$term_length,$start_date=null,$office_id){
     public static function calculate(array $data,$ir = 0)
     {
+        
         $interval = 0;
         try {
             if ($data['interest_interval'] == 'Monthly') {
                 $interval = 4;
             }
-            if ($data['term']=='month') {
+            if ($data['term']=='months') {
                 
                 $interval = 4;
                 $number_of_weeks = 52;
@@ -137,8 +138,12 @@ class LoanAccount extends Model
                 
                 
                 $principal = $data['principal'];
+
+                $exponent = $number_of_weeks * ($term_length/$number_of_weeks);
                 
-                // $total_amount = $principal * pow($base, $exponent);
+                $base = 1+((double) $data['annual_rate']/$number_of_weeks);
+                
+                $total_amount = $principal * pow($base, $exponent);
                 
                 $monthly_rate = $data['interest_rate']/100;
                 // dd($monthly_rate);
@@ -154,7 +159,7 @@ class LoanAccount extends Model
                 $interest_rate = $data['interest_rate'];
                 // $interest_rate = 0;
     
-                // $weekly_compounding_rate = ($interest_rate / 4) / 100;
+                $weekly_compounding_rate = $interest_rate / 100;
                 
                 $interest_balance = round($total_interest, 2);
                 
@@ -380,34 +385,40 @@ class LoanAccount extends Model
                 // $weekly_compounding_rate = ($interest_rate / 4) / 100;
             }   
             if ($data['term'] == 'weeks') {
+                $product = $data['product'];
+                
                 $number_of_weeks = 52;
                 $term_length = $data['term_length'];
-    
+                
                 $exponent = $number_of_weeks * ($term_length/$number_of_weeks);
                 
                 $base = 1+((double) $data['annual_rate']/$number_of_weeks);
                 
                 $principal = $data['principal'];
                 
-                $total_amount = $principal * pow($base, $exponent);
-                
+                // $total_amount = $principal * pow($base, $exponent);
+               
+                // $total_amount = $product == "LLP" ? $principal : $principal * pow($base, $exponent);
                 $monthly_rate = ($data['monthly_rate'] * ($term_length / 4));
+                
                 // $total_interest = round($total_amount - $principal, 2);
                 
                 $total_interest = round($principal * $monthly_rate, 2);
                 
-                $amortization = $total_amount / $term_length;
-    
-                $principal_balance = $principal;
-                $installments = array();
-    
                 $interest_rate = $data['interest_rate'];
                 // $interest_rate = 0;
     
                 $weekly_compounding_rate = ($interest_rate / 4) / 100;
+                // $total_amount = $principal + $total_interest;
+                $amortization = $product == "LLP" ? $principal / $term_length : pmt($weekly_compounding_rate, $term_length, -$principal);
+    
+                $principal_balance = $principal;
+                $installments = array();
+    
+                
                 
                 $interest_balance = round($total_interest, 2);
-    
+                
                 // $sched = new Scheduler($start_date,$office_id);
                 $office_id = $data['office_id'];
                 $start_date = Scheduler::getDate($data['start_date'], $office_id);
@@ -629,48 +640,40 @@ class LoanAccount extends Model
             }
             if ($data['term'] == 'days'){
 
-                
-                $interval = 14;
-                // 1 yr # of weeks
-                $number_of_weeks = 52;
+                $number_of_weeks = 26;
                 // 12 or 24
                 $term_length = $data['term_length'];
+                
                 $principal = $data['principal'];
                 // How many weeks depending on loan term length - * 2 bi week
                 $weeks_on_term_length = $term_length * 2;
-                
                 // calculation of compound interest
-
-                $exponent = $number_of_weeks * ($weeks_on_term_length/$number_of_weeks);
+                $exponent = $number_of_weeks * ($term_length/$number_of_weeks);
                 
                 $base = 1+((double) $data['annual_rate']/$number_of_weeks);
-                
-                
-                              
-                // dd($total_amount);  
+
                 
                 // Montly interest 
                 $monthly_rate = ($data['monthly_rate'] * ($data['term_length'] / 2));
                 
                 $total_interest = round($principal * $monthly_rate, 2);
                 
-                // $total_amount = $principal + $total_interest;
-                
-                // dd($total_amount);
-                // $total_amount = $principal * pow($base, $exponent); 
                 $total_amount = $principal + $total_interest;
-                $amortization =  $total_amount / $term_length;
+                $interest_rate = $data['interest_rate'];
+                
+                // $interest_rate = 0;
+
+                // per fortnight compounding rate interest
+                $fortnight_compounding_rate = ($interest_rate / 2) / 100;
+                
+                // $total_amount = pmt($data['interest_rate'],$term_length, $principal);
+                $amortization =  pmt($fortnight_compounding_rate, $term_length, -$principal);
                 
                 $principal_balance = $principal;
                 $installments = array();
-    
-                $interest_rate = $data['interest_rate'];
-                // dd($interest_rate);
-                // $interest_rate = 0;
+
                 
-                // per fortnight compounding rate interest
-                $weekly_compounding_rate = ($interest_rate / 2) / 100;
-                // dd($weekly_compounding_rate);
+                
                 $interest_balance = round($total_interest, 2);
     
                 // $sched = new Scheduler($start_date,$office_id);
@@ -685,18 +688,20 @@ class LoanAccount extends Model
                 $date = 'now';
     
                 for ($x=0;$x<=$term_length;$x++){
-                    if ($x==1) {
-                        $date = $start_date;
-                    }
-                    if ($x>1){
+                    if ($x>0) {
+                        if ($x==1) {
+                            $date = $start_date;
+                        }
+                        else{
                             $adjusted = false;
                             $previous_installment_date  =  Carbon::parse($installments[$x-1]->date);
-                            $date = Scheduler::getDateForDailyInstallment($previous_installment_date->addDays(14), $office_id,1);
-    
-                        $days_diff = $current_date->diffInDays($date, false);
-                        
-                        $late = $days_diff <= 0; //is due
+                            
+                            $date = Scheduler::getDateForDailyInstallment($previous_installment_date->addWeeks(2), $office_id,1);
+                        }
+                            $days_diff = $current_date->diffInDays($date, false);
+                            $late = $days_diff <= 0; //is due
                     }
+                    
                     //first row
                     if ($x == 0) {
                         $interest = 0;
@@ -781,20 +786,22 @@ class LoanAccount extends Model
     
                     //first payment
                     } elseif ($x==1) {
+
+
                         
-                        $interest = round($principal_balance * $weekly_compounding_rate, 2);
+                        $interest = round($principal_balance * $fortnight_compounding_rate, 2);
                         $principal = round($amortization - $interest, 2);
 
                         
                         $principal_balance = round($principal_balance - $principal, 2);
                         $interest_balance =round($interest_balance - $interest, 2);
                         $amortization = round($interest + $principal, 2);
-    
+                        // $diff_in_days = $start_date->diffInDays(now()->startOfDay(), false);
                         $diff_in_days = $start_date->diffInDays(now()->startOfDay(), false);
+                        
                         $interest_days_incurred =  0;
-                        if ($diff_in_days >= -13) {
+                        if ($diff_in_days >= -13) {  
                             $interest_days_incurred =   $diff_in_days > 0 ? 14 : $diff_in_days + 14;
-                            // dd("bobo");
                         }
                         
                         $per_day_interest = round($interest / 14, 2);
@@ -804,6 +811,7 @@ class LoanAccount extends Model
                         $amount_due = 0;
                         
                         if ($late) {
+                            
                             $interest_due = $interest;
                             $principal_due = $principal;
                             $amount_due = $interest + $principal;
@@ -823,7 +831,6 @@ class LoanAccount extends Model
                                 'interest_balance'=>$interest_balance,
                                 'amortization'=>$amortization,
                                 'interest_days_incurred' =>$interest_days_incurred,
-                                'adjusted'=>$adjusted,
     
                                 'formatted_amount_due'=>money($amount_due, 2),
                                 'formatted_principal_balance'=>money($principal_balance, 2),
@@ -834,7 +841,7 @@ class LoanAccount extends Model
     
                             );
                     } else {
-                        $interest = round($principal_balance * $weekly_compounding_rate, 2);
+                        $interest = round($principal_balance * $fortnight_compounding_rate, 2);
                         $principal = round($amortization - $interest, 2);
                         
 
@@ -1888,8 +1895,11 @@ class LoanAccount extends Model
                 'start_date'=>$start_date,
                 'office_id'=>$office_id
             );
+            
             $calculator = LoanAccount::calculate($data);
+            
             $this->createInstallments($this, $calculator->installments);
+            
         }
 
         

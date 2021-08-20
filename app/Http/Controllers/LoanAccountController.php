@@ -80,6 +80,7 @@ class LoanAccountController extends Controller
         $loan_interest_rate = Loan::rates($loan->id)->where('installments',$number_of_installments)->first()->rate;
         
         $data = array(
+            'product' => $loan->code,
             'principal'=>$loan_amount,
             'annual_rate'=>$annual_rate,
             'interest_rate'=>$loan_interest_rate,
@@ -127,7 +128,7 @@ class LoanAccountController extends Controller
             'start_date'=>$calculator->start_date,
             'end_date'=>$calculator->end_date,
         );
-        
+        // dd($data);
         return response()->json(['data'=>$data],200);
 
     }
@@ -186,6 +187,7 @@ class LoanAccountController extends Controller
         $loan_interest_rate = Loan::rates($loan->id)->where('installments',$number_of_installments)->first()->rate;
 
         $data = array(
+            'product' => $loan->code,
             'principal'=>$loan_amount,
             'monthly_rate'=>$loan->monthly_rate,
             'annual_rate'=>$annual_rate,
@@ -610,12 +612,14 @@ class LoanAccountController extends Controller
             $msgs = [
                 'office_id.required' => 'Branch level is required'
             ];
+            
             Validator::make(
                 $request->all(),
                 $rules,
                 $msgs
             )->validate();
             \DB::beginTransaction();
+            
             try {
                 
                 $payment_info = [
@@ -630,16 +634,18 @@ class LoanAccountController extends Controller
                 $bulk_disbursement_id = sha1(time());
                 $first_payment = null;
                 foreach ($request->accounts as $account) {
+                    
                     $account =  LoanAccount::find($account);
                     //get first payment of 1st loan account
-    
+                    
                     $account->disburse($payment_info,true,$bulk_disbursement_id);
                     if (is_null($first_payment)) {
                         $first_payment = $account->installments->first()->date->format('d-F');
                     }
                     $disbursed_amount+= $account->disbursed_amount;
+                    // dd($disbursed_amount);    
                 }
-    
+                
                 
                 $office = Office::select('name','level')->find($request->office_id)->name;
                 $by = auth()->user()->fullname;

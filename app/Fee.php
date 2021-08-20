@@ -39,7 +39,7 @@ class Fee extends Model
         if($loan_product->installment_method=="days"){
             $weeks = $installment;
         }
-        if($loan_product->installment_method=="month"){
+        if($loan_product->installment_method=="months"){
             $weeks = $installment;
         }
 
@@ -230,6 +230,7 @@ class Fee extends Model
     public function calculateMiPremiumAmount($term,$dependent){
         $rates = $this->miPremiumRates();
         // var_dump($term);
+        
         $rate = $rates->where('months',$term)->first();
         $amount = $rate->member;
         $unit_of_plan =1;
