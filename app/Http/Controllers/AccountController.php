@@ -63,7 +63,9 @@ class AccountController extends Controller
             return response()->download($file['file'],$file['filename'],$file['headers']);
 
         }
+        // dd($q);
         $accounts  = Office::find($request->office_id)->accounts($q);
+        
         $summary = $accounts['summary'];
         $accounts = $accounts['accounts']->paginate(25);
         return response()->json(['msg'=>'nice','data'=>$accounts,'summary'=>$summary],200);

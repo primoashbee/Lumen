@@ -30,6 +30,7 @@
                             <tbody>
                                 @foreach ($client->loanAccounts as $item)
                                     <tr>
+                                        
                                         <td><a href="{{route('loan.account',[$client->client_id,$item->id])}}">{{$item->product->code}}</a></td>
                                         <td>{{money($item->amount,2)}}</td>
                                         <td>{{money($item->getRawOriginal('total_balance'),2)}}</td>
@@ -56,7 +57,9 @@
                                             @else
                                               
                                             @endif
-                                            <button class="btn btn-light">View</button>
+                                            <a href="{{route('loan.account',[$client->client_id,$item->id])}}">
+                                                <button class="btn btn-light">View</button>
+                                            </a>
                                         </td>
                                     </tr>
                                 @endforeach

@@ -763,7 +763,6 @@ export default {
 			this.form.application_number = this.application_number
 			axios.post(this.axios_url, this.form)
 			.then(res=>{
-				console.log(res);
 				if(res.status ==200){
 					Swal.fire({
 					icon: 'success',
@@ -771,6 +770,7 @@ export default {
 					text: res.data.msg,
 					})
 				}
+				location.reload();
 			})
 			.catch(error=>{
 				this.isLoading = false

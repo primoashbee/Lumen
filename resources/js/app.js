@@ -123,7 +123,7 @@ Vue.component('status', require('./components/AccountStatusComponent.vue').defau
 Vue.component('account-list', require('./components/AccountListComponent.vue').default);
 // Vue.component('pagination', require('./components/Pagination.vue').default);
 
-Vue.component('random-picker', require('./components/RandomPickerComponent.vue').default);
+
 
 //Reports
 Vue.component('report-disbursement', require('./components/Reports/DisbursementsComponent.vue').default);

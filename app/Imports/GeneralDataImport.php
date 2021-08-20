@@ -31,7 +31,8 @@ class GeneralDataImport implements WithMultipleSheets, WithProgressBar
            'HOUSEHOLD INCOMES' => new HouseholdIncomeSheet($migration),
            'BUSINESSES' => new BusinessSheetImport($migration),
            'LOAN ACCOUNTS' => new LoanAccountSheetImport($migration),
-           'DEPOSIT ACCOUNTS' => new DepositAccountSheetImport($migration),
+           'RCBU ACCOUNTS' => new DepositAccountSheetImport($migration),
+           'MCBU ACCOUNTS' => new DepositAccountSheetImport($migration),
         ];
     }
 

@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\DataMigration;
+use App\Events\TestEvent;
 use Illuminate\Http\Request;
 use App\Jobs\DataMigrationJob;
 use App\Imports\ClientSheetImport;
 use App\Imports\GeneralDataImport;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
-
+use PHPUnit\Util\Test;
 
 class MigrationController extends Controller
 {
@@ -41,7 +42,8 @@ class MigrationController extends Controller
 
             
             $migration = DataMigration::create($data);
-            
+            // dd('titi');
+            // dispatch(new TestEvent('wassup dawg'));
             dispatch(new DataMigrationJob($migration, $path));
             // Excel::import(new GeneralDataImport($migration), $path);
             
