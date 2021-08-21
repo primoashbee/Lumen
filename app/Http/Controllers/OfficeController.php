@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Office;
-use App\Rules\OfficeId;
+use App\Rules\OfficeID;
 use App\Rules\OfficeLevel;
 
 use Illuminate\Support\Facades\Validator;
@@ -14,7 +14,7 @@ class OfficeController extends Controller
 {
     public function createOffice(Request $request){
 
-    
+        
         $this->validator($request->all())->validate();
         
             Office::create(
