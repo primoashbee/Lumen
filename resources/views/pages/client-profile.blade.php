@@ -246,7 +246,7 @@
 			          	<h4 class="mt-2 text-2xl">Deposit Accounts</h4>
 			          </div>
 			          @can('create_deposit_account')
-			          <a href="" data-toggle="modal" data-target=".bd-example-modal-lg" class="float-right btn-create text-base">Create Account</a>
+			          <a href="/client/{{$client->client_id}}/create/deposit" class="float-right btn-create text-base">Create Account</a>
 			          @endcan
 
 			        </div>

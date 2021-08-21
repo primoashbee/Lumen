@@ -91,7 +91,7 @@
 						
 					</li>
 					<li class="settings-item deposit">
-						<a class="nav-link" id="home-tab" href="">
+						<a class="nav-link" id="home-tab" href="/settings/deposit">
 							<i class="fas fa-3x fa-sign-in-alt"></i>
 							<p class="title text-center mt-2">Deposit</p>
 						</a>

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Exception;
 use App\Office;
 use App\PaymentMethod;
+use App\Client;
+use App\Deposit;
 use App\DepositAccount;
 use App\Rules\OfficeID;
 use Illuminate\Http\Request;
@@ -309,6 +311,27 @@ class DepositAccountController extends Controller
             return response()->json($response, 200);
         } catch (Exception $e){
             return response()->json(['msg'=>$e->getMessage()], 500);
+        }
+    }
+
+
+    public function createClientDepositAccount($client_id){
+        $deposit = Deposit::all();
+        return view('pages.create-client-deposit', compact(['deposit','client_id']));
+    }
+
+    public function storeClientDepositAccount(Request $request, $client_id){
+        $client = Client::fcid($client_id);
+
+        if ($client->deposits->where('deposit_id', $request->deposit)->where('status', 'Active')->first() != null) {
+            return response()->json(['msg' => 'Client has an existing deposit account.'], 422);
+        }else{
+        
+        $client->deposits()->create(['client_id' => $client_id,
+        'deposit_id' => $request->deposit, 
+        'accrued_interest' => $request->accrued_interest]);
+
+        return response()->json(['msg' => 'Deposit Account Created'], 200);
         }
     }
 }
