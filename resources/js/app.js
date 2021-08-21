@@ -152,6 +152,13 @@ Vue.component('permission-filter', require('./components/Roles_Permissions/Permi
 // Vue.component('create-list', require('./components/Roles/RoleListComponent.vue').default);
 
 
+// Deposit
+
+Vue.component('create-deposit', require('./components/CreateDepositComponent.vue').default);
+Vue.component('create-client-deposit', require('./components/CreateClientDepositComponent.vue').default);
+Vue.component('edit-deposit', require('./components/EditDepositComponent.vue').default);
+Vue.component('deposit-list', require('./components/DepositProductsComponent.vue').default);
+
 
 
 /**
