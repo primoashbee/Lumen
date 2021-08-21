@@ -134,6 +134,7 @@
                     "level":"",
                     "code":"",
                     "name":"",
+                    
                 },
                 hasRecords: false,
                 isLoading:false,
@@ -235,6 +236,8 @@
             }
         },
         mounted() {
+            
+
             this.$root.$on('bv::modal::hidden', (bvEvent) => {
                 this.errors = {}
             })

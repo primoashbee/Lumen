@@ -152,7 +152,8 @@ class User extends Authenticatable
         $lists = $list->map(function($item) use ($office_level){
             $branch['id'] = $item->id;
             $branch['name'] = $item->name;
-            
+            $branch['code'] = $item->code;
+            // $branch['level_in_number'] = $item->level_in_number;
             if($office_level=="main_office"){
                 //make region
                 $branch['prefix'] = pad(Office::levelCount('region')+1,'3');
