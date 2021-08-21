@@ -254,7 +254,9 @@ export default {
 				})
 				Swal.fire({
 						icon: 'error',
-
+				title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1.875em;font-weight:600">OOPPPSSSSS!</span>',
+						html: html +'</ul>'
+				})
 				this.calculated = false;
 			});
 			
