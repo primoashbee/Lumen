@@ -117,7 +117,7 @@ export default {
     },
     methods:{
         fetchData(){
-            axios.get('/client/dependents/'+this.client_id)
+            axios.get('/dependents/'+this.client_id)
             .then(res=>{
                 this.list = res.data.list
             })

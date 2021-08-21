@@ -136,11 +136,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/loan/view/{loan}','LoanController@viewLoan');
         
         Route::post('/create/loan','LoanController@create');
-        Route::get('/create/deposit', 'DepositController@create');
-        Route::get('/deposit/edit/{deposit}', 'DepositController@edit');
-        Route::put('/deposit/edit/{deposit}', 'DepositController@update');
-        Route::get('/deposit', 'DepositController@index');
-        Route::get('/deposit/list', 'DepositController@getDepositProducts');
+
     });
 
 
@@ -166,10 +162,8 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/{clients:client_id}','ClientController@view')->name('client.profile');
         Route::get('/{client_id}/edit','ClientController@editClient')->name('edit.client');
         Route::post('/{client_id}/edit','ClientController@update');
-        Route::get('/{client_id}/deposit/{deposit_account_id}', 'ClientController@depositAccount')->name('client.deposit'); 
+        Route::get('/client/{client_id}/deposit/{deposit_account_id}', 'ClientController@depositAccount')->name('client.deposit'); 
         Route::get('/dependents/{client_id}', 'ClientController@listDependents')->name('client.dependents.list');
-        Route::get('/{client_id}/create/deposit', 'DepositAccountController@createClientDepositAccount')->name('client.deposit.create');
-        Route::post('/{client_id}/create/deposit', 'DepositAccountController@storeClientDepositAccount')->name('client.deposit.create');
     });
     Route::get('/create/client','ClientController@index')->name('precreate.client');
     Route::post('/create/client','ClientController@createV1')->name('create.client'); 

@@ -82,11 +82,6 @@ Vue.component('example-component', require('./components/ExampleComponent.vue').
 Vue.component('office-list', require('./components/OfficeListComponent.vue').default);
 
 Vue.component('deposit-dashboard', require('./components/DepositAccountDashboardComponent.vue').default);
-Vue.component('create-deposit', require('./components/CreateDepositComponent.vue').default);
-Vue.component('create-client-deposit', require('./components/CreateClientDepositComponent.vue').default);
-Vue.component('edit-deposit', require('./components/EditDepositComponent.vue').default);
-Vue.component('deposit-list', require('./components/DepositProductsComponent.vue').default);
-
 Vue.component('payment-methods', require('./components/PaymentMethodComponent.vue').default);
 Vue.component('payment-methods-dashboard', require('./components/PaymentMethodDashboardComponent.vue').default);
 Vue.component('product-component', require('./components/ProductSelectComponent.vue').default);
