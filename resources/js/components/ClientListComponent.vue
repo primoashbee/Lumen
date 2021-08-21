@@ -33,7 +33,7 @@
             <p class="lead float-left text-right" style="color:white">Showing Records {{lists.from}} - {{lists.to}} of {{totalRecords}} </p>
             <p class="lead float-right text-right" style="color:white">Total Records: {{totalRecords}} </p>
             <div class="clearfix"></div>
-            <paginator :dataset="lists" @updated="fetch"></paginator>
+            <paginator :dataset="lists" @pageSelected="fetch"></paginator>
         </div>
         </div>
 
