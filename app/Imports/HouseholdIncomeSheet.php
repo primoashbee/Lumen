@@ -51,6 +51,7 @@ class HouseholdIncomeSheet implements ToModel, WithStartRow, WithHeadingRow, Wit
             'remittance_amount'=>$row['remittance_amount'],
             'has_pension'=>$row['has_pension'],
             'pension_amount'=>$row['pension_amount'],
+            'total_household_expense' => $row['total_household_expense'],
             'total_household_income'=>$row['total_household_income'],
         ]);
     }
@@ -94,6 +95,8 @@ class HouseholdIncomeSheet implements ToModel, WithStartRow, WithHeadingRow, Wit
             "spouse_employed_company_name" => ['nullable'],
             "spouse_employed_monthly_gross_income" => ['nullable','gt:0'],
             "has_remittance" => ['nullable','boolean'],
+            'total_household_expense' => ['nullable','gt:0'],
+            "remittance_amount" => ['nullable'],
             "remittance_amount" => ['nullable'],
             "has_pension" => ['nullable','boolean'],
             "pension_amount" => ['nullable','gt:0'],

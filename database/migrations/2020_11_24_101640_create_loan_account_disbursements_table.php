@@ -20,7 +20,7 @@ class CreateLoanAccountDisbursementsTable extends Migration
             $table->unsignedDouble('disbursed_amount');
             $table->unsignedInteger('disbursed_by');
             $table->unsignedInteger('payment_method_id');
-            
+            $table->unsignedInteger('tranch')->default(0);
             $table->boolean('reverted')->default(false);
             
             $table->unsignedInteger('reverted_by')->nullable();

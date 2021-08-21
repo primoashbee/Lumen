@@ -61,9 +61,9 @@ class ClientRequest extends FormRequest
             'spouse_name' => 'sometimes',
             'spouse_contact_number' => 'sometimes',
             'spouse_birthday' => ['sometimes','nullable','date','before:today'],
-            'tin'=>'required',
-            'sss'=>'required',
-            'umid'=>'required',
+            // 'tin'=>'required',
+            // 'sss'=>'required',
+            // 'umid'=>'required',
             'mother_maiden_name'=>'required',
             'mother_maiden_name'=>'required',
 

@@ -249,15 +249,12 @@ export default {
 			})
 			.catch(err=>{
 				this.errors = err.response.data.errors || {}
-				var html="";
 				$.each(this.errors, function(k, v){ 
 					html += '<p class="text-left">'+ v +'</p>'
 				})
 				Swal.fire({
 						icon: 'error',
-						title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1.875em;font-weight:600">OOPPPSSSSS!</span>',
-						html: html +'</ul>'
-					})
+
 				this.calculated = false;
 			});
 			

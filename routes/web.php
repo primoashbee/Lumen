@@ -38,11 +38,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/dst/{loan_account_id}','DownloadController@dst');
         Route::get('/dst/bulk/{bulk_transaction_id}','DownloadController@dstBulk');
     });
-    
-
-    
-
-    Route::group(['middleware' => ['permission:extract_reports']], function () 
+    Route::group(['middleware' => ['permission:extract_reports','role:Branch Manager|Branch Accountant']], function () 
     {
 
         Route::get('/transactions', 'TransactionController@list');
@@ -151,6 +147,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::prefix('/client')->middleware(['user_client_scope'])->group(function(){
         Route::get('/{client_id}/create/dependents', 'ClientController@toCreateDependents')->name('client.create.dependents');
+        Route::post('/client/create/dependent', 'DependentController@createDependents')->name('create.dependents.post');
         Route::post('/create/dependent', 'DependentController@createDependents')->name('create.dependents.post');
         Route::get('/update/dependent', 'DependentController@updateDependentStatus')->name('create.dependents.activate');
         Route::get('/{client_id}/manage/dependents', 'ClientController@dependents')->name('client.manage.dependents');

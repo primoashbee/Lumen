@@ -80,6 +80,7 @@ class LoanAccountController extends Controller
         $loan_interest_rate = Loan::rates($loan->id)->where('installments',$number_of_installments)->first()->rate;
         
         $data = array(
+            'product' => $loan->code,
             'principal'=>$loan_amount,
             'annual_rate'=>$annual_rate,
             'interest_rate'=>$loan_interest_rate,
@@ -127,7 +128,7 @@ class LoanAccountController extends Controller
             'start_date'=>$calculator->start_date,
             'end_date'=>$calculator->end_date,
         );
-        
+        // dd($data);
         return response()->json(['data'=>$data],200);
 
     }
@@ -157,14 +158,14 @@ class LoanAccountController extends Controller
         $this->validator($request->all())->validate();
         $client = Client::where('client_id',$request->client_id)->first();
         $loan =  Loan::find($request->loan_id);
-
+        
         $fees = $loan->fees;
         $total_deductions = 0;
 
         $loan_amount = (double) $request->amount;
         $number_of_installments = $request->number_of_installments;
         $number_of_months = Loan::rates()->where('code',$loan->code)->first()->rates->where('installments',$number_of_installments)->first()->number_of_months;
-
+        // dd($number_of_months);
         $fee_repayments = array();
         
         $dependents = $client->unUsedDependent()->pivotList();
@@ -186,6 +187,7 @@ class LoanAccountController extends Controller
         $loan_interest_rate = Loan::rates($loan->id)->where('installments',$number_of_installments)->first()->rate;
 
         $data = array(
+            'product' => $loan->code,
             'principal'=>$loan_amount,
             'monthly_rate'=>$loan->monthly_rate,
             'annual_rate'=>$annual_rate,
@@ -436,7 +438,7 @@ class LoanAccountController extends Controller
     public function disburse($loan_id=null){
         
         if($loan_id!=null){
-            $id = $loan_id;
+            $id = $loan_id; 
         }else{
             $id = $this->id;
         }
@@ -470,9 +472,11 @@ class LoanAccountController extends Controller
             'activated_at'=>Carbon::now(),
             'expires_at'=>Carbon::now()->addDays(env('INSURANCE_MATURITY_DAYS'))
             ]);
-        $account->account()->update([
+        
+        $account->accountable->update([
             'status'=>$account->status
         ]);
+        
         \DB::commit();
         return redirect()->back();
         }catch(\Exception $e){
@@ -512,7 +516,7 @@ class LoanAccountController extends Controller
             $pre_term_amount = $account_1->preTermAmount();
             $installment_repayments = \DB::table('loan_account_installment_repayments');
             $installments = \DB::table('loan_account_installments')
-                                ->select('installment','original_principal','original_interest','date','amortization','principal','interest','principal_due','interest_due',
+                                ->select('installment','original_principal','original_interest','date','amortization','principal','interest','principal_due','interest_due','amount_due',
                                 \DB::raw("IF(paid=false, (
                                     CASE 
                                         WHEN `date` > DATE(CURRENT_TIMESTAMP) THEN 'Not Due'
@@ -537,7 +541,7 @@ class LoanAccountController extends Controller
             
             $client = Client::select('firstname','lastname','client_id')->where('client_id',$client_id)->first();
             
-            
+            // dd($amount_due);
             return response()->json([
                 'account'=>$account,
                 'loan_type'=>$loan_type,
@@ -608,12 +612,14 @@ class LoanAccountController extends Controller
             $msgs = [
                 'office_id.required' => 'Branch level is required'
             ];
+            
             Validator::make(
                 $request->all(),
                 $rules,
                 $msgs
             )->validate();
             \DB::beginTransaction();
+            
             try {
                 
                 $payment_info = [
@@ -628,16 +634,19 @@ class LoanAccountController extends Controller
                 $bulk_disbursement_id = sha1(time());
                 $first_payment = null;
                 foreach ($request->accounts as $account) {
+                    
                     $account =  LoanAccount::find($account);
                     //get first payment of 1st loan account
-    
+                    
                     $account->disburse($payment_info,true,$bulk_disbursement_id);
+                    
                     if (is_null($first_payment)) {
                         $first_payment = $account->installments->first()->date->format('d-F');
                     }
                     $disbursed_amount+= $account->disbursed_amount;
+                      
                 }
-    
+                
                 
                 $office = Office::select('name','level')->find($request->office_id)->name;
                 $by = auth()->user()->fullname;

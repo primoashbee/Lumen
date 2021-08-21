@@ -45,6 +45,7 @@ class DataMigrationJob implements ShouldQueue
     {
 
         try {
+            
             Excel::import(new GeneralDataImport($this->migration), $this->filepath);
             $this->migration->logs()->create([
                 'status'=>200,
@@ -60,8 +61,8 @@ class DataMigrationJob implements ShouldQueue
                  $errors[] = $error;
                  
              }
-             Log::alert('tae');
-            //  Log::alert($errors);
+            //  Log::alert('tae');
+             Log::alert($errors);
              $this->migration->error()->create([
                 'errors'=>$errors
              ]);
