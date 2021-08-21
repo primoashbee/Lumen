@@ -480,7 +480,7 @@ class DownloadController extends Controller
             // foreach ($data['data'] as $key=>$value) {
 
             // }
-            $data['data']->orderBy('office_name','desc')->chunk(1000, function($list) use (&$start_row, &$sheet){
+            $data['data']->orderBy('office_level','desc')->chunk(1000, function($list) use (&$start_row, &$sheet){
                 foreach($list as $key=>$value){
                     $sheet->setCellValue('A'.$start_row, $key + 1);
                     $sheet->setCellValue('B'.$start_row, $value->office_level);
@@ -623,7 +623,7 @@ class DownloadController extends Controller
             $start_row = 3  ;
             
             // foreach ($data['data']->chunk as $key=>$value) {
-            $data['data']->orderBy('office_level')->chunk(200, function ($records) use (&$sheet, &$start_row){
+            $data['data']->orderBy('office_name')->chunk(200, function ($records) use (&$sheet, &$start_row){
                 foreach($records as $key=>$value){
                     $sheet->setCellValue('A'.$start_row, $key + 1);
                     $sheet->setCellValue('B'.$start_row, $value->office_name);
