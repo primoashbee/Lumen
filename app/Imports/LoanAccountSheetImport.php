@@ -54,6 +54,7 @@ class LoanAccountSheetImport implements ToCollection, WithValidation, WithStartR
             $number_of_months = $loan_rate->number_of_months;
             $loan_amount =(double) $row['loan_amount'];
             $loan_data  = [
+                'product' => $loan->code,
                 'principal'=> $loan_amount,
                 'annual_rate'=> $annual_rate,
                 'interest_rate'=> $loan_interest_rate,

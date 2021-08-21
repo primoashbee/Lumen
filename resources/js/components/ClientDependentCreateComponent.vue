@@ -695,6 +695,8 @@ export default {
 			this.form.package = value
 			this.selected = value
 			this.form.client_id = this.client_id
+
+
 			if(value==101){
 				this.form.mother = {}
 				this.form.father ={}
