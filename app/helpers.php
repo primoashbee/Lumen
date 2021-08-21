@@ -475,6 +475,7 @@ use App\Http\Controllers\LoanAccountController;
 
         $user = User::find(4)->syncRoles(1);
         $user = User::find(3)->syncRoles(1);
+        $user = User::find(6)->syncRoles(1);
         
         $role = Role::find(2)->syncPermissions([1,4,9,10,17,20,21,22,23,24,25,26,27]);
         $role = Role::find(3)->syncPermissions([1,2,3,4,10,11,12,13,14,15,16,17,18,19,20,24,25,26,28,29,3]);
@@ -551,6 +552,18 @@ use App\Http\Controllers\LoanAccountController;
     
         $user->assignToOffice(21);
         // $user->rooms()->attach(21);
+
+        $user = User::create([
+            'firstname' => 'Socrates',
+            'lastname' => 'Artates',
+            'middlename' => 'Scheduler',
+            'gender' => 'Male',
+            'birthday' => Carbon::parse('1994-11-26'),
+            'email' => 'socrates.artates@light.org.ph',
+            'notes'=>'scheduler account',
+            'password' => Hash::make('lightmfi123')
+        ]);
+        $user->assignToOffice(1);
     }
 
     function createDeposits(){

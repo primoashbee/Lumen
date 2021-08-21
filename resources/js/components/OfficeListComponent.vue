@@ -125,7 +125,7 @@
         data(){
            return { 
                 officeList:[],
-                toOffice:"/edit/office/",
+                toOffice:"/settings/edit/office/",
                 query:"",
                 fields:{
                     "id":"",
@@ -152,7 +152,7 @@
                 }
             },
             createOfficeLink(){
-                return '/create/office/'+this.level
+                return '/settings/create/office/'+this.level
             },
             inputSearch(){
                 this.fetch()
@@ -253,7 +253,7 @@
                 return Object.keys(this.officeList.data).length
             },
             fetchOfficeLink(){
-                var str ="/office/list/"+this.level
+                var str ="/settings/office/list/"+this.level
                 var params_count=0
                 if(this.query!=""){
                     params_count++
