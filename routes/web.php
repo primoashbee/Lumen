@@ -91,7 +91,7 @@ Route::group(['middleware' => ['auth']], function () {
             return view('pages.create-penalty');
         });
         
-        Route::get('/settings', function(){
+        Route::get('/', function(){
             return view('pages.settings');
         })->name('administration');
         Route::get('/create/office/{level}', 'OfficeController@createLevel')->name('create.office');

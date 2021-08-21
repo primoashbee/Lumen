@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 class Office extends Model
 {
     // protected $with = ['parent'];
-    protected $fillable = ['name','code','parent_id','level'];
+    protected $fillable = ['name','code','parent_id','level','level_in_number'];
     protected $schema;
     protected $searchables = [
         'name',

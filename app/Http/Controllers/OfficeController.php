@@ -14,7 +14,7 @@ class OfficeController extends Controller
 {
     public function createOffice(Request $request){
 
-        var_dump($request->all());
+    
         $this->validator($request->all())->validate();
         
             Office::create(
@@ -22,6 +22,7 @@ class OfficeController extends Controller
                     'code' => $request->level_code,
                     'name' => $request->name,
                     'level' => $request->level,
+                    'level_in_number' => $request->level_in_number,
                     'parent_id' => $request->office_id
                 ]
             ); 
@@ -109,6 +110,7 @@ class OfficeController extends Controller
                'name' => $request->name,
                 'code' => $this->generateCode($request),
                 'parent_id' => $request->office_id,
+                'level_in_number' => $request->level_in_number,
                 'level' => $request->level
             ]
         );

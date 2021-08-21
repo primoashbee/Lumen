@@ -7,7 +7,7 @@
 		            <li class="breadcrumb-item active" aria-current="page">Create Office</li>
 		          </ol>
 		        </nav>
-				<h4 class="h4 ml-3 mt-4">Create a new {{title}}</h4>
+				<h4 class="h4 ml-3 mt-4">Create a New {{title}}</h4>
 				<form @submit.prevent="submit">
 					<div class="form-group col-md-6 mt-4">
 			  			<label>Assign To:</label>
@@ -32,14 +32,14 @@
 					
 					</div>
 					<div class="form-group col-md-6">
-						<input type="checkbox" v-model="fields.same_as_code" id="checkbox">
+						<input type="checkbox" v-model="fields.same_as_code" @change="same_as_code(fields.branch_code,fields.code)" id="checkbox">
 
 						<label for="checkbox"><span class="pr-5 mt-4" style="color:rgb(169, 169, 178)" > Name is same with Code </span></label>
 					</div>
 
 				  	<div class="form-group col-md-6">
 				  		<label for="cluster_code">Name:</label>
-				  		<input type="text" v-model="fields.name" id="name" class="form-control" v-bind:class="nameHasError ? 'is-invalid' : ''" :readonly="fields.same_as_code">
+				  		<input type="text" v-model="fields.name" id="name" class="form-control" v-bind:class="nameHasError ? 'is-invalid' : ''">
 				  		<div class="invalid-feedback" v-if="nameHasError">
                             {{ errors.name[0]}}
                         </div>
@@ -74,16 +74,23 @@
    	 				'name':"",
    	 				"level":"",
 					"readonly":true,
-					"same_as_code":false
+					"same_as_code":false,
+					"level_in_number":""
 				},
 				withHyphen: ['unit','account_officer','cluster'],	
    	 			errors:{}
    	 		}
    	 	},
    	 	created(){
-   	 		if (this.level == "cluster") {
-   	 			this.fields.readonly = true
-   	 		}
+   	 		if (this.level == 'region') {
+                this.fields.level_in_number = 2
+            }else if(this.level == 'area'){
+                this.fields.level_in_number = 3
+            }else if(this.level == 'branch'){
+                this.fields.level_in_number = 4
+            }else if( this.level == 'unit'){
+                this.fields.level_in_number = 5
+            }
    	 		this.fields.level = this.level
    	 	},
    	 	computed:{
@@ -101,7 +108,6 @@
 			},
 			levelCode(){
 				if(this.withHyphen.includes(this.level)){
-					console.log('hey')
 					return this.fields.branch_code + '-'+this.fields.code
 				}
 				return this.fields.branch_code + this.fields.code
@@ -121,14 +127,21 @@
    	 	},
    	 	methods:{
    	 		toOffice(){
-   	 			return "/office/"+this.level
+   	 			return "/settings/office/"+this.level
    	 		},
+			same_as_code(value,value2){
+				if (this.level == 'unit') {
+					return this.fields.name = this.levelCode
+				}
+				return this.fields.name = value + value2
+			},
+
    	 		assignOffice(value){
-				
+				// console.log(value);
    	 			// if (this.level == "cluster" || this.level == "unit" || this.level == "account_officer") { 
    	 			// 	this.fields.branch_code = value['code']
 				// 	}
-				this.fields.branch_code = value.prefix
+				this.fields.branch_code = value.code
 					
 	            this.fields.office_id = value['id']
 			},
