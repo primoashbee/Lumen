@@ -664,8 +664,6 @@ export default {
 				],
 				divorced: [
 					{'id':100,'description':'Divorced - No Dependent'},
-					{'id':101,'description':'Divorced - Parents (Mother / Father or Both)'},
-					{'id':102,'description':'Divorced - Siblings (Max of 3)'},
 					{'id':103,'description':'Divorced - Single Parent - Children (Max of 3)'},
 				],
 				married:[
@@ -673,7 +671,16 @@ export default {
 					{'id':201,'description':'Married - Spouse'},
 					{'id':202,'description':'Married - Children (Max of 3)'},
 					{'id':203,'description':'Married - Spouse, Children (Max of 3)'}
-				]
+				],
+				widowed: [
+					{'id':100,'description':'Divorced - No Dependent'},
+					{'id':103,'description':'Divorced - Single Parent - Children (Max of 3)'},
+				],
+				separated: [
+					{'id':100,'description':'Divorced - No Dependent'},
+					{'id':103,'description':'Divorced - Single Parent - Children (Max of 3)'},
+				],
+				
 			},
 			form:{
 				package: "",
