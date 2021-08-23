@@ -267,7 +267,44 @@ class ClientController extends Controller
         
         $filename = $client->client_id.'.jpeg';
 
-        $client->update($request->all());
+        $client->update($request->except(
+            ['businesses','total_household_expense',
+            'total_household_net_income',
+            'total_businesses_gross_income',
+            'total_businesses_expense',
+            'total_businesses_net_income',
+            'pension_amount',
+            'total_expense',
+            'is_self_employed',
+            'service_type',
+            'service_type_monthly_gross_income',
+            'business_address',
+            'is_employed',
+            'employed_position',
+            'employed_company_name',
+            'employed_monthly_gross_income',
+            'spouse_is_self_employed',
+            'spouse_service_type',
+            'spouse_service_type_monthly_gross_income',
+            'spouse_is_employed',
+            'spouse_employed_position',
+            'spouse_employed_company_name',
+            'spouse_employed_monthly_gross_income',
+            'has_remittance',
+            'remittance_amount',
+            'has_pension',
+            'pension_amount',
+            'total_household_expense',
+            'profile_picture_path_preview',
+            'signature_path_preview',
+            'total_household_gross_income',
+            'full_name',
+            'total_',
+            'photo_changed',
+            'signature_changed',
+            'total_household_income'
+            ]
+        ));
 
         $client->businesses()->delete();
         
