@@ -13,8 +13,6 @@ use Illuminate\Http\Request;
 class OfficeController extends Controller
 {
     public function createOffice(Request $request){
-
-        
         $this->validator($request->all())->validate();
         
             Office::create(

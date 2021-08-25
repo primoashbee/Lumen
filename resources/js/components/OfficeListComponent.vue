@@ -35,7 +35,7 @@
                 <p class="lead float-left text-right" style="color:white">Showing Records {{officeList.from}} - {{officeList.to}} of {{totalRecords}} </p>
                 <p class="lead float-right text-right" style="color:white">Total Records: {{totalRecords}} </p>
                 <div class="clearfix"></div>
-                <paginator :dataset="officeList" @updated="fetch"></paginator>
+                <paginator :dataset="officeList" @pageSelected="fetch"></paginator>
 
                 <loading :is-full-page="true" :active.sync="isLoading" ></loading>
             </div>
@@ -198,9 +198,6 @@
                 this.fields.office_id = value['id']
             },
             submit(){
-                if (this.fields.level == "cluster") {
-                    this.fields.name = this.officeInfo.code
-                }
                 axios.post(this.toEditOfficeLink(this.fields.id), this.fields)
                 .then(res=>{
                     this.isLoading = false

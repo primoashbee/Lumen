@@ -294,7 +294,7 @@ class Office extends Model
         $ids = [];
         foreach($children as $child){
             if($child->level =='cluster'){
-                array_push($ids,$child->id);
+                array_push($ids,$child);
             }
             $ids = array_merge($ids, $child->clusters());
 
@@ -549,10 +549,14 @@ class Office extends Model
         return in_array($level,$list) ? true : false;
     }
 
-    public static function like($level, $query){
+    
+    
+
+
+    public static function like($level, $query, $office_id=null){
         $me = new static;
         $searchables = $me->searchables;
-       
+        
         $office = Office::where('level', $level)->get();
         
         if(count($office)>0){
@@ -564,7 +568,17 @@ class Office extends Model
                 });
                 return $office;
             }
+
+            if($query!=null){
+                $office = Office::with('parent')->where('level',$level)->where(function(Builder $dbQuery) use($searchables, $query){
+                    foreach($searchables as $item){  
+                        $dbQuery->where($item,'LIKE','%'.$query.'%');
+                    }
+                });
+                return $office;
+            }
             $office = Office::with('parent')->where('level',$level);
+            
             return $office;
         }
     }

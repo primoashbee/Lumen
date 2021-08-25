@@ -124,7 +124,7 @@
             },
 
             addRole(){
-                axios.post('/create/role', this.fields).
+                axios.post('/settings/create/role', this.fields).
                 then(res => {
                     Swal.fire({
                         icon: 'success',

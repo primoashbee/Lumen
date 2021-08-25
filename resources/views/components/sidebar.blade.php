@@ -57,7 +57,7 @@
 				@endcan
 				@can('view_cluster')
 				<li class="py-2 {{ request()->is('cluster') ? 'active' : '' }}">
-					<a href="">
+					<a href="/clusters">
 						<i class="fas fa-2x fa-user-friends"></i>
 						<p>Clusters</p>
 					</a>

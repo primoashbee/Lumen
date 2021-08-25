@@ -151,6 +151,7 @@ Vue.component('permission-list', require('./components/Roles_Permissions/Permiss
 Vue.component('permission-filter', require('./components/Roles_Permissions/PermissionFilterComponent.vue').default);
 // Vue.component('create-list', require('./components/Roles/RoleListComponent.vue').default);
 
+// Clusters Components
 
 // Deposit
 
@@ -159,6 +160,7 @@ Vue.component('create-client-deposit', require('./components/CreateClientDeposit
 Vue.component('edit-deposit', require('./components/EditDepositComponent.vue').default);
 Vue.component('deposit-list', require('./components/DepositProductsComponent.vue').default);
 
+Vue.component('cluster-list', require('./components/Clusters/ClusterListComponent.vue').default);
 
 
 /**

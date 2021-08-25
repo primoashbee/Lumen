@@ -300,7 +300,7 @@
 				return string +'-' + key
 			},
 			getList(){
-				axios.get('/payment/methods?list=true')
+				axios.get('/settings/payment/methods?list=true')
 				.then(res=>{
 					this.lists = res.data
 				})
