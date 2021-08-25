@@ -2,6 +2,6 @@
 
 @section('content')
 	<div class="content pl-32 pr-8 mt-4" id="content-full">
-		<create-cluster list_level="unit"></create-cluster>
+		<create-office list_level="unit" level="cluster"></create-office>
 	</div>
 @endsection

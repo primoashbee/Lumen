@@ -2,6 +2,7 @@
 // ini_set('xdebug.max_nesting_level', 9999);
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\User;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -248,7 +249,7 @@ Route::group(['middleware' => ['auth']], function () {
         return auth()->user()->scopesBranch();
     });
     
-    Route::post('/create/office/', 'OfficeController@createOffice');
+    
 
   
 
@@ -316,6 +317,41 @@ Route::group(['middleware' => ['auth']], function () {
 
 
     Route::get('/usr/branches','UserController@branches');
+
+    Route::get('/clusters', 'ClusterController@index');
+    Route::get('/cluster/list/', 'ClusterController@getClustersList');
+    Route::middleware(['edit_cluster'])->group(function(){
+        
+    });
+
+    Route::group(['middleware' => ['permission:edit_cluster']], function(){
+        Route::get('/edit/cluster/{id}/', 'OfficeController@editOffice');
+        Route::post('/edit/cluster/{id}/', 'OfficeController@updateOffice');
+    });
+    Route::group(['permission:create_cluster'],function(){
+        Route::get('/create/office/cluster', 'ClusterController@create');
+        Route::post('/create/office/', 'OfficeController@createOffice');
+    });
+    
+
+
+    Route::get('zz', function(){
+        $user = User::find(6);
+        $scopes = collect($user->scopes());
+        $cluster_ids = [];
+        $scopes = $scopes->filter(function ($item) {
+            return $item->level == 'cluster';
+        });
+
+        // foreach($scopes as $scope){
+        //     array_push($cluster_ids, $scope->id);
+        // }
+        $cluster_ids = $scopes->pluck('id')->toArray();
+        $office = App\Office::with('parent.parent')->whereIn('id',$cluster_ids)->get();
+        // dd($office);
+        return $office;
+             
+    });
 
 });
  

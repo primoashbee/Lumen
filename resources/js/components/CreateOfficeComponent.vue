@@ -32,7 +32,7 @@
 					
 					</div>
 					<div class="form-group col-md-6">
-						<input type="checkbox" v-model="fields.same_as_code" @change="same_as_code(fields.branch_code,fields.code)" id="checkbox">
+						<input type="checkbox" v-model="fields.same_as_code" id="checkbox" @change="same_as_code(levelCode,$event)">
 
 						<label for="checkbox"><span class="pr-5 mt-4" style="color:rgb(169, 169, 178)" > Name is same with Code </span></label>
 					</div>
@@ -90,6 +90,8 @@
                 this.fields.level_in_number = 4
             }else if( this.level == 'unit'){
                 this.fields.level_in_number = 5
+            }else if( this.level == 'cluster'){
+                this.fields.level_in_number = 6
             }
    	 		this.fields.level = this.level
    	 	},
@@ -145,6 +147,13 @@
 					
 	            this.fields.office_id = value['id']
 			},
+			same_as_code(value,e){
+				if(e.target.checked){
+					return this.fields.name = value
+				}
+				return this.fields.name = ''
+			},
+
 			formatCode(){
 				if(this.withHyphen.includes(this.level)){
 					return this.fields.level_code = this.fields.branch_code+ "-"+this.fields.code
