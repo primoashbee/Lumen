@@ -1,8 +1,15 @@
 <?php
 // ini_set('xdebug.max_nesting_level', 9999);
+use App\User;
+use App\Client;
+use App\Office;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Http\Requests\ClientRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\User;
+use Intervention\Image\Facades\Image;
+use Illuminate\Validation\ValidationException;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -336,21 +343,111 @@ Route::group(['middleware' => ['auth']], function () {
 
 
     Route::get('zz', function(){
-        $user = User::find(6);
-        $scopes = collect($user->scopes());
-        $cluster_ids = [];
-        $scopes = $scopes->filter(function ($item) {
-            return $item->level == 'cluster';
-        });
+        return view('test');
+    });
 
-        // foreach($scopes as $scope){
-        //     array_push($cluster_ids, $scope->id);
-        // }
-        $cluster_ids = $scopes->pluck('id')->toArray();
-        $office = App\Office::with('parent.parent')->whereIn('id',$cluster_ids)->get();
-        // dd($office);
-        return $office;
-             
+    Route::post('/test/create/client',function(Request $request){
+
+        $req = Client::clientExists($request);
+        
+        if($req['exists']){
+            return response()->json($req,422);
+        }
+        // $client = new ClientRequest()
+        $client_id = Office::makeClientID($request->office_id);
+
+        $filename = $client_id.'.jpeg';
+        checkClientPaths();
+
+        DB::beginTransaction();
+        try{
+        //    dd($this->household_income_request());
+        // dd(array_merge($request->except(['businesses']), 
+        //         ['client_id' => $client_id, 
+        //         'created_by' => auth()->user()->id]));
+        $client = Client::create(
+            array_merge($request->except(
+                ['businesses','total_household_expense',
+                'total_household_net_income',
+                'total_businesses_gross_income',
+                'total_businesses_expense',
+                'total_businesses_net_income',
+                'pension_amount',
+                'total_expense',
+                'is_self_employed',
+                'service_type',
+                'service_type_monthly_gross_income',
+                'business_address',
+                'is_employed',
+                'employed_position',
+                'employed_company_name',
+                'employed_monthly_gross_income',
+                'spouse_is_self_employed',
+                'spouse_service_type',
+                'spouse_service_type_monthly_gross_income',
+                'spouse_is_employed',
+                'spouse_employed_position',
+                'spouse_employed_company_name',
+                'spouse_employed_monthly_gross_income',
+                'has_remittance',
+                'remittance_amount',
+                'has_pension',
+                'pension_amount',
+                'total_household_expense',
+                // 'profile_picture_path_preview',
+                // 'signature_path_preview',
+                'total_household_gross_income'
+                ]
+            ), 
+                ['client_id' => $client_id, 
+                'created_by' => auth()->user()->id])
+            );
+        
+            
+        // $b = $request->businesses;
+            
+            // foreach($request->businesses as $business){
+
+            //     $client->businesses()->create([
+            //         'business_address'=>$business['business_address'],
+            //         'service_type'=>$business['service_type'],
+            //         'monthly_gross_income'=>$business['monthly_gross_income'],
+            //         'monthly_operating_expense'=>$business['monthly_operating_expense'],
+            //         'monthly_net_income'=>round($business['monthly_gross_income'] - $business['monthly_operating_expense'],2)
+            //     ]);
+            // }
+        
+            $client->household_income()->create($this->household_income_request());
+
+            if($request->hasFile('profile_picture_path')){
+                ini_set('memory_limit','512M');
+                $image = $request->file('profile_picture_path');
+                // $filename = $image->getClientOriginalName();   
+                $image_resize = Image::make($image->getRealPath());
+                $image_resize->resize(600, 600);
+                $image_resize->save(public_path($this->profile_path . $filename), 50);
+                ini_set('memory_limit','128M');
+            }
+            if($request->hasFile('signature_path')){
+                ini_set('memory_limit','512M');
+                $image = $request->file('signature_path');
+                // $filename = $image->getClientOriginalName();   
+                $image_resize = Image::make($image->getRealPath());
+                $image_resize->resize(600, 300);
+                $image_resize->save(public_path($this->signature_path . $filename),50);
+                ini_set('memory_limit','128M');
+            }
+            DB::commit();
+            return response()->json(['msg'=>'Client succesfully created'],200);
+        }catch(ValidationException $e){
+            // Rollback and then redirect
+            // back to form with errors
+            DB::rollback();   
+            return response()->json(['errors'=>$e->getErrors()],422);
+        }catch(\Exception $e){
+            DB::rollback();
+            throw $e;
+        }
     });
 
 });

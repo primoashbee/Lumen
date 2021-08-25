@@ -58,13 +58,34 @@ class ClientController extends Controller
 
         $filename = $client_id.'.jpeg';
         checkClientPaths();
-
+        
         DB::beginTransaction();
         try{
-        //    dd($this->household_income_request());
-        // dd(array_merge($request->except(['businesses']), 
-        //         ['client_id' => $client_id, 
-        //         'created_by' => auth()->user()->id]));
+        if($request->hasFile('profile_picture_path')){
+            ini_set('memory_limit','512M');
+            
+            $image = $request->file('profile_picture_path');
+            // $filename = $image->getClientOriginalName();   
+            
+            $image_resize = Image::make($image->getRealPath());
+            $image_resize->resize(600, 600);
+            
+            $image_resize->save(public_path($this->profile_path . $filename), 50);
+            ini_set('memory_limit','128M');
+            $request->profile_picture_path = $this->profile_path . $filename;
+        }
+        if($request->hasFile('signature_path')){
+            ini_set('memory_limit','512M');
+            $image = $request->file('signature_path');
+            // $filename = $image->getClientOriginalName();   
+            $image_resize = Image::make($image->getRealPath());
+            $image_resize->resize(600, 300);
+            $image_resize->save(public_path($this->signature_path . $filename),50);
+            ini_set('memory_limit','128M');
+            $request->profile_picture_path = $this->signature_path . $filename;
+            dd($request->all());    
+        }
+        
         $client = Client::create(
             array_merge($request->except(
                 ['businesses','total_household_expense',
@@ -104,39 +125,22 @@ class ClientController extends Controller
             );
         
             
-        $b = $request->businesses;
+        // $b = $request->businesses;
             
-            foreach($request->businesses as $business){
+        //     foreach($request->businesses as $business){
 
-                $client->businesses()->create([
-                    'business_address'=>$business['business_address'],
-                    'service_type'=>$business['service_type'],
-                    'monthly_gross_income'=>$business['monthly_gross_income'],
-                    'monthly_operating_expense'=>$business['monthly_operating_expense'],
-                    'monthly_net_income'=>round($business['monthly_gross_income'] - $business['monthly_operating_expense'],2)
-                ]);
-            }
+        //         $client->businesses()->create([
+        //             'business_address'=>$business['business_address'],
+        //             'service_type'=>$business['service_type'],
+        //             'monthly_gross_income'=>$business['monthly_gross_income'],
+        //             'monthly_operating_expense'=>$business['monthly_operating_expense'],
+        //             'monthly_net_income'=>round($business['monthly_gross_income'] - $business['monthly_operating_expense'],2)
+        //         ]);
+        //     }
         
             $client->household_income()->create($this->household_income_request());
 
-            // if($request->hasFile('profile_picture_path')){
-            //     ini_set('memory_limit','512M');
-            //     $image = $request->file('profile_picture_path');
-            //     // $filename = $image->getClientOriginalName();   
-            //     $image_resize = Image::make($image->getRealPath());
-            //     $image_resize->resize(600, 600);
-            //     $image_resize->save(public_path($this->profile_path . $filename), 50);
-            //     ini_set('memory_limit','128M');
-            // }
-            // if($request->hasFile('signature_path')){
-            //     ini_set('memory_limit','512M');
-            //     $image = $request->file('signature_path');
-            //     // $filename = $image->getClientOriginalName();   
-            //     $image_resize = Image::make($image->getRealPath());
-            //     $image_resize->resize(600, 300);
-            //     $image_resize->save(public_path($this->signature_path . $filename),50);
-            //     ini_set('memory_limit','128M');
-            // }
+            
             DB::commit();
             return response()->json(['msg'=>'Client succesfully created'],200);
         }catch(ValidationException $e){

@@ -25,7 +25,9 @@ class Businesses implements Rule
      */
     public function passes($attribute, $value)
     {
+        
         $y = count($value);
+        
         if($y == 0){
             return false;
         }
