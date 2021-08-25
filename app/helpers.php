@@ -866,7 +866,7 @@ use App\Http\Controllers\LoanAccountController;
             "interest_calculation_method_id"=>101,
 
             "minimum_installment"=>12,
-            "default_installment"=>22,
+            "default_installment"=>12,
             "maximum_installment"=>24,
 
             "installment_length"=>14,
@@ -951,7 +951,7 @@ use App\Http\Controllers\LoanAccountController;
         
         $id = Loan::create([
             "code"=>'RS-GML',
-            "name"=>'GROWTH ORIENTED MICROFINANCE ENTERPRISE LOAN',
+            "name"=>'GROWTH ORIENTED MICROFINANCE ENTERPRISE LOAN - Restructured',
             "description"=>"Growth Oriented Microfinance Enterprise Loan or GML is an individual productive loan for the growth and expansion of micro-enterprise sectors with loan amount of 100k-150k and must qualify based on credit limit and loan performance criteria. Payable in 6 or 12 months only on a Bi-monthly basis thru PDC (Loan and CBU). Pre-termination is allowed if 50% of loan is paid and with either of the following reason: (1) Resigning from the program; (2) Business expansion; (3) Transferring to another product.",
 
             "account_per_client"=>1,
@@ -992,7 +992,7 @@ use App\Http\Controllers\LoanAccountController;
 
         $id = Loan::create([
             "code"=>'RF-GML',
-            "name"=>'GROWTH ORIENTED MICROFINANCE ENTERPRISE LOAN',
+            "name"=>'GROWTH ORIENTED MICROFINANCE ENTERPRISE LOAN - Refinanced',
             "description"=>"Growth Oriented Microfinance Enterprise Loan or GML is an individual productive loan for the growth and expansion of micro-enterprise sectors with loan amount of 100k-150k and must qualify based on credit limit and loan performance criteria. Payable in 6 or 12 months only on a Bi-monthly basis thru PDC (Loan and CBU). Pre-termination is allowed if 50% of loan is paid and with either of the following reason: (1) Resigning from the program; (2) Business expansion; (3) Transferring to another product.",
 
             "account_per_client"=>1,
