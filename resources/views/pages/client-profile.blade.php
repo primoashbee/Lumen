@@ -15,7 +15,7 @@
 				<div class="row">
 					<div class="col-lg-4 profile-wrapper pl-8 pr-24">
 						<div class="text-center profile-picture">
-			            	<img src="{{$client->profile_picture_path == "" ? asset('assets/img/2x2.jpg') : asset($client->profile_picture_path)}} " class="w-100 img-thumbnail" alt="Profile Photo">
+			            	<img src="{{$client->profile_picture_path == "" ? asset('assets/img/2x2.jpg') : asset('/storage/'.$client->profile_picture_path)}} " class="w-100 img-thumbnail" alt="Profile Photo">
 			            </div>
 			            <div class="mt-8">
 			            	<h5 class="title text-2xl">Personal Details</h5>
@@ -60,7 +60,7 @@
 							<div class="col-lg-6">
 								<div class="p-details mt-4 d-inline-block file-input-signature">
 				            		<p class="title text-xl mb-2">Signature</p>
-					            	<img src="{{$client->signature_path == "" ? asset('assets/img/signature.png') : asset($client->signature_path)}} " class="w-100 img-thumbnail" alt="Profile Photo">
+					            	<img src="{{$client->signature_path == "" ? asset('assets/img/signature.png') : asset('/storage/'.$client->signature_path)}} " class="w-100 img-thumbnail" alt="Profile Photo">
 					            </div>
 							</div>
 							<div class="col-lg-6">
