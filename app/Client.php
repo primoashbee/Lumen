@@ -133,7 +133,7 @@ class Client extends Model
     public static function like($office_id, $query,$limited=false){
         $me = new static;
         $searchables = $me->searchables;
-       
+        $office_id = $office_id == null ? auth()->user()->office()->first()->id : $office_id;
         $office = Office::find($office_id);
         $office_ids = $office->getAllChildrenIDS();
         if($limited){
@@ -316,7 +316,6 @@ class Client extends Model
     public function loanCycle(){
         return $this->loanAccounts->whereIn('status',['Closed','Pre-terminated'])->count();
     }
-
 
     
 }

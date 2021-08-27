@@ -13,7 +13,7 @@ class Businesses implements Rule
      */
     public function __construct()
     {
-        //
+        $this->message = "Business information should contain atleast (1) and filled up properly";
     }
 
     /**
@@ -25,18 +25,32 @@ class Businesses implements Rule
      */
     public function passes($attribute, $value)
     {
-        
-        $y = count($value);
-        
-        if($y == 0){
+        $businesses = json_decode($value);
+
+        if (count($businesses) == 0){
             return false;
         }
         $z = is_null($value[0]);
-
+        
         if($z){
             return false;
         }
+        // dd($businesses);
+        foreach($businesses as $business){
+            if($business->business_address == "" || is_null($business->business_address)){
+                return false;
+            }
+            if($business->service_type == "" || is_null($business->service_type)){
+                return false;
+            }
+            if($business->monthly_gross_income <= 0){
+                return false;
+            }
+            if($business->monthly_operating_expense <= 0){
+                return false;
+            }
 
+        }
         return true;
         
         
@@ -49,6 +63,6 @@ class Businesses implements Rule
      */
     public function message()
     {
-        return 'Business information should contain atleast (1)';
+        return $this->message;
     }
 }

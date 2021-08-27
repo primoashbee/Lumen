@@ -49,7 +49,7 @@
 								 <div  class="d-block text-center position-absolute mb-4 img-container">
 					                <div>
 					                	<label for="profile_picture_path"> Click to Upload image</label>
-										<img id="profile_picture_path_preview" :src="fields.profile_picture_path_preview" alt="Profile Path"/>
+										<img id="profile_picture_path_preview" :src="fields.profile_picture_path_preview" alt="Profile Path" class="w-100 img-responsive"/>
 
 					                </div>
 					                <div class="file-input text-center">
@@ -58,13 +58,13 @@
 					             </div>
 					             <div class="position-absolute img-signature">
 					             	<div class="img-signature-box">
-					             		<div class="text-center pt-1">
-						                	<label for="signature_path" class="mt-2 text-sm"> Click to Upload Signature</label>
-											<img id="signature_path_preview" :src="fields.signature_path_preview" alt="Signature Path" />
+					             		<div class="text-center pt-1 img-signature-wrapper">
+						                	<label for="signature_path" class="mt-2 text-sm img-title"> Click to Upload Signature</label>
+											<img id="signature_path_preview" :src="fields.signature_path_preview" alt="Signature Path" class="w-100 img-responsive"/>
 
 						                </div>
 						                <div class="file-input text-center">
-						                    <input value="" type="file" class="attachment" name="signature_picture_path" @change="onFileSelected($event,'signature_picture_path')" id="signature_picture_path">
+						                    <input value="" type="file" class="attachment" name="signature_picture_path" @change="onFileSelected($event,'signature_path')" id="signature_path">
 						              	</div> 
 					             	</div>
 					             </div>  
@@ -633,6 +633,16 @@
 	</div>
 </template>
 
+<style scoped>
+#profile_picture_path_preview,#signature_path_preview{
+	position:absolute;
+	width: 100%;
+	height: 100%;
+	left: 0;
+	top: 0;
+}
+</style>
+
 <script>
 import SelectComponentV2 from './SelectComponentV2';
 import Swal from 'sweetalert2';
@@ -739,6 +749,10 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 			clientInfo(){
 	            return JSON.parse(this.client)
 	        },
+			
+				
+			
+
 	        total_businesses_gross_income(){
 	            if(this.fields.businesses.length > 0){
 	                var total = 0;
@@ -814,6 +828,7 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 		},
 		mounted(){
 	    	this.populateData();
+			this.checkFilePaths();
 	    },
 		methods:{
 			prevStep(){
@@ -854,6 +869,18 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 	            }
 	            
 	        },
+			checkFilePaths(){
+				if (this.fields.signature_path_preview != null) {
+					this.fields.signature_path_preview =  '/storage/'+this.fields.signature_path_preview
+				}else{
+					this.fields.signature_path_preview =  location.origin + '/assets/img/signature.png'
+				}
+			
+				if (this.fields.profile_picture_path_preview != null) {
+					this.fields.profile_picture_path_preview =  '/storage/'+this.fields.profile_picture_path_preview
+				}
+				else{ this.fields.profile_picture_path_preview = location.origin + '/assets/img/2x2.jpg'}
+			},
 	        populateData(){
 	            var vm = this
 	            
@@ -912,14 +939,16 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 	              const file = e.target.files[0]
 				  
 				  console.log(file);
-
+				
 	              if(id == "profile_picture_path"){
 	                  this.fields.photo_changed = true
 	                  this.fields.profile_picture_path_preview = URL.createObjectURL(file)
+					  console.log(this.fields.profile_picture_path_preview);
 	              }
 	              if(id == "signature_path"){
 	                  this.fields.signature_changed = true
 	                  this.fields.signature_path_preview = URL.createObjectURL(file)
+					  console.log(this.fields.profile_picture_path_preview);
 	              }
 	              
 	              this.fields[id] = file;
@@ -959,11 +988,14 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 	                        formData.append(k,v)
 	                    }
 	                }
+					if (k == 'businesses') {    
+                        formData.append(k, JSON.stringify(v));
+                    }
 
 	            });
 
 	            this.isLoading = true
-	            axios.post('/client/'+this.clientInfo.client_id+'/edit', this.fields)
+	            axios.post('/client/'+this.clientInfo.client_id+'/edit', formData)
 	                .then(res=>{
 	                    this.isLoading = false
 	                    setTimeout(()=>{

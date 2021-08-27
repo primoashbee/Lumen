@@ -16,8 +16,10 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Requests\ClientRequest;
 use App\Rules\EducationalAttainment;
 
+use Illuminate\Support\Facades\File;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class ClientController extends Controller
 {
@@ -48,6 +50,9 @@ class ClientController extends Controller
 
     public function createV1(ClientRequest $request){
         
+        
+        $request->businesses = json_decode($request->businesses);
+        
         $req = Client::clientExists($request);
         
         if($req['exists']){
@@ -57,86 +62,78 @@ class ClientController extends Controller
         $client_id = Office::makeClientID($request->office_id);
 
         $filename = $client_id.'.jpeg';
-        checkClientPaths();
-        
+        // checkClientPaths();
         DB::beginTransaction();
         try{
+            $profile_picture_path="";
+            $signature_path = "";
         if($request->hasFile('profile_picture_path')){
-            ini_set('memory_limit','512M');
-            
+            $request->validate(['profile_picture_path' => 'sometimes|nullable|image|mimes:jpeg,png,jpg|max:9000']);
             $image = $request->file('profile_picture_path');
-            // $filename = $image->getClientOriginalName();   
-            
             $image_resize = Image::make($image->getRealPath());
             $image_resize->resize(600, 600);
-            
-            $image_resize->save(public_path($this->profile_path . $filename), 50);
-            ini_set('memory_limit','128M');
-            $request->profile_picture_path = $this->profile_path . $filename;
+            $profile_picture_path = $request->file('profile_picture_path')->storeAs('clients','profile_photos/' . $filename, 'clients');
         }
         if($request->hasFile('signature_path')){
-            ini_set('memory_limit','512M');
-            $image = $request->file('signature_path');
-            // $filename = $image->getClientOriginalName();   
+            $request->validate(['signature_path' => 'sometimes|nullable|image|mimes:jpeg,png,jpg|max:9000']);
+            $image = $request->file('signature_path');  
             $image_resize = Image::make($image->getRealPath());
             $image_resize->resize(600, 300);
-            $image_resize->save(public_path($this->signature_path . $filename),50);
-            ini_set('memory_limit','128M');
-            $request->profile_picture_path = $this->signature_path . $filename;
-            dd($request->all());    
+           $signature_path = $request->file('signature_path')->storeAs('clients', 'signatures/' . $filename, 'clients');
         }
-        
-        $client = Client::create(
-            array_merge($request->except(
-                ['businesses','total_household_expense',
-                'total_household_net_income',
-                'total_businesses_gross_income',
-                'total_businesses_expense',
-                'total_businesses_net_income',
-                'pension_amount',
-                'total_expense',
-                'is_self_employed',
-                'service_type',
-                'service_type_monthly_gross_income',
-                'business_address',
-                'is_employed',
-                'employed_position',
-                'employed_company_name',
-                'employed_monthly_gross_income',
-                'spouse_is_self_employed',
-                'spouse_service_type',
-                'spouse_service_type_monthly_gross_income',
-                'spouse_is_employed',
-                'spouse_employed_position',
-                'spouse_employed_company_name',
-                'spouse_employed_monthly_gross_income',
-                'has_remittance',
-                'remittance_amount',
-                'has_pension',
-                'pension_amount',
-                'total_household_expense',
-                'profile_picture_path_preview',
-                'signature_path_preview',
-                'total_household_gross_income'
-                ]
-            ), 
-                ['client_id' => $client_id, 
-                'created_by' => auth()->user()->id])
-            );
-        
-            
-        // $b = $request->businesses;
-            
-        //     foreach($request->businesses as $business){
+        $data = array_merge(
+            $request->except(
+                [
+                    'businesses','total_household_expense',
+                    'total_household_net_income',
+                    'total_businesses_gross_income',
+                    'total_businesses_expense',
+                    'total_businesses_net_income',
+                    'pension_amount',
+                    'total_expense',
+                    'is_self_employed',
+                    'service_type',
+                    'service_type_monthly_gross_income',
+                    'business_address',
+                    'is_employed',
+                    'employed_position',
+                    'employed_company_name',
+                    'employed_monthly_gross_income',
+                    'spouse_is_self_employed',
+                    'spouse_service_type',
+                    'spouse_service_type_monthly_gross_income',
+                    'spouse_is_employed',
+                    'spouse_employed_position',
+                    'spouse_employed_company_name',
+                    'spouse_employed_monthly_gross_income',
+                    'has_remittance',
+                    'remittance_amount',
+                    'has_pension',
+                    'pension_amount',
+                    'total_household_expense',
+                    'profile_picture_path_preview',
+                    // 'profile_picture_path',
+                    'signature_path_preview', 
+                    // 'signature_path',
+                    'total_household_gross_income'
+                ]   
+            ), ['client_id' => $client_id, 'created_by' => auth()->user()->id]);
 
-        //         $client->businesses()->create([
-        //             'business_address'=>$business['business_address'],
-        //             'service_type'=>$business['service_type'],
-        //             'monthly_gross_income'=>$business['monthly_gross_income'],
-        //             'monthly_operating_expense'=>$business['monthly_operating_expense'],
-        //             'monthly_net_income'=>round($business['monthly_gross_income'] - $business['monthly_operating_expense'],2)
-        //         ]);
-        //     }
+        $client = Client::create($data);
+        $client->update(['signature_path' => $signature_path, 'profile_picture_path' => $profile_picture_path]);
+            
+        $b = $request->businesses;
+            
+            foreach($request->businesses as $business){
+                
+                $client->businesses()->create([
+                    'business_address'=>$business->business_address,
+                    'service_type'=>$business->service_type,
+                    'monthly_gross_income'=>$business->monthly_gross_income,
+                    'monthly_operating_expense'=>$business->monthly_operating_expense,
+                    'monthly_net_income'=>round($business->monthly_gross_income - $business->monthly_operating_expense,2)
+                ]);
+            }
         
             $client->household_income()->create($this->household_income_request());
 
@@ -148,9 +145,6 @@ class ClientController extends Controller
             // back to form with errors
             DB::rollback();   
             return response()->json(['errors'=>$e->getErrors()],422);
-        }catch(\Exception $e){
-            DB::rollback();
-            throw $e;
         }
 
     }
@@ -267,85 +261,103 @@ class ClientController extends Controller
 
     public function update(ClientRequest $request, $client_id){
         // $request = $this->antiNullStrings($request);
-        $client = Client::fcid($client_id);
         
-        $filename = $client->client_id.'.jpeg';
-
-        $client->update($request->except(
-            ['businesses','total_household_expense',
-            'total_household_net_income',
-            'total_businesses_gross_income',
-            'total_businesses_expense',
-            'total_businesses_net_income',
-            'pension_amount',
-            'total_expense',
-            'is_self_employed',
-            'service_type',
-            'service_type_monthly_gross_income',
-            'business_address',
-            'is_employed',
-            'employed_position',
-            'employed_company_name',
-            'employed_monthly_gross_income',
-            'spouse_is_self_employed',
-            'spouse_service_type',
-            'spouse_service_type_monthly_gross_income',
-            'spouse_is_employed',
-            'spouse_employed_position',
-            'spouse_employed_company_name',
-            'spouse_employed_monthly_gross_income',
-            'has_remittance',
-            'remittance_amount',
-            'has_pension',
-            'pension_amount',
-            'total_household_expense',
-            'profile_picture_path_preview',
-            'signature_path_preview',
-            'total_household_gross_income',
-            'full_name',
-            'total_',
-            'photo_changed',
-            'signature_changed',
-            'total_household_income'
-            ]
-        ));
-
-        $client->businesses()->delete();
         
-        foreach($request->businesses as $business){
-            $client->businesses()->create([
-
-                'business_address'=>$business['business_address'],
-                'service_type'=>$business['service_type'],
-                'monthly_gross_income'=>$business['monthly_gross_income'],
-                'monthly_operating_expense'=>$business['monthly_operating_expense'],
-                'monthly_net_income'=>round($business['monthly_gross_income'] - $business['monthly_operating_expense'],2)
-            ]);
+        $request->businesses = json_decode($request->businesses);
+        
+        try {
+            $filename = $client_id.'.jpeg';
+            // checkClientPaths();
+            $client = Client::fcid($client_id);
+            
+            
+            $profile_picture_path="";
+            $signature_path = "";
+            if($request->hasFile('profile_picture_path')){
+                $request->validate(['profile_picture_path' => 'sometimes|nullable|image|mimes:jpeg,png,jpg|max:9000']);
+                $image = $request->file('profile_picture_path');
+                $image_resize = Image::make($image->getRealPath());
+                $image_resize->resize(600, 600);
+                File::delete(storage_path($request->signature_path));
+                $profile_picture_path = $request->file('profile_picture_path')->storeAs('clients','profile_photos/' . $filename, 'clients');
+                // dd($profile_picture_path);
+                $client->update(['profile_picture_path' => $profile_picture_path]);
+            }
+            if($request->hasFile('signature_path')){
+                $request->validate(['signature_path' => 'sometimes|nullable|image|mimes:jpeg,png,jpg|max:9000']);
+                $image = $request->file('signature_path');  
+                $image_resize = Image::make($image->getRealPath());
+                $image_resize->resize(600, 300);
+                File::delete(storage_path($request->signature_path));
+               $signature_path = $request->file('signature_path')->storeAs('clients', 'signatures/' . $filename, 'clients');
+               $client->update(['signature_path' => $signature_path]);
+               
+            }
+    
+            $client->update($request->except(
+                ['businesses','total_household_expense',
+                'total_household_net_income',
+                'total_businesses_gross_income',
+                'total_businesses_expense',
+                'total_businesses_net_income',
+                'pension_amount',
+                'total_expense',
+                'is_self_employed',
+                'service_type',
+                'service_type_monthly_gross_income',
+                'business_address',
+                'is_employed',
+                'employed_position',
+                'employed_company_name',
+                'employed_monthly_gross_income',
+                'spouse_is_self_employed',
+                'spouse_service_type',
+                'spouse_service_type_monthly_gross_income',
+                'spouse_is_employed',
+                'spouse_employed_position',
+                'spouse_employed_company_name',
+                'spouse_employed_monthly_gross_income',
+                'has_remittance',
+                'remittance_amount',
+                'has_pension',
+                'pension_amount',
+                'total_household_expense',
+                'profile_picture_path_preview',
+                'profile_picture_path',
+                'signature_path_preview',
+                'signature_path',
+                'total_household_gross_income',
+                'full_name',
+                'total_',
+                'photo_changed',
+                'signature_changed',
+                'total_household_income'
+                ]
+            ));
+            // dd($profile_picture_path);
+            
+            
+            $client->businesses()->delete();
+            
+            foreach($request->businesses as $business){
+                $client->businesses()->create([
+    
+                    'business_address'=>$business->business_address,
+                    'service_type'=>$business->service_type,
+                    'monthly_gross_income'=>$business->monthly_gross_income,
+                    'monthly_operating_expense'=>$business->monthly_operating_expense,
+                    'monthly_net_income'=>round($business->monthly_gross_income - $business->monthly_operating_expense,2)
+                ]);
+            }
+    
+            $client->household_income()->update($this->household_income_request(true));
+            return response()->json($client);
+        } catch (ValidationException $e) {
+            // DB::rollback();   
+            return response()->json(['errors'=>$e->getErrors()],422);
         }
 
-        $client->household_income()->update($this->household_income_request(true));
-
-        // if($request->hasFile('profile_picture_path')){
-        //     ini_set('memory_limit','512M');
-        //     $image = $request->file('profile_picture_path');
-        //     // $filename = $image->getClientOriginalName();   
-        //     $image_resize = Image::make($image->getRealPath());
-        //     $image_resize->resize(600, 600);
-        //     $image_resize->save(public_path($this->profile_path . $filename),50);
-        //     ini_set('memory_limit','128M');
-        // }
-        // if($request->hasFile('signature_path')){
-        //     ini_set('memory_limit','512M');
-        //     $image = $request->file('signature_path');
-        //     // $filename = $image->getClientOriginalName();   
-        //     $image_resize = Image::make($image->getRealPath());
-        //     $image_resize->resize(600, 300);
-        //     $image_resize->save(public_path($this->signature_path . $filename));
-        //     ini_set('memory_limit','128M');
-        // }
-
-        
-        return response()->json($client);
+       
 
     }
 

@@ -984,25 +984,23 @@
 
                 let formData = new FormData();
 
-				formData.append('profile_picture_path',this.fields.profile_picture_path)
-	            formData.append('signature_path',this.fields.signature_path)
-	            if(this.profile_picture_path ==location.origin + '/assets/img/anime3.png'){
-	                console.log(this.profile_picture_path)
-	                formData.append('profile_picture_path',this.fields.profile_picture_path)
-	            }
-	            if(this.signature_path==location.origin + '/assets/img/signature.png'){
-	                formData.append('signature_path',this.fields.signature_path)
-	            }
+				// formData.append('profile_picture_path',this.fields.profile_picture_path)
+	            // formData.append('signature_path',this.fields.signature_path)
+	            // if(this.profile_picture_path ==location.origin + '/assets/img/2x2.jpg'){
+
+	            //     formData.append('profile_picture_path',location.origin + '/assets/img/2x2.jpg')
+	            // }
+	            // if(this.signature_path==location.origin + '/assets/img/signature.png'){
+	            //     formData.append('signature_path',location.origin + '/assets/img/2x2.jpg')
+	            // }
 
                 $.each(vm.fields, function(k,v){
-                    if (k == 'businesses') {
-                        var businesses = JSON.stringify(v)
-                        formData.append(k, businesses);
-                    }
                     formData.append(k,v)
-
+					if (k == 'businesses') {    
+                        formData.append(k, JSON.stringify(v));
+                    }
                 });
-	            console.log(formData.get('businesses'));
+	            
 	            
 	            axios.post('/create/client',  formData)
 	                .then(res=>{
@@ -1026,13 +1024,13 @@
 	                    })
 	                    Swal.fire({
 	                            icon: 'error',
-	                            title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1.875em;font-weight:600">OOPPPSSSSS!</span>',
+	                            title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1em;font-weight:600">Error</span>',
 	                            html: html +'</ul>'
 	                        })
 	                    if(this.duplicateClient){
 	                        Swal.fire({
 	                            icon: 'error',
-	                            title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1.875em;font-weight:600">OOPPPSSSSS!</span>',
+	                            title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1em;font-weight:600">Error</span>',
 	                            text: this.errors.client.msg,
 	                            footer: '<a href="#">Client ['+this.errors.client.client_id+'] already existing at: ' +this.errors.client.exists_at +'</a>'
 	                        })

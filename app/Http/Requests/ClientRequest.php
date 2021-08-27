@@ -67,22 +67,21 @@ class ClientRequest extends FormRequest
             'mother_maiden_name'=>'required',
             'mother_maiden_name'=>'required',
 
-            // 'total_household_gross_income'=>'required|gt:0',
-            // 'total_household_expense'=>'required|gt:0',
-            // 'total_household_net_income'=>'required|gt:0',
+            'total_household_gross_income'=>'required|gt:0',
+            'total_household_expense'=>'required|gt:0',
+            'total_household_net_income'=>'required|gt:0',
             
-            // 'total_businesses_gross_income'=>'required|gt:0',
-            // 'total_businesses_expense'=>'required|gt:0',
-            // 'total_businesses_net_income'=>'required|gt:0',
+            'total_businesses_gross_income'=>'required|gt:0',
+            'total_businesses_expense'=>'required|gt:0',
+            'total_businesses_net_income'=>'required|gt:0',
 
 
-            'profile_picture_path' =>'sometimes|image|mimes:jpeg,png,jpg|max:9000',
-            'signature_path' =>'sometimes|image|mimes:jpeg,png,jpg|max:5000',
-            // 'businesses'=>[new Businesses],
-            // 'businesses.*.business_address'=>['required'],
-            // 'businesses.*.service_type'=>['required', new ServiceType],
-            // 'businesses.*.monthly_gross_income'=>['required','numeric', 'gt:0'],
-            // 'businesses.*.monthly_operating_expense'=>['required','numeric', 'gt:0']
+            
+            'businesses'=>[new Businesses],
+            // 'businesses.business_address'=>['required'],
+            // 'businesses.service_type'=>['required', new ServiceType],
+            // 'businesses.monthly_gross_income'=>['required','numeric', 'gt:0'],
+            // 'businesses.monthly_operating_expense'=>['required','numeric', 'gt:0']
         ];
     }
 
