@@ -956,52 +956,53 @@
 	            this.fields['total_businesses_expense'] = this.total_businesses_expense
 	            this.fields['total_businesses_net_income'] = this.total_businesses_net_income
 
-	            // const options = {
+	            const options = {
 
-	            //     indices: true,
+	                indices: true,
 
-	            //     /**
-	            //      * treat null values like undefined values and ignore them
-	            //      * defaults to false
-	            //      */
-	            //     nullsAsUndefineds: false,
+	                /**
+	                 * treat null values like undefined values and ignore them
+	                 * defaults to false
+	                 */
+	                nullsAsUndefineds: false,
 
-	            //     /**
-	            //      * convert true or false to 1 or 0 respectively
-	            //      * defaults to false
-	            //      */
-	            //     booleansAsIntegers: true,
+	                /**
+	                 * convert true or false to 1 or 0 respectively
+	                 * defaults to false
+	                 */
+	                booleansAsIntegers: true,
 
-	            //     /**
-	            //      * store arrays even if they're empty
-	            //      * defaults to false
-	            //      */
-	            //     allowEmptyArrays: false,
-	            // };
-	            // formData = serialize(this.fields,options)
+	                /**
+	                 * store arrays even if they're empty
+	                 * defaults to false
+	                 */
+	                allowEmptyArrays: false,
+	            };
+	            // var formData = serialize(this.fields,options)
 	            // console.log(this.profile_picture_path)
-	            // formData.append('profile_picture_path',this.fields.profile_picture_path)
+	            
+
+                let formData = new FormData();
+
+				// formData.append('profile_picture_path',this.fields.profile_picture_path)
 	            // formData.append('signature_path',this.fields.signature_path)
-	            // if(this.profile_picture_path ==location.origin + '/assets/img/anime3.png'){
-	            //     console.log(this.profile_picture_path)
-	            //     formData.append('profile_picture_path',this.fields.profile_picture_path)
+	            // if(this.profile_picture_path ==location.origin + '/assets/img/2x2.jpg'){
+
+	            //     formData.append('profile_picture_path',location.origin + '/assets/img/2x2.jpg')
 	            // }
 	            // if(this.signature_path==location.origin + '/assets/img/signature.png'){
-	            //     formData.append('signature_path',this.fields.signature_path)
+	            //     formData.append('signature_path',location.origin + '/assets/img/2x2.jpg')
 	            // }
 
-             //    const formData = new FormData();
-             //    $.each(vm.fields, function(k,v){
-             //        if (k == 'businesses') {
-             //            var businesses = JSON.stringify(v)
-             //            formData.append(k, businesses);
-             //        }
-             //        formData.append(k,v)
-
-             //    });
-	            // console.log(formData.get('businesses'));
+                $.each(vm.fields, function(k,v){
+                    formData.append(k,v)
+					if (k == 'businesses') {    
+                        formData.append(k, JSON.stringify(v));
+                    }
+                });
 	            
-	            axios.post('/create/client',  this.fields)
+	            
+	            axios.post('/create/client',  formData)
 	                .then(res=>{
 	                    this.isLoading = false
 	                    Swal.fire({
@@ -1023,13 +1024,13 @@
 	                    })
 	                    Swal.fire({
 	                            icon: 'error',
-	                            title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1.875em;font-weight:600">OOPPPSSSSS!</span>',
+	                            title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1em;font-weight:600">Error</span>',
 	                            html: html +'</ul>'
 	                        })
 	                    if(this.duplicateClient){
 	                        Swal.fire({
 	                            icon: 'error',
-	                            title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1.875em;font-weight:600">OOPPPSSSSS!</span>',
+	                            title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1em;font-weight:600">Error</span>',
 	                            text: this.errors.client.msg,
 	                            footer: '<a href="#">Client ['+this.errors.client.client_id+'] already existing at: ' +this.errors.client.exists_at +'</a>'
 	                        })

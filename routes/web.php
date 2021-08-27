@@ -1,8 +1,15 @@
 <?php
 // ini_set('xdebug.max_nesting_level', 9999);
+use App\User;
+use App\Client;
+use App\Office;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Http\Requests\ClientRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\User;
+use Intervention\Image\Facades\Image;
+use Illuminate\Validation\ValidationException;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -331,26 +338,6 @@ Route::group(['middleware' => ['auth']], function () {
     Route::group(['permission:create_cluster'],function(){
         Route::get('/create/office/cluster', 'ClusterController@create');
         Route::post('/create/office/', 'OfficeController@createOffice');
-    });
-    
-
-
-    Route::get('zz', function(){
-        $user = User::find(6);
-        $scopes = collect($user->scopes());
-        $cluster_ids = [];
-        $scopes = $scopes->filter(function ($item) {
-            return $item->level == 'cluster';
-        });
-
-        // foreach($scopes as $scope){
-        //     array_push($cluster_ids, $scope->id);
-        // }
-        $cluster_ids = $scopes->pluck('id')->toArray();
-        $office = App\Office::with('parent.parent')->whereIn('id',$cluster_ids)->get();
-        // dd($office);
-        return $office;
-             
     });
 
 });

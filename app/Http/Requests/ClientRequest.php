@@ -76,13 +76,12 @@ class ClientRequest extends FormRequest
             'total_businesses_net_income'=>'required|gt:0',
 
 
-            // 'profile_picture_path' =>'sometimes|image|mimes:jpeg,png,jpg|max:9000',
-            // 'signature_path' =>'sometimes|image|mimes:jpeg,png,jpg|max:5000',
+            
             'businesses'=>[new Businesses],
-            'businesses.*.business_address'=>['required'],
-            'businesses.*.service_type'=>['required', new ServiceType],
-            'businesses.*.monthly_gross_income'=>['required','numeric', 'gt:0'],
-            'businesses.*.monthly_operating_expense'=>['required','numeric', 'gt:0']
+            // 'businesses.business_address'=>['required'],
+            // 'businesses.service_type'=>['required', new ServiceType],
+            // 'businesses.monthly_gross_income'=>['required','numeric', 'gt:0'],
+            // 'businesses.monthly_operating_expense'=>['required','numeric', 'gt:0']
         ];
     }
 
@@ -98,14 +97,14 @@ class ClientRequest extends FormRequest
             'signature_path.image' => 'The signature photo must be an image',
             'signature_path.mimes' => 'The signature photo must be a type of jpeg, png, jpg',
             
-            'businesses.*.business_address.required' => 'The full business address is required',
-            'businesses.*.service_type.required' => 'The service type is required',
+            // 'businesses.*.business_address.required' => 'The full business address is required',
+            // 'businesses.*.service_type.required' => 'The service type is required',
             
-            'businesses.*.monthly_gross_income.required' => 'The net income is required',
-            'businesses.*.monthly_gross_income.gt' => 'The net income should be greater than 0',
+            // 'businesses.*.monthly_gross_income.required' => 'The net income is required',
+            // 'businesses.*.monthly_gross_income.gt' => 'The net income should be greater than 0',
             
-            'businesses.*.monthly_operating_expense.required' => 'The monthly operating expense is required',
-            'businesses.*.monthly_operating_expense.gt' => 'The monthly operating expense should be greater than 0',
+            // 'businesses.*.monthly_operating_expense.required' => 'The monthly operating expense is required',
+            // 'businesses.*.monthly_operating_expense.gt' => 'The monthly operating expense should be greater than 0',
         ];
     }
 }

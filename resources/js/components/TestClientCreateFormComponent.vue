@@ -700,8 +700,8 @@ export default {
                 'total_household_expense':0,
                 'notes':"",
 
-                'profile_picture_path_preview':location.origin + '/assets/img/2x2.jpg',
-                'signature_path_preview': location.origin + '/assets/img/signature.png',
+                // 'profile_picture_path_preview':location.origin + '/assets/img/2x2.jpg',
+                // 'signature_path_preview': location.origin + '/assets/img/signature.png',
 
 
                 'profile_picture_path': null,
@@ -836,43 +836,43 @@ export default {
             this.fields['total_businesses_expense'] = this.total_businesses_expense
             this.fields['total_businesses_net_income'] = this.total_businesses_net_income
 
-            // const options = {
+            const options = {
 
-            //     indices: true,
+                indices: true,
 
-            //     /**
-            //      * treat null values like undefined values and ignore them
-            //      * defaults to false
-            //      */
-            //     nullsAsUndefineds: false,
+                /**
+                 * treat null values like undefined values and ignore them
+                 * defaults to false
+                 */
+                nullsAsUndefineds: false,
 
-            //     /**
-            //      * convert true or false to 1 or 0 respectively
-            //      * defaults to false
-            //      */
-            //     booleansAsIntegers: true,
+                /**
+                 * convert true or false to 1 or 0 respectively
+                 * defaults to false
+                 */
+                booleansAsIntegers: true,
 
-            //     /**
-            //      * store arrays even if they're empty
-            //      * defaults to false
-            //      */
-            //     allowEmptyArrays: false,
-            // };
-            // formData = serialize(this.fields,options)
-            // console.log(this.profile_picture_path)
-            // formData.append('profile_picture_path',this.fields.profile_picture_path)
-            // formData.append('signature_path',this.fields.signature_path)
-            // if(this.profile_picture_path ==location.origin + '/assets/img/anime3.png'){
-            //     console.log(this.profile_picture_path)
-            //     formData.append('profile_picture_path',this.fields.profile_picture_path)
-            // }
-            // if(this.signature_path==location.origin + '/assets/img/signature.png'){
-            //     formData.append('signature_path',this.fields.signature_path)
-            // }
+                /**
+                 * store arrays even if they're empty
+                 * defaults to false
+                 */
+                allowEmptyArrays: false,
+            };
+            let formData = serialize(this.fields,options)
+            console.log(this.profile_picture_path)
+            formData.append('profile_picture_path',this.fields.profile_picture_path)
+            formData.append('signature_path',this.fields.signature_path)
+            if(this.profile_picture_path ==location.origin + '/assets/img/anime3.png'){
+                console.log(this.profile_picture_path)
+                formData.append('profile_picture_path',this.fields.profile_picture_path)
+            }
+            if(this.signature_path==location.origin + '/assets/img/signature.png'){
+                formData.append('signature_path',this.fields.signature_path)
+            }
 
             
             
-            axios.post('/create/client', this.fields)
+            axios.post('/test/create/client', )
                 .then(res=>{
                     this.isLoading = false
                     Swal.fire({
