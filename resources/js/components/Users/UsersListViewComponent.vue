@@ -30,7 +30,7 @@
                         <tr v-for="user in usersList.data">
                             <td>{{user.id}}</td>
                             <td>{{user.email}}</td>
-                            <td>{{user.firstname + ' ' + user.middlename + ' ' + user.lastname}}</td>
+                            <td>{{user.firstname + ' ' + user.lastname}}</td>
                             <td>
                                 <span v-for = "office in user.office" class="item">{{office.name}}</span>
                             </td>
