@@ -5,7 +5,7 @@
   <style>
       /*@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');*/
       body{
-        /* font-family: 'DejaVu', sans-serif; */
+        font-family: 'DejaVu', sans-serif;
         font-family: DejaVu Sans !important;
         margin: 0;
         padding: 0;

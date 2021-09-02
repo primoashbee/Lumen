@@ -1,5 +1,6 @@
 <html>
     <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <style>
             /** Define the margins of your page **/
         
@@ -35,6 +36,7 @@
             }
 
             body{
+                
                 /* font-family: 'DejaVu', sans-serif; */
                 font-family: DejaVu Sans !important;
                 margin: 0;
