@@ -25,6 +25,7 @@ Broadcast::channel('dashboard.charts.repayment.{office_id}', function ($user, $o
 Broadcast::channel('dashboard.charts.disbursement.{office_id}', function ($user, $office_id) {
     $office_id = (int) $office_id;
     $office_list = $user->scopes(true);
+    
     return in_array($office_id,$office_list) ? true :false;
 });
 Broadcast::channel('dashboard.notifications.{office_id}', function ($user, $office_id) {
