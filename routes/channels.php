@@ -37,6 +37,8 @@ Broadcast::channel('user.notification.{office_id}', function ($user, $user_id) {
     $user_id = (int) $user_id;
     return  $user->id == $user_id ? true :false;
 });
+
+
 // Broadcast::channel('group.channel.{office_id}', function ($user, $office_id) {
 //     $office_id = (int) $office_id;
 //     return in_array($office_id,session('office_list_ids')) ? true :false;

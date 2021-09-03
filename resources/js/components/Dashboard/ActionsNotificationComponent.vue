@@ -26,6 +26,9 @@ export default {
             .listen('.cbu-interest-posting',data =>{
                 this.notify(data.data.msg)
             })
+            .listen('.client-created',data =>{
+                this.notify(data.data)
+            })
 
 
 

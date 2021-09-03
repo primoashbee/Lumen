@@ -25,9 +25,9 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
-        // ClientCreated::class =>[
-        //     ListenOnClientCreate::class,
-        // ],
+        ClientCreated::class =>[
+            ListenOnClientCreate::class,
+        ],
     ];
 
     /**
