@@ -7,6 +7,7 @@ use App\Office;
 use Carbon\Carbon;
 use App\Rules\Gender;
 use App\DepositAccount;
+use App\Events\ClientCreated;
 use App\Rules\OfficeID;
 use App\HouseholdIncome;
 use App\Rules\HouseType;
@@ -137,7 +138,7 @@ class ClientController extends Controller
         
             $client->household_income()->create($this->household_income_request());
 
-            
+            // event(new ClientCreated($client));
             DB::commit();
             return response()->json(['msg'=>'Client succesfully created'],200);
         }catch(ValidationException $e){

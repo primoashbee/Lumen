@@ -29,20 +29,24 @@ class ClientCreated
      */
     public function handle($event)
     {
-        $deposit_ids = Deposit::autoCreate()->pluck('id');
+        
+        $deposit_ids = Deposit::autoCreate()->pluck('id')->toArray();
         if(count($deposit_ids)>0){
-            foreach($deposit_ids as $key => $value){
+            foreach($deposit_ids as $key){
                 $deposit = $event->client->deposits()->create([
                     // 'client_id'=>$event->client->client_id,
-                    'deposit_id'=>$value,
-                    'balance' => rand(500,10000)/10,
+                    'deposit_id'=>$key,
+                    'balance' => 0,
                     'created_at'=> Carbon::now(),
                     'updated_at'=> Carbon::now(),
                 ]);
+               
                 // $deposit->account()->create([
                 //     'client_id'=>$event->client->client_id
                 // ]);
+                
             }
+            // dd("tanga");
         }
         
     }
