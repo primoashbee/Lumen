@@ -389,6 +389,7 @@ class LoanAccount extends Model
                 
                 $number_of_weeks = 52;
                 $term_length = $data['term_length'];
+                // $term_length = $term_length == 22 ? 24 : $data['term_length'];
                 
                 $exponent = $number_of_weeks * ($term_length/$number_of_weeks);
                 
@@ -399,7 +400,7 @@ class LoanAccount extends Model
                 // $total_amount = $principal * pow($base, $exponent);
                
                 // $total_amount = $product == "LLP" ? $principal : $principal * pow($base, $exponent);
-                $monthly_rate = ($data['monthly_rate'] * ($term_length / 4));
+                $monthly_rate = $term_length == 22 ? ($data['monthly_rate'] * (24 / 4)) :($data['monthly_rate'] * ($term_length / 4));
                 
                 // $total_interest = round($total_amount - $principal, 2);
                 
@@ -408,9 +409,9 @@ class LoanAccount extends Model
                 $interest_rate = $data['interest_rate'];
                 // $interest_rate = 0;
     
-                $weekly_compounding_rate = ($interest_rate / 4) / 100;
+                $weekly_compounding_rate = ($interest_rate / 4 / 100);
                 // $total_amount = $principal + $total_interest;
-                $amortization = $product == "LLP" ? $principal / $term_length : pmt($weekly_compounding_rate, $term_length, -$principal);
+                $amortization = $product == "LLP" ? $principal / $term_length : pmt($weekly_compounding_rate, $data['term_length'], -$principal);
     
                 $principal_balance = $principal;
                 $installments = array();
@@ -468,7 +469,9 @@ class LoanAccount extends Model
                     } elseif ($x==$term_length) {
                         $principal = $installments[$x-1]->principal_balance;
                         $interest = $installments[$x-1]->interest_balance;
-                        
+                        // if ($) {
+                            # code...
+                        // }
                         $principal_balance = $installments[$x-1]->principal_balance - $principal;
                         $interest_balance = $installments[$x-1]->interest_balance - $interest;
                         $amortization = $interest + $principal;
@@ -650,7 +653,7 @@ class LoanAccount extends Model
                 // calculation of compound interest
                 $exponent = $number_of_weeks * ($term_length/$number_of_weeks);
                 
-                $base = 1+((double) $data['annual_rate']/$number_of_weeks);
+                // $base = 1+((double) $data['annual_rate']/$number_of_weeks);
 
                 
                 // Montly interest 

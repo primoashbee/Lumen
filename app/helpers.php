@@ -873,7 +873,7 @@ use App\Http\Controllers\LoanAccountController;
             "installment_method"=>'days',
 
             "interest_interval"=>'Monthly',
-            "monthly_rate"=>0.03,
+            "monthly_rate"=>0.0275,
             "interest_rate"=>5.18461,
 
             "loan_minimum_amount"=>100000,
