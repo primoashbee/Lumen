@@ -253,7 +253,6 @@ export default {
 				$.each(this.errors, function(k, v){ 
 					html += '<p class="text-left">'+ v +'</p>'
 				})
-				console.log(html);
 				Swal.fire({
 					icon: 'error',
 					title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1.875em;font-weight:600">Error</span>',
