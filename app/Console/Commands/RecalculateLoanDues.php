@@ -40,7 +40,7 @@ class RecalculateLoanDues extends Command
     {
         // $accounts = LoanAccount::all();
       
-        $accounts = LoanAccount::active();
+        $accounts = LoanAccount::active()->get();
 
         // $accounts = LoanAccount::limit(500)->offset(0);
         
