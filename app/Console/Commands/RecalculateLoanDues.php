@@ -53,7 +53,7 @@ class RecalculateLoanDues extends Command
         // }
 
         foreach($accounts as $item){
-            $item->updateStatis();
+            $item->updateStatus();
         }
 
         $this->info('Starting....');
