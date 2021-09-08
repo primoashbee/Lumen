@@ -40,7 +40,7 @@ class RecalculateLoanDues extends Command
     {
         // $accounts = LoanAccount::all();
       
-        // $accounts = LoanAccount::active();
+        $accounts = LoanAccount::active();
 
         // $accounts = LoanAccount::limit(500)->offset(0);
         
@@ -51,6 +51,10 @@ class RecalculateLoanDues extends Command
                 
         //     }
         // }
+
+        foreach($accounts as $item){
+            $item->updateStatis();
+        }
 
         $this->info('Starting....');
         $this->info('Date is ' . now()->toDateString());
