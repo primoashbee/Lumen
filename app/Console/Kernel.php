@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
         Commands\RecalculateLoanDues::class,
         Commands\ParMovementCompute::class,
         Commands\WordOfTheDay::class,
+        Commands\CalculateAccruedInterestCommand::class,
     ];
 
     /**
@@ -28,6 +29,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('inspire')->hourly();
         $schedule->command('loan:update')->everyMinute()->appendOutputTo(public_path('/output.txt'));
+        $schedule->command('deposit:accrue')->everyMinute()->appendOutputTo(public_path('/output.txt'));
         $schedule->command('par:calculate')->cron('00 1 * * *');
         $schedule->command('word:day')->cron('* * * * *')->appendOutputTo(public_path('/output.txt'));
         // $schedule->command('command:test')->everyMinute();
