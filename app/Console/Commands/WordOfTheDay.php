@@ -50,13 +50,13 @@ class WordOfTheDay extends Command
          
         // $users = User::all();
         // foreach ($users as $user) {
-        Mail::raw("{$key} -> {$value}", function ($mail){
-            $mail->from('yomama@light.org.ph');
-            $mail->to('ashbee.morgado@light.org.ph')
-                ->subject('Word of the Day');
-        });
+        // Mail::raw("{$key} -> {$value}", function ($mail){
+        //     $mail->from('yomama@light.org.ph');
+        //     $mail->to('ashbee.morgado@light.org.ph')
+        //         ->subject('Word of the Day');
+        // });
         // }
-        Mail::raw('Zup Nigga', function ($mail){ $mail->from('yomama@light.org.ph'); $mail->to('ashbee.morgado@light.org.ph')->subject('Word of the Day');});
+        // Mail::raw('Zup Nigga', function ($mail){ $mail->from('yomama@light.org.ph'); $mail->to('ashbee.morgado@light.org.ph')->subject('Word of the Day');});
         $this->info('Email Sent');
     }
 }
