@@ -515,6 +515,7 @@ class LoanAccountController extends Controller
             $activity = $account_1->transactions()->orderBy('transaction_date','DESC')->get();
             $pre_term_amount = $account_1->preTermAmount();
             $installment_repayments = \DB::table('loan_account_installment_repayments');
+            $deposit_to_loan_repayments = \DB::table('deposit_to_loan_installment_repayments');
             $installments = \DB::table('loan_account_installments')
                                 ->select('installment','original_principal','original_interest','date','amortization','principal','interest','principal_due','interest_due','amount_due',
                                 \DB::raw("IF(paid=false, (
@@ -526,10 +527,12 @@ class LoanAccountController extends Controller
                                 \DB::raw('SUM(installment_repayments.interest_paid) as interest_paid'),
                                 \DB::raw('SUM(installment_repayments.principal_paid) as principal_paid'),
                                 \DB::raw('SUM(installment_repayments.total_paid) as total_paid'),
-                            
                                 )
                                 ->leftJoinSub($installment_repayments,'installment_repayments',function($join){
                                     $join->on('installment_repayments.loan_account_installment_id','loan_account_installments.id');
+                                })
+                                ->leftJoinSub($deposit_to_loan_repayments,'depo_installment_repayments',function($join){
+                                    $join->on('depo_installment_repayments.loan_account_installment_id','loan_account_installments.id');
                                 })
                                 ->where('loan_account_id',$loan_id)
                                 ->orderBy('installment','asc')
