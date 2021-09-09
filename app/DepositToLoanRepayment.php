@@ -110,12 +110,12 @@ class DepositToLoanRepayment extends Model
     public function hasTransactionBefore(){
         $id = $this->id;
         $loan_account_id = $this->loan_account_id;
-        $transactions = Transaction::loanAccountTransactions($this->loan_account_id)
-                    ->where('transaction_date',$this->repayment_date->addDay())
-                    ->where('reverted',false);
+        // $transactions = Transaction::loanAccountTransactions($this->loan_account_id)
+        //             ->where('transaction_date',$this->repayment_date->addDay())
+        //             ->where('reverted',false);
                    
 
-        // $transactions = LoanAccountRepayment::where('loan_account_id',$loan_account_id)->where('reverted',false)->orderBy('id','desc');
+        $transactions = LoanAccountRepayment::where('loan_account_id',$loan_account_id)->where('reverted',false)->orderBy('id','desc');
 
         if($transactions->count() > 0){
             
