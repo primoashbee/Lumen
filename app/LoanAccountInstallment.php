@@ -85,7 +85,7 @@ class LoanAccountInstallment extends Model
             $amount_paid->interest = $interest;
             $interest_paid = $interest;
             $payment-=$interest;
-
+            
             //if payment can pay full principal
            
             if(round($payment,2) >= round($principal,2)){
@@ -105,6 +105,7 @@ class LoanAccountInstallment extends Model
                 $amount_paid->total_paid = $interest_paid + $principal_paid;
             }
         }else{
+            
             $amount_paid->interest = $payment;
             $interest_paid = $payment;
             $payment-=$interest_paid;
@@ -146,6 +147,7 @@ class LoanAccountInstallment extends Model
         $total_interest_paid = round($this->interest_paid + $interest_paid, 2);
         $total_principal_paid = round($this->principal_paid + $principal_paid, 2);
         $total_principal_paid = 0;
+        
         if ($isDue) {
             if ($fully_paid) {
                 $this->update([
@@ -157,6 +159,7 @@ class LoanAccountInstallment extends Model
                 
 
             }else{
+                
                 $this->update([
                     'interest_due'=>round($interest - $interest_paid,2),
                     'principal_due'=>round($principal - $principal_paid,2),
@@ -177,6 +180,7 @@ class LoanAccountInstallment extends Model
                 ]);
             }
         }
+        
         $this->repayments()->create([
             'principal_paid'=>$principal_paid,
             'interest_paid'=>$interest_paid,
@@ -218,6 +222,7 @@ class LoanAccountInstallment extends Model
         $principal = $this->principal_due;
 
         if($is_due){
+            $amount_due = $this->amount_due;
             $interest = $this->interest_due;
         }else{
             $interest = $this->interest;
@@ -306,9 +311,9 @@ class LoanAccountInstallment extends Model
             $amount_paid->total_paid = $interest_paid + $principal_paid;
         }
 
-        if($is_due){
-            $amount_due = round($this->amount_due - ($amount_paid->interest + $amount_paid->principal),2);
-        }
+        // if($is_due){
+        //     $amount_due = round($this->amount_due - ($amount_paid->interest + $amount_paid->principal),2);
+        // }
         
         
         if ($is_due) {
@@ -322,6 +327,7 @@ class LoanAccountInstallment extends Model
                 
 
             }else{
+                
                 $this->update([
                     'interest_due'=>round($interest - $interest_paid,2),
                     'principal_due'=>round($principal - $principal_paid,2),
@@ -339,8 +345,9 @@ class LoanAccountInstallment extends Model
                 $this->update([
                     'interest'=>round($interest - $interest_paid,2),
                     'principal_due'=>round($principal - $principal_paid,2),
-                    'amount_due' => 0
+                    
                 ]);
+                
             }
         }
 
