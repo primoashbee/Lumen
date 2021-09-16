@@ -142,11 +142,11 @@
 
                                         <td>{{money(item.principal_due)}}</td>
                                         <td>{{money(item.interest_due)}}</td>
-                                        <td>{{money(item.total_paid)}}</td>
+                                        
 
                                         <td>{{money(item.principal_paid)}}</td>
                                         <td>{{money(item.interest_paid)}}</td>
-                                                                                
+                                        <td>{{money(item.total_paid)}}</td>                                        
                                         <td>{{money(item.amount_due)}}</td>
                                         <td>
                                                 

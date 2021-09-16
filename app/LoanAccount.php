@@ -584,6 +584,7 @@ class LoanAccount extends Model
                         $amortization = round($interest + $principal, 2);
     
                         $diff_in_days = $date->diffInDays(now()->startOfDay(), false);
+                        
                         $interest_days_incurred =  0;
                         if ($diff_in_days >= -6) {
                             $interest_days_incurred =   $diff_in_days > 0 ? 7 : $diff_in_days + 7;
@@ -743,14 +744,13 @@ class LoanAccount extends Model
                         $diff_in_days = $date->diffInDays(now()->startOfDay(), false);
                         
                         $interest_days_incurred =  0;
-                        if ($diff_in_days >= -13) {
+                        if ($diff_in_days >= -14) {
                             $interest_days_incurred =   $diff_in_days > 0 ? 14 : $diff_in_days + 14;
                         }
                         
                         $per_day_interest = round($interest / 14, 2);
                         
                         $interest_due = round($per_day_interest * ($interest_days_incurred), 2);
-    
                         
                         $principal_due = 0;
                         $amount_due = 0;
@@ -803,7 +803,7 @@ class LoanAccount extends Model
                         $diff_in_days = $start_date->diffInDays(now()->startOfDay(), false);
                         
                         $interest_days_incurred =  0;
-                        if ($diff_in_days >= -13) {  
+                        if ($diff_in_days >= -14) {  
                             $interest_days_incurred =   $diff_in_days > 0 ? 14 : $diff_in_days + 14;
                         }
                         
@@ -851,11 +851,8 @@ class LoanAccount extends Model
                         $principal_balance = round($principal_balance - $principal, 2);
                         $interest_balance = round($interest_balance - $interest, 2);
                         $amortization = round($interest + $principal, 2);
-                        // $diff_in_days = $start_date->diffInDays(now()->startOfDay(), false);
-                        $diff_in_days = $date->diffInDays(now()->startOfDay());
+                        $diff_in_days = $date->diffInDays(now()->startOfDay(), false);
                         
-                        // Interest incurred based on number of days
-
                         $interest_days_incurred =  0;
                         if ($diff_in_days >= -13) {
                             $interest_days_incurred =   $diff_in_days > 0 ? 14 : $diff_in_days + 14;
@@ -2117,6 +2114,7 @@ class LoanAccount extends Model
         $payment_methods = DB::table('payment_methods');
         $offices = DB::table('offices');
         $fees = DB::table('fees');
+        $loan_fee_payments = DB::table('loan_account_fee_payments');
 
         $space = ' ';
         $repayments = DB::table("loan_account_repayments")
@@ -2151,7 +2149,35 @@ class LoanAccount extends Model
                         })
                         ->where('loan_account_repayments.loan_account_id',$this->id);
 
-
+        $disbursement = DB::table("loan_account_disbursements")
+                        ->select(
+                            DB::raw('loan_account_disbursements.transaction_id as transaction_number'),
+                            'loan_account_disbursements.created_at',
+                            DB::raw("IF(1=1,'Disbursement',NULL) as particulars"),
+                            DB::raw('IF(1=1,0,NULL)'),
+                            DB::raw('IF(1=1,0,NULL)'),  
+                            DB::raw('loan_account_disbursements.disbursed_amount as amount'),
+                            'payment_methods.name as payment_method_name',
+                            'loan_account_disbursements.reverted',
+                            DB::raw("CONCAT(users.firstname,'{$space}',users.lastname) as paid_by"), 
+                            DB::raw('loan_accounts.disbursed_at as transaction_date')
+                        )
+                        ->when($succesful_transactions, function ($q,$data){
+                            if($data){
+                                $q->where('loan_account_disbursements.reverted', false);
+                            }
+                        })
+                        ->leftJoinSub($loan_accounts,'loan_accounts',function($join){
+                            $join->on('loan_accounts.id','loan_account_disbursements.loan_account_id');
+                        })
+                        ->leftJoinSub($payment_methods,'payment_methods',function($join){
+                            $join->on('payment_methods.id','loan_account_disbursements.payment_method_id');
+                        })
+                        ->leftJoinSub($users,'users',function($join){
+                            $join->on('users.id','loan_account_disbursements.disbursed_by');
+                        })
+                        ->where('loan_account_disbursements.loan_account_id',$this->id);
+                        
 
         $fee_payments = DB::table("loan_account_fee_payments")
                         ->select(
@@ -2187,7 +2213,7 @@ class LoanAccount extends Model
                             $join->on('users.id','loan_account_fee_payments.paid_by');
                         })
                         ->where('loan_account_fee_payments.loan_account_id',$this->id);
-
+                        
         $ctlp = DB::table("deposit_to_loan_repayments")
                         ->select(
                             'deposit_to_loan_repayments.transaction_number',
@@ -2230,6 +2256,7 @@ class LoanAccount extends Model
         $list = $repayments
             ->unionAll($ctlp)
             ->unionAll($fee_payments)
+            ->unionAll($disbursement)
             ->when($succesful_transactions, function($q,$data){
                 if($data){
                     $q->where('reverted',false);
