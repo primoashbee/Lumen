@@ -81,67 +81,67 @@ class LoanAccountInstallment extends Model
         }
 
         // if payment can pay full interest
-        // if(round($payment,2) >= round($interest,2)){
-        //     $amount_paid->interest = $interest;
-        //     $interest_paid = $interest;
-        //     $payment-=$interest;
-
-        //     //if payment can pay full principal
-           
-        //     if(round($payment,2) >= round($principal,2)){
-        //         $payment-=$principal;
-        //         $principal_paid = $principal;
-        //         $amount_paid->principal = $principal;
-        //         $amount_paid->total_paid = $interest_paid + $principal_paid;
-
-        //         $fully_paid = true; // fully paid
-
-        //         //update installments
-        //     }else{
-        //         $amount_paid->principal = $payment;
-        //         $principal_paid = $payment;
-        //         $payment-=$principal_paid;
-            
-        //         $amount_paid->total_paid = $interest_paid + $principal_paid;
-        //     }
-        // }else{
-        //     $amount_paid->interest = $payment;
-        //     $interest_paid = $payment;
-        //     $payment-=$interest_paid;
-        //     $amount_paid->total_paid = $interest_paid + $principal_paid;
-        // }
-
-        // Payment for full principal
-
-        if(round($payment,2) >= round($principal,2)){
-            $amount_paid->principal = $principal;
-            $principal_paid = $principal;
-            $payment-=$principal;
+        if(round($payment,2) >= round($interest,2)){
+            $amount_paid->interest = $interest;
+            $interest_paid = $interest;
+            $payment-=$interest;
 
             //if payment can pay full principal
            
-            if(round($payment,2) >= round($interest,2)){
-                $payment-=$interest;
-                $interest_paid = $interest;
-                $amount_paid->interest = $interest;
+            if(round($payment,2) >= round($principal,2)){
+                $payment-=$principal;
+                $principal_paid = $principal;
+                $amount_paid->principal = $principal;
                 $amount_paid->total_paid = $interest_paid + $principal_paid;
 
                 $fully_paid = true; // fully paid
 
                 //update installments
             }else{
-                $amount_paid->interest = $payment;
-                $interest_paid = $payment;
-                $payment-=$interest_paid;
+                $amount_paid->principal = $payment;
+                $principal_paid = $payment;
+                $payment-=$principal_paid;
             
                 $amount_paid->total_paid = $interest_paid + $principal_paid;
             }
         }else{
-            $amount_paid->principal = $payment;
-            $principal_paid = $payment;
-            $payment-=$principal_paid;
-            $amount_paid->total_paid = $principal_paid + $principal_paid;
+            $amount_paid->interest = $payment;
+            $interest_paid = $payment;
+            $payment-=$interest_paid;
+            $amount_paid->total_paid = $interest_paid + $principal_paid;
         }
+
+        // Payment for full principal
+
+        // if(round($payment,2) >= round($principal,2)){
+        //     $amount_paid->principal = $principal;
+        //     $principal_paid = $principal;
+        //     $payment-=$principal;
+
+        //     //if payment can pay full principal
+           
+        //     if(round($payment,2) >= round($interest,2)){
+        //         $payment-=$interest;
+        //         $interest_paid = $interest;
+        //         $amount_paid->interest = $interest;
+        //         $amount_paid->total_paid = $interest_paid + $principal_paid;
+
+        //         $fully_paid = true; // fully paid
+
+        //         //update installments
+        //     }else{
+        //         $amount_paid->interest = $payment;
+        //         $interest_paid = $payment;
+        //         $payment-=$interest_paid;
+            
+        //         $amount_paid->total_paid = $interest_paid + $principal_paid;
+        //     }
+        // }else{
+        //     $amount_paid->principal = $payment;
+        //     $principal_paid = $payment;
+        //     $payment-=$principal_paid;
+        //     $amount_paid->total_paid = $principal_paid + $principal_paid;
+        // }
 
         $total_interest_paid = round($this->interest_paid + $interest_paid, 2);
         $total_principal_paid = round($this->principal_paid + $principal_paid, 2);
@@ -242,34 +242,68 @@ class LoanAccountInstallment extends Model
         // }
         // $amount_paid->total_paid = round($amount_paid->principal  + $amount_paid->interest,2);
         
-        if(round($payment,2) >= round($principal,2)){
-            $amount_paid->principal = $principal;
-            $principal_paid = $principal;
-            $payment-=$principal;
+
+        // Payment Allocation P - I
+        // if(round($payment,2) >= round($principal,2)){
+        //     $amount_paid->principal = $principal;
+        //     $principal_paid = $principal;
+        //     $payment-=$principal;
+
+        //     //if payment can pay full principal
+           
+        //     if(round($payment,2) >= round($interest,2)){
+        //         $payment-=$interest;
+        //         $interest_paid = $interest;
+        //         $amount_paid->interest = $interest;
+        //         $amount_paid->total_paid = $interest_paid + $principal_paid;
+
+        //         $fully_paid = true; // fully paid
+
+        //         //update installments
+        //     }else{
+        //         $amount_paid->interest = $payment;
+        //         $interest_paid = $payment;
+        //         $payment-=$interest_paid;
+            
+        //         $amount_paid->total_paid = $interest_paid + $principal_paid;
+        //     }
+        // }else{
+        //     $amount_paid->principal = $payment;
+        //     $principal_paid = $payment;
+        //     $payment-=$principal_paid;
+        //     $amount_paid->total_paid = $principal_paid + $principal_paid;
+        // }
+
+        // Payment Allocation I - P
+
+        if(round($payment,2) >= round($interest,2)){
+            $amount_paid->interest = $interest;
+            $interest_paid = $interest;
+            $payment-=$interest;
 
             //if payment can pay full principal
            
-            if(round($payment,2) >= round($interest,2)){
-                $payment-=$interest;
-                $interest_paid = $interest;
-                $amount_paid->interest = $interest;
+            if(round($payment,2) >= round($principal,2)){
+                $payment-=$principal;
+                $principal_paid = $principal;
+                $amount_paid->principal = $principal;
                 $amount_paid->total_paid = $interest_paid + $principal_paid;
 
                 $fully_paid = true; // fully paid
 
                 //update installments
             }else{
-                $amount_paid->interest = $payment;
-                $interest_paid = $payment;
-                $payment-=$interest_paid;
+                $amount_paid->principal = $payment;
+                $principal_paid = $payment;
+                $payment-=$principal_paid;
             
                 $amount_paid->total_paid = $interest_paid + $principal_paid;
             }
         }else{
-            $amount_paid->principal = $payment;
-            $principal_paid = $payment;
-            $payment-=$principal_paid;
-            $amount_paid->total_paid = $principal_paid + $principal_paid;
+            $amount_paid->interest = $payment;
+            $interest_paid = $payment;
+            $payment-=$interest_paid;
+            $amount_paid->total_paid = $interest_paid + $principal_paid;
         }
 
         if($is_due){
@@ -304,7 +338,8 @@ class LoanAccountInstallment extends Model
             }else{
                 $this->update([
                     'interest'=>round($interest - $interest_paid,2),
-                    'principal_due'=>round($principal - $principal_paid,2)
+                    'principal_due'=>round($principal - $principal_paid,2),
+                    'amount_due' => 0
                 ]);
             }
         }
