@@ -16,6 +16,7 @@ use App\Rules\MaxLoanableAmount;
 use App\Rules\PaymentMethodList;
 use App\Events\BulkLoanDisbursed;
 use Faker\Provider\zh_TW\Payment;
+use Illuminate\Support\Facades\DB;
 use App\Rules\HasNoUnusedDependent;
 use App\Rules\HasNoPendingLoanAccount;
 use App\Rules\ClientHasActiveDependent;
@@ -473,9 +474,6 @@ class LoanAccountController extends Controller
             'expires_at'=>Carbon::now()->addDays(env('INSURANCE_MATURITY_DAYS'))
             ]);
         
-        $account->accountable->update([
-            'status'=>$account->status
-        ]);
         
         \DB::commit();
         return redirect()->back();
@@ -508,36 +506,57 @@ class LoanAccountController extends Controller
     }
     public function account(Request $request, $client_id,$loan_id){
 
-        if($request->wantsJson()){
-            $account  = LoanAccount::find($loan_id);
-            $loan_type = $account->type->name;
-            $account_1 = clone $account;
-            $activity = $account_1->transactions()->orderBy('transaction_date','DESC')->get();
-            $pre_term_amount = $account_1->preTermAmount();
-            $installment_repayments = \DB::table('loan_account_installment_repayments');
-            $deposit_to_loan_repayments = \DB::table('deposit_to_loan_installment_repayments');
-            $installments = \DB::table('loan_account_installments')
-                                ->select('installment','original_principal','original_interest','date','amortization','principal','interest','principal_due','interest_due','amount_due',
-                                \DB::raw("IF(paid=false, (
-                                    CASE 
-                                        WHEN `date` > DATE(CURRENT_TIMESTAMP) THEN 'Not Due'
-                                        WHEN `date` = DATE(CURRENT_TIMESTAMP) THEN 'Due'
-                                        WHEN `date` < DATE(CURRENT_TIMESTAMP) THEN 'In Arrears'
-                                        END),'Paid') as status"),
-                                \DB::raw('SUM(installment_repayments.interest_paid) as interest_paid'),
-                                \DB::raw('SUM(installment_repayments.principal_paid) as principal_paid'),
-                                \DB::raw('SUM(installment_repayments.total_paid) as total_paid'),
-                                )
-                                ->leftJoinSub($installment_repayments,'installment_repayments',function($join){
-                                    $join->on('installment_repayments.loan_account_installment_id','loan_account_installments.id');
-                                })
-                                ->leftJoinSub($deposit_to_loan_repayments,'depo_installment_repayments',function($join){
-                                    $join->on('depo_installment_repayments.loan_account_installment_id','loan_account_installments.id');
-                                })
-                                ->where('loan_account_id',$loan_id)
-                                ->orderBy('installment','asc')
-                                ->groupBy('loan_account_installments.id')
-                                ->get();
+    if($request->wantsJson()){
+        $account  = LoanAccount::find($loan_id);
+        $loan_type = $account->type->name;
+        $account_1 = clone $account;
+        $activity = $account_1->transactions()->orderBy('transaction_date','DESC')->get();
+        $pre_term_amount = $account_1->preTermAmount();
+        $installment_repayments = \DB::table('loan_account_installment_repayments');
+        
+        $ctlp =  DB::table('loan_account_installments')
+                ->where('loan_account_id', $loan_id)
+                ->leftJoin('deposit_to_loan_installment_repayments', 'deposit_to_loan_installment_repayments.loan_account_installment_id', '=', 'loan_account_installments.id')
+                ->groupBy('loan_account_installments.id')
+                ->select(
+                'installment',
+                DB::raw('SUM(deposit_to_loan_installment_repayments.interest_paid) AS interest_paid'),
+                DB::raw('SUM(deposit_to_loan_installment_repayments.principal_paid) AS principal_paid')
+                )
+                ->get();
+
+
+    $installments= DB::table('loan_account_installments')
+        ->where('loan_account_id', $loan_id)
+        ->leftJoin('loan_account_installment_repayments', 'loan_account_installment_repayments.loan_account_installment_id', '=', 'loan_account_installments.id')
+        ->groupBy('loan_account_installments.id')
+        ->select(
+            'installment',
+            'original_principal',
+            'original_interest',
+            'date','amortization',
+            'principal','interest',
+            'principal_due',
+            'interest_due',
+            'amount_due',
+            DB::raw("IF(paid=false, (
+                        CASE 
+                            WHEN `date` > DATE(CURRENT_TIMESTAMP) THEN 'Not Due'
+                            WHEN `date` = DATE(CURRENT_TIMESTAMP) THEN 'Due'
+                            WHEN `date` < DATE(CURRENT_TIMESTAMP) THEN 'In Arrears'
+                            END),'Paid') as status"),
+            DB::raw('SUM(loan_account_installment_repayments.interest_paid) AS interest_paid'),
+            DB::raw('SUM(loan_account_installment_repayments.principal_paid) AS principal_paid')
+        )
+        ->orderBy('installment','asc')
+        ->get();
+    
+    
+    for($x = 0;$x < $installments->count();$x++){
+        $installments[$x]->interest_paid += $ctlp[$x]->interest_paid;
+        $installments[$x]->principal_paid += $ctlp[$x]->principal_paid;
+        $installments[$x]->total_paid = $installments[$x]->principal_paid + $installments[$x]->interest_paid;
+    }
             $fees = $account_1->feePayments;
             $total_paid = $account_1->totalPaid();
             $amount_due = $account_1->amountDue();
