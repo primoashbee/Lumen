@@ -185,7 +185,7 @@
                                         <td>{{key + 1}}</td>
                                         <td>{{item.transaction_number }}</td>
                                         <td>{{moment(item.repayment_date) }}</td>
-                                        <td>{{moment(item.transaction_date,true) }}</td>
+                                        <td>{{moment(item.transaction_date) }}</td>
                                         <td>{{item.particulars}}</td>
                                         
                                         <td>{{money(item.amount)}}</td>
