@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
         generateLoanProducts();
         createPermission();
         createRole();
-        $this->call(ClientTableSeeder::class);
+        // $this->call(ClientTableSeeder::class);
         // createLoanAccount();
         // generateMPLLoan();
         
