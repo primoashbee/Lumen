@@ -328,8 +328,7 @@ class DepositAccountController extends Controller
         }else{
         
         $client->deposits()->create(['client_id' => $client_id,
-        'deposit_id' => $request->deposit, 
-        'accrued_interest' => $request->accrued_interest]);
+        'deposit_id' => $request->deposit]);
 
         return response()->json(['msg' => 'Deposit Account Created'], 200);
         }
