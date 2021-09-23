@@ -20,11 +20,6 @@
                         </option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="accrued_interest">Accrued Interest</label>
-                    <input type="text" class="form-control" readonly disabled v-model="fields.accrued_interest">
-                </div>
-
                 <button type="submit" class="btn btn-primary">Submit</button>
             </form>
         </div>
@@ -40,7 +35,6 @@ export default {
            deposit_product:"",
            fields:{
                 deposit:"",
-                accrued_interest:""
            },
            errors:{}
 
