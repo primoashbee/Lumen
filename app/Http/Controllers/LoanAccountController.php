@@ -291,6 +291,8 @@ class LoanAccountController extends Controller
                 $loan_interest_rate = Loan::rates($loan->id)->where('installments',$number_of_installments)->first()->rate;
         
                 $data = array(
+                    'product' => $loan->code,
+                    'monthly_rate'=>$loan->monthly_rate,
                     'principal'=>$loan_amount,
                     'annual_rate'=>$annual_rate,
                     'interest_rate'=>$loan_interest_rate,
@@ -306,7 +308,7 @@ class LoanAccountController extends Controller
                 $calculator = LoanAccount::calculate($data);
                 
                 //dependent on calculator result.
-        
+                
                 
                 $loan_acc = $client->loanAccounts()->create([
                     'loan_id'=>$loan->id,
@@ -331,7 +333,7 @@ class LoanAccountController extends Controller
                     'last_payment_date'=>$calculator->end_date,
                     'created_by'=>auth()->user()->id,
                 ]);
-            
+                
                 $this->createFeePayments($loan_acc,$fee_repayments);
                 
                 $this->createInstallments($loan_acc,$calculator->installments);
@@ -350,11 +352,12 @@ class LoanAccountController extends Controller
     }
 
     public function bulkValidator(array $data){
+        
         $rules = [
             'loan_id'=>'required|exists:loans,id',
             'accounts.*.client_id'=>['required','exists:clients,client_id','bulk_has_no_unused_dependent'],
             // 'accounts.*.client_id'=>['required','exists:clients,client_id'],
-            'accounts.*.amount'=>['required','bulk_with_loanable_amount',new LoanAmountModulo],
+            'accounts.*.amount'=>['required','bulk_with_loanable_amount',new LoanAmountModulo($data['loan_id'])],
             'disbursement_date'=>'required|date',
             'first_payment'=>'required|date|after_or_equal:disbursement_date',
             'number_of_installments'=>'required|gt:0|integer',
