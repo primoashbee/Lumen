@@ -76,20 +76,21 @@ class RecalculateLoanDues extends Command
             DB::raw('SUM(loan_account_installment_repayments.total_paid) AS total_paid')
         )
         ->orderBy('installment','asc')
-        ->whereDate('date','<=', now())
+        // ->whereDate('date','<=', now())
         ->where('paid',false)
+        // ->where('loan_account_id', 102)
         ->update(
             [
-                'amount_due' => DB::raw('round((interest+principal_due)-IF(total_paid > 0,total_paid,0),2)'),
-                'interest_due' => DB::raw('round((interest)-IF(interest_paid > 0,interest_paid,0),2)'),
-                'principal_due' => DB::raw('round((principal)-IF(principal_paid > 0,principal_paid,0),2)')
+                'amount_due' => DB::raw('round((interest+principal_due)-IF(total_paid != null,total_paid,0),2)'),
+                'interest_due' => DB::raw('round(interest-IF(interest_paid != null,interest_paid,0),2)'),
+                'principal_due' => DB::raw('round(principal-IF(principal_paid != null,principal_paid,0),2)')
             ]
         );
 
         $this->info('Starting deduction of CTLP');
 
         $list= DB::table('loan_account_installments')
-        ->leftJoin('deposit_to_loan_account_installments', 'deposit_to_loan_account_installments.loan_account_installment_id', '=', 'loan_account_installments.id')
+        ->leftJoin('deposit_to_loan_installment_repayments', 'deposit_to_loan_installment_repayments.loan_account_installment_id', '=', 'loan_account_installments.id')
         ->groupBy('loan_account_installments.id')
         ->select(
             'installment',
@@ -100,9 +101,9 @@ class RecalculateLoanDues extends Command
             'principal_due',
             'interest_due',
             'amount_due',
-            DB::raw('SUM(deposit_to_loan_account_installments.interest_paid) AS interest_paid'),
-            DB::raw('SUM(deposit_to_loan_account_installments.principal_paid) AS principal_paid'),
-            DB::raw('SUM(deposit_to_loan_account_installments.total_paid) AS total_paid')
+            DB::raw('SUM(deposit_to_loan_installment_repayments.interest_paid) AS interest_paid'),
+            DB::raw('SUM(deposit_to_loan_installment_repayments.principal_paid) AS principal_paid'),
+            DB::raw('SUM(deposit_to_loan_installment_repayments.total_paid) AS total_paid')
         )
         ->orderBy('installment','asc')
         ->whereDate('date','<=', now())
@@ -110,8 +111,8 @@ class RecalculateLoanDues extends Command
         ->update(
             [
                 'amount_due' => DB::raw('round((interest+principal_due)-IF(total_paid > 0,total_paid,0),2)'),
-                'interest_due' => DB::raw('round((interest)-IF(interest_paid > 0,interest_paid,0),2)'),
-                'principal_due' => DB::raw('round((principal)-IF(principal_paid > 0,principal_paid,0),2)')
+                'interest_due' => DB::raw('round(interest-IF(interest_paid != null,interest_paid,0),2)'),
+                'principal_due' => DB::raw('round(principal-IF(principal_paid != null,principal_paid,0),2)')
             ]
         );
 
