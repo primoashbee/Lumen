@@ -32,6 +32,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('deposit:accrue')->cron('01 1 * * *')->appendOutputTo(public_path('/output.txt'));
         $schedule->command('par:calculate')->cron('00 1 * * *');
         // $schedule->command('par:calculate')->everyMinute();
+        $schedule->command('holiday:implement')->cron('* * * * *')->appendOutputTo(public_path('/output.txt'));
         $schedule->command('word:day')->cron('* * * * *')->appendOutputTo(public_path('/output.txt'));
         // $schedule->command('command:test')->everyMinute();
     }

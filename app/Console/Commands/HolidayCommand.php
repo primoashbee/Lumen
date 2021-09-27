@@ -40,7 +40,7 @@ class HolidayCommand extends Command
     public function handle()
     {
         echo 'Starting....';
-        $date = Carbon::parse('2020-03-31');
+        $date = Carbon::parse('2021-08-30');
         dispatch(new HolidayJob($date));
 
         echo 'done';
