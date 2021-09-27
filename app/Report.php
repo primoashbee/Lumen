@@ -230,6 +230,7 @@ class Report extends Model
                                         ->leftJoinSub($users,'users',function($join){
                                             $join->on('users.id','loan_account_repayments.paid_by');
                                         })
+                                        ->where('reverted',false)
                                         ->when($is_summarized,function($q, $data){
                                                 if($data){
                                                     $q->groupBy('office_code','loan_code','payment_method_name');
