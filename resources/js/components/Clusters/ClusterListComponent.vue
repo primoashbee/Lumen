@@ -12,6 +12,7 @@
                 <table class="table" >
                     <thead>
                         <tr>
+                            <td><p class="title">Branch ID</p></td>
                             <td><p class="title">Branch</p></td>
                             <td><p class="title">Name</p></td>
                             <td><p class="title">Linked To</p></td>
@@ -20,6 +21,7 @@
                     </thead>
                     <tbody>
                         <tr v-for="cluster in clustersList.data" :key="cluster.id">
+                            <td>{{cluster.id}}</td>
                             <td>{{cluster.parent.parent.name}}</td>
                             <td>{{cluster.name}}</td>
                             <td>{{cluster.parent.name}}</td>
