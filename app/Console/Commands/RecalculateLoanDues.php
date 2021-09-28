@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\LoanAccount;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class RecalculateLoanDues extends Command
 {
@@ -58,16 +59,69 @@ class RecalculateLoanDues extends Command
 
         $this->info('Starting....');
         $this->info('Date is ' . now()->toDateString());
-        $list = \DB::table('loan_account_installments')
-            ->whereDate('date','<=', now())
-            ->where('paid',false);
+        $list= DB::table('loan_account_installments')
+        ->leftJoin('loan_account_installment_repayments', 'loan_account_installment_repayments.loan_account_installment_id', '=', 'loan_account_installments.id')
+        ->groupBy('loan_account_installments.id')
+        ->select(
+            'installment',
+            'original_principal',
+            'original_interest',
+            'date','amortization',
+            'principal','interest',
+            'principal_due',
+            'interest_due',
+            'amount_due',
+            DB::raw('SUM(loan_account_installment_repayments.interest_paid) AS interest_paid'),
+            DB::raw('SUM(loan_account_installment_repayments.principal_paid) AS principal_paid'),
+            DB::raw('SUM(loan_account_installment_repayments.total_paid) AS total_paid')
+        )
+        ->orderBy('installment','asc')
+        ->whereDate('date','<=', now())
+        ->where('paid',false)
+        // ->where('loan_account_id', 102)
+        ->update(
+            [
+                'amount_due' => DB::raw('round((interest+principal_due)-IF(total_paid != null,total_paid,0),2)'),
+                'interest_due' => DB::raw('round(interest-IF(interest_paid != null,interest_paid,0),2)'),
+                'principal_due' => DB::raw('round(principal-IF(principal_paid != null,principal_paid,0),2)')
+            ]
+        );
 
-        $this->info('Updating ' . $list->count() . ' accounts.');
+        $this->info('Starting deduction of CTLP');
+
+        $list= DB::table('loan_account_installments')
+        ->leftJoin('deposit_to_loan_installment_repayments', 'deposit_to_loan_installment_repayments.loan_account_installment_id', '=', 'loan_account_installments.id')
+        ->groupBy('loan_account_installments.id')
+        ->select(
+            'installment',
+            'original_principal',
+            'original_interest',
+            'date','amortization',
+            'principal','interest',
+            'principal_due',
+            'interest_due',
+            'amount_due',
+            DB::raw('SUM(deposit_to_loan_installment_repayments.interest_paid) AS interest_paid'),
+            DB::raw('SUM(deposit_to_loan_installment_repayments.principal_paid) AS principal_paid'),
+            DB::raw('SUM(deposit_to_loan_installment_repayments.total_paid) AS total_paid')
+        )
+        ->orderBy('installment','asc')
+        ->whereDate('date','<=', now())
+        ->where('paid',false)
+        ->update(
+            [
+                'amount_due' => DB::raw('round((interest+principal_due)-IF(total_paid > 0,total_paid,0),2)'),
+                'interest_due' => DB::raw('round(interest-IF(interest_paid != null,interest_paid,0),2)'),
+                'principal_due' => DB::raw('round(principal-IF(principal_paid != null,principal_paid,0),2)')
+            ]
+        );
+
+        // $this->info('Updating ' . $list->count() . ' accounts.');
         
-        $list->update([
-            'amount_due'=>\DB::raw('round(interest+principal_due,2)'),
-            'interest_due'=>\DB::raw('interest')
-        ]);
+        // $list->update([
+        //     'amount_due'=>\DB::raw('round(interest+principal_due,2)'),
+        //     'interest_due'=>\DB::raw('interest')
+        // ]);
         return $this->info('Done');
     }
 }
