@@ -76,7 +76,7 @@ class RecalculateLoanDues extends Command
             DB::raw('SUM(loan_account_installment_repayments.total_paid) AS total_paid')
         )
         ->orderBy('installment','asc')
-        // ->whereDate('date','<=', now())
+        ->whereDate('date','<=', now())
         ->where('paid',false)
         // ->where('loan_account_id', 102)
         ->update(
