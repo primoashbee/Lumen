@@ -283,6 +283,7 @@ class Report extends Model
                                         ->leftJoinSub($deposits,'deposits',function($join){
                                             $join->on('deposits.id','deposit_accounts.deposit_id');
                                         })
+                                        ->where('reverted', false)
                                         ->when($is_summarized,function($q, $data){
                                             if($data){
                                                 $q->groupBy('office_code','loan_code','payment_method_name');
