@@ -66,5 +66,7 @@ class Kernel extends HttpKernel
         'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
         'user_client_scope' => \App\Http\Middleware\UserClientScopeMiddleware::class,
+        'is_client_loan' => \App\Http\Middleware\isClientLoan::class,
+        'is_client_deposit' => \App\Http\Middleware\isClientDeposit::class,
     ];
 }
