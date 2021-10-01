@@ -92,7 +92,7 @@ class DepositToLoanRepayment extends Model
             'reverted_by'=>$user_id,
         ]);
         $loan_account =  $this->loanAccount;
-        $loan_account->updateStatus();
+        
         $loan_account->updateBalances();
 
         if($this->for_pretermination){
@@ -101,6 +101,7 @@ class DepositToLoanRepayment extends Model
                 'closed_at'=>null,
             ]);
         }
+        $loan_account->updateStatus();
         return $total == $ctr;
     }
 
