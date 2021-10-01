@@ -6,6 +6,7 @@ use App\Office;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\ClientRequest;
+use App\Rules\CreditLimit;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Intervention\Image\Facades\Image;
@@ -341,62 +342,7 @@ Route::group(['middleware' => ['auth']], function () {
     });
 
 
-    Route::get('/x', function(){
-
-        $lai= DB::table('loan_account_installment_repayments')
-        ->leftJoin('loan_account_installments', 'loan_account_installment_repayments.loan_account_installment_id', '=', 'loan_account_installments.id')
-        ->groupBy('loan_account_installments.id')
-        ->select(
-            'loan_account_installments.id',
-            DB::raw('SUM(loan_account_installment_repayments.interest_paid) AS interest_paid'),
-            DB::raw('SUM(loan_account_installment_repayments.principal_paid) AS principal_paid'),
-            DB::raw('SUM(loan_account_installment_repayments.total_paid) AS total_paid')
-        )
-        ->orderBy('installment','asc')
-        // ->whereDate('date','<=', now())
-        ->where('loan_account_id',102);
-
-        $ctlp= DB::table('deposit_to_loan_installment_repayments')
-        ->leftJoin('loan_account_installments', 'loan_account_installments.id','=','deposit_to_loan_installment_repayments.loan_account_installment_id',)
-        ->groupBy('loan_account_installments.id')
-        ->select(
-            'loan_account_installments.id',
-            DB::raw('SUM(deposit_to_loan_installment_repayments.interest_paid) AS interest_paid'),
-            DB::raw('SUM(deposit_to_loan_installment_repayments.principal_paid) AS principal_paid'),
-            DB::raw('SUM(deposit_to_loan_installment_repayments.total_paid) AS total_paid')
-        )
-        ->orderBy('installment','asc');
-        // ->whereDate('date','<=', now())
-        // ->where('loan_account_id',102);
-        
-        // $payments = $lai->unionAll($ctlp)->groupBy('installment');
-        
-        // return $payments->groupBy('payments.id')->get();
-
-        // return $payments->get();
-        // $installment = DB::table('loan_account_installments')
-        // ->select('loan_account_installments.id',
-        //         'installment',
-        //         'original_principal',
-        //         'original_interest',
-        //         'date','amortization',
-        //         'principal','interest',
-        //         'principal_due',
-        //         'interest_due',
-        //         'amount_due',
-        //         'payments.id as installment_id',
-        //         DB::raw('payments.interest_paid as total_interest_paid'),
-        //         DB::raw('payments.principal_paid as total_principal_paid'),
-        //         DB::raw('payments.total_paid as total_final_paid'))
-        // ->leftJoinSub($payments, 'payments', function($join){
-        //     $join->on('payments.id','loan_account_installments.id');
-        // })
-        // ->where('loan_account_id', 102);
-        // ->groupBy(['id','installment']);
-
-        return $ctlp->get();
-
-    });
+   
 
 });
  

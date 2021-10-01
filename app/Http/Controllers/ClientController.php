@@ -31,6 +31,7 @@ class ClientController extends Controller
     public function __construct(){
 
         $this->middleware('permission:view_deposit_account', ['only' => ['depositAccount']]);
+        $this->middleware('is_client_deposit', ['only' => ['depositAccount']]);
         $this->middleware('permission:view_client', ['only' => ['index','list']]);
         $this->middleware('permission:edit_client', ['only' => ['editClient','update']]);
         $this->middleware('permission:create_client', ['only' => ['step','createV1']]);

@@ -392,18 +392,18 @@ export default {
         summary(){
             var total_amount = 0;
             this.selected_list.map(x=>{
-                total_amount = total_amount + parseInt(x.amount)
+                total_amount = total_amount + parseFloat(x.amount)
             })
 
             var total_fees = 0;
             this.selected_list.map(x=>{
-                total_fees += parseInt(x.total_deductions)
+                total_fees += parseFloat(x.total_deductions)
             })
             var accounts = this.selected_list.length
 
             var disbursement = 0;
             this.selected_list.map(x=>{
-                disbursement += parseInt(x.disbursed_amount)
+                disbursement += parseFloat(x.disbursed_amount)
             })
             return {
                 accounts: accounts,
