@@ -1158,6 +1158,7 @@ class LoanAccount extends Model
 
     public function updateStatus()
     {
+        
         $x = 0;
         if (is_null($this->disbursed_by)){
             return $this->update([
@@ -1612,20 +1613,25 @@ class LoanAccount extends Model
         if ($method->isCTLP()) {
                 $type = 'CTLP';
                 $ctlp_account = $this->client->ctlpAccount();
-                $transaction_number = $this->generateRepaymentTransactionNumber('ctlp');
+                $transaction_number = 'X'.str_replace('.','',microtime(true));
+            
+                //withdraw from ctlp account
+                
                 $data['transaction_number'] = $transaction_number;
                 $withdrawal = $ctlp_account->payCTLP($data);
                 //get withdrawal transcation from deposit account
-                $transaction = $withdrawal->transaction()->create([
-                    'transaction_number'=>$transaction_number,
-                    'type'=>'Withdawal - CTLP',
-                    'office_id'=>$office_id,
-                    'transaction_date'=>$data['repayment_date'],
-                    'posted_by'=>$paid_by
-                ]);
+                // $transaction = $withdrawal->transaction()->create([
+                //     'transaction_number'=>$transaction_number,
+                //     'type'=>'Withdawal - CTLP',
+                //     'office_id'=>$office_id,
+                //     'transaction_date'=>$data['repayment_date'],
+                //     'posted_by'=>$paid_by
+                // ]);
 
                 //create a repayment
                 $deposit_to_loan_repayment = $this->fromDepositPayments()->create([
+                    'transaction_number' => $transaction_number,
+                    'office_id' => $office_id,
                     'interest_paid'=>0,
                     'principal_paid'=>0,
                     'total_paid'=>0,
@@ -1644,13 +1650,13 @@ class LoanAccount extends Model
                     'total_paid' => $repayments->total_paid
                     ]);
                 $deposit_to_loan_repayment = $deposit_to_loan_repayment->fresh();
-                $deposit_to_loan_repayment->transaction()->create([
-                    'transaction_number'=>$transaction_number,
-                    'type'=>$type,
-                    'transaction_date'=>$repayment_date,
-                    'posted_by'=>$paid_by,
-                    'office_id'=>$office_id
-                ]);
+                // $deposit_to_loan_repayment->transaction()->create([
+                //     'transaction_number'=>$transaction_number,
+                //     'type'=>$type,
+                //     'transaction_date'=>$repayment_date,
+                //     'posted_by'=>$paid_by,
+                //     'office_id'=>$office_id
+                // ]);
 
                 $deposit_to_loan_repayment->jv()->create([
                     'journal_voucher_number'=>$jv_number,
@@ -1673,7 +1679,7 @@ class LoanAccount extends Model
 
                 $loanPayload = ['date'=>$repayment_date,'amount'=>$amount->total];
                 if ($single_payment) {
-                    event(new LoanAccountPaymentEvent($loanPayload, $office_id, $paid_by, $payment_method_id));
+                    event(new LoanAccountPayment($loanPayload, $office_id, $paid_by, $payment_method_id));
                 }
                 // return $this->update([
                 //     'status'=>'Pre-terminated',
