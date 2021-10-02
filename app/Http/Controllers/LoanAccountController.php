@@ -24,6 +24,7 @@ use App\Rules\LoanAccountCanBeApproved;
 use App\Rules\LoanAccountCanBeDisbursed;
 use Illuminate\Support\Facades\Validator;
 use App\Rules\ClientHasAvailableDependent;
+use App\Rules\CreditLimit;
 
 class LoanAccountController extends Controller
 {
@@ -39,7 +40,7 @@ class LoanAccountController extends Controller
 
 
     public function index(Request $request){
-        $client = Client::select('client_id','firstname','lastname')->where('client_id',$request->client_id)->firstOrFail();
+        $client = Client::with(['businesses','household_income'])->select('client_id','firstname','lastname')->where('client_id',$request->client_id)->firstOrFail();
         return view('pages.create-client-loan',compact('client'));
     }
 
@@ -139,6 +140,7 @@ class LoanAccountController extends Controller
         
         if(!$for_update){
             $rules = [
+                'credit_limit' => new CreditLimit($data['credit_limit'],$data['amount']),
                 'loan_id'=>'required|exists:loans,id',
                 'client_id'=>['required','exists:clients,client_id',new HasNoUnusedDependent,new HasNoPendingLoanAccount],
                 'amount'=>['required',new LoanAmountModulo($data['loan_id']), new MaxLoanableAmount($data['loan_id'])],
