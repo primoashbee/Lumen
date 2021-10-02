@@ -1600,30 +1600,34 @@ class LoanAccount extends Model
     {
         $amount = $this->preTermAmount();
         // $transaction_id = $this->generateRepaymentTransactionNumber('pretermination');
-
+        
         $paid_by = $data['paid_by'];
         $payment_method_id = $data['payment_method_id'];
         $repayment_date = $data['repayment_date'];
         $notes = $data['notes'];
         $office_id = $data['office_id'];
         $jv_number = $data['jv_number'];
-
+        
         $method = PaymentMethod::find($data['payment_method_id']);
+        
         if ($method->isCTLP()) {
                 $type = 'CTLP';
                 $ctlp_account = $this->client->ctlpAccount();
-                $transaction_number = $this->generateRepaymentTransactionNumber('ctlp');
+                
+                $transaction_number = $this->generateRepaymentTransactionNumber('pretermination');
+                
                 $data['transaction_number'] = $transaction_number;
                 $withdrawal = $ctlp_account->payCTLP($data);
                 //get withdrawal transcation from deposit account
-                $transaction = $withdrawal->transaction()->create([
+                // dd($withdrawal);
+                $transaction = Transaction::create([
                     'transaction_number'=>$transaction_number,
                     'type'=>'Withdawal - CTLP',
                     'office_id'=>$office_id,
                     'transaction_date'=>$data['repayment_date'],
                     'posted_by'=>$paid_by
                 ]);
-
+                
                 //create a repayment
                 $deposit_to_loan_repayment = $this->fromDepositPayments()->create([
                     'interest_paid'=>0,
@@ -1644,6 +1648,7 @@ class LoanAccount extends Model
                     'total_paid' => $repayments->total_paid
                     ]);
                 $deposit_to_loan_repayment = $deposit_to_loan_repayment->fresh();
+                
                 $deposit_to_loan_repayment->transaction()->create([
                     'transaction_number'=>$transaction_number,
                     'type'=>$type,
@@ -1673,7 +1678,7 @@ class LoanAccount extends Model
 
                 $loanPayload = ['date'=>$repayment_date,'amount'=>$amount->total];
                 if ($single_payment) {
-                    event(new LoanAccountPaymentEvent($loanPayload, $office_id, $paid_by, $payment_method_id));
+                    event(new LoanAccountPayment($loanPayload, $office_id, $paid_by, $payment_method_id));
                 }
                 // return $this->update([
                 //     'status'=>'Pre-terminated',

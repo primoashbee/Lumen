@@ -17,6 +17,8 @@
 			<form class="row">
 				<div class="col-lg-12">
 					<h1 class="text-2xl title">New Loan Account</h1>
+					<h1>{{'Credit Limit: ' + money(credit_limit)}}</h1>
+					
 					<div class="row mt-4">
 						<div class="col-lg-6">
 							<div class="form-group">
@@ -163,7 +165,7 @@ import moment from 'moment'
 import LoanProduct from './Settings/LoanProduct.vue'
 export default {
   components: { LoanProduct },
-	props: ['client_id','name'],
+	props: ['client_id','name','businesses','household_income'],
 	data(){
 		return {
 			'loan_products': null,
@@ -177,7 +179,7 @@ export default {
 				amount:null,
 				number_of_installments:null,
 				interest_rate:null,
-
+				credit_limit: null
 			},
 			calculator: null,
 			errors: {}
@@ -186,8 +188,15 @@ export default {
     mounted(){
 		this.form.client_id = this.client_id
 		this.fetchLoanProducts()
+		
+		
+
+
 	},
 	methods:{
+		money(item){
+            return moneyFormat(item);
+        },
 		moment(date){
 			let _date = moment(date).format('MMMM DD, Y')
 
@@ -298,6 +307,24 @@ export default {
 
 			
 			return obj;
+			
+		},
+		credit_limit(){
+			var total_business_income = 0;
+			var businesses = JSON.parse(this.businesses)
+		
+			$.each(businesses, function(k,v){
+				total_business_income += v.monthly_net_income;
+			})
+			// total_business_income/=4;
+			
+			var household_income = JSON.parse(this.household_income)
+			var twndi = total_business_income + household_income.total_household_income / 4;
+			var pccp = twndi * .7;
+
+			var credit_limit = this.form.number_of_installments * pccp;
+			this.form.credit_limit = credit_limit
+			return credit_limit;
 			
 		},
 		selected_interest(){

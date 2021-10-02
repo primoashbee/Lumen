@@ -3,6 +3,7 @@
 namespace App;
 
 use App\DepositToLoanRepayment;
+use Illuminate\Database\Eloquent\Model;
 
 // class Transaction extends Model
 class Transaction 
@@ -11,6 +12,11 @@ class Transaction
     public $deposit_transactions = ['App\DepositPayment','App\DepositWithdrawal','App\DepositInterestPost'];
     public static $deposit_transactions_report = ["Payment","Withdrawal","CTLP Withdrawal","Interest Posting"];
     public $loan_transactions = ['App\LoanAccountFeePayment','App\LoanAccountRepayment','App\DepositToLoanRepayment'];
+
+    // public function transactionable()
+    // {
+    //     return $this->morphTo();
+    // }
 
 
     public static function transactionOf($type){
@@ -25,7 +31,7 @@ class Transaction
                 return ['name'=>'Deposit Account Transaction','table'=>'deposit_withdrawals','type'=>'Withdrawal'];
             }
             if($type =='CTLP Withdrawal'){
-                return ['name'=>'Deposit Account Transaction','table'=>'deposit_to_loan_repayments','type'=>'Withdawal - CTLP'];
+                return ['name'=>'Deposit Account Transaction','table'=>'deposit_to_loan_repayments','type'=>'Withdrawal - CTLP'];
             }
             if($type =='Interest Posting'){
                 return ['name'=>'Deposit Account Transaction','table'=>'deposit_interest_posts','type'=>'Interest Posting'];

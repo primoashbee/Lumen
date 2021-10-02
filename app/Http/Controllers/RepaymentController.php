@@ -155,7 +155,7 @@ class RepaymentController extends Controller
             $acc = LoanAccount::find($request->loan_account_id)->preTerminate($request->all(),true);
             
             $loanPayload = ['date'=>Carbon::parse($request->repayment_date),'amount'=>$request->amount];
-
+            
             event(new LoanAccountPayment($loanPayload, $request->office_id, $user_id, $request->payment_method_id));
             
             \DB::commit();
