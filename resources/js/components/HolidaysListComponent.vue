@@ -34,8 +34,11 @@
             <td>{{ holiday.name }}</td>
             <td>{{ formatDate(holiday.date) }}</td>
             <td>
-              <b-button :id="holiday.id" @click="showUpdateModal">
+              <b-button v-if="!holiday.implemented" :id="holiday.id" @click="showUpdateModal">
                   <i class="far fa-edit"></i>
+              </b-button>
+              <b-button v-if="!holiday.implemented" :id="holiday.id" @click="deleteHoliday">
+                  <i class="fas fa-trash-alt"></i>
               </b-button>
             </td>
           </tr>
@@ -340,6 +343,39 @@ export default {
         error => {
             this.errors = error.response.data.errors 
       })
+    },
+    deleteHoliday(e){
+      this.fields.id = e.currentTarget.getAttribute('id')
+      var link = '/settings/delete/holiday/' + this.fields.id
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        
+        if (result.isConfirmed) {
+          axios.delete(link, this.fields.id).
+          then(res => {
+
+            Swal.fire({
+              title:'Deleted!',
+              text:res.data.msg,
+              icon:'success',
+              type: 'success'
+            }).then(() => {
+              location.reload()
+              }
+            )
+            
+          })
+        }
+      })
+  
+      this.fields.id = ""
     }
   },
 };

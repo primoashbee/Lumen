@@ -38,6 +38,11 @@ class HolidayController extends Controller
         return response()->json(['msg' => 'Holiday Successfully Created']);
     }
 
+    public function delete(Holiday $holiday){
+        $holiday->delete();
+
+        return response()->json(['msg' => 'Holiday has been deleted.'], 200);
+    }
 
 
 }
