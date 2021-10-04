@@ -71,9 +71,9 @@ class RecalculateLoanDues extends Command
             'principal_due',
             'interest_due',
             'amount_due',
-            DB::raw('SUM(loan_account_installment_repayments.interest_paid) AS interest_paid'),
-            DB::raw('SUM(loan_account_installment_repayments.principal_paid) AS principal_paid'),
-            DB::raw('SUM(loan_account_installment_repayments.total_paid) AS total_paid')
+            DB::raw('loan_account_installment_repayments.interest_paid AS interest_paid'),
+            DB::raw('loan_account_installment_repayments.principal_paid AS principal_paid'),
+            DB::raw('loan_account_installment_repayments.total_paid AS total_paid')
         )
         ->orderBy('installment','asc')
         ->whereDate('date','<=', now())
@@ -83,7 +83,7 @@ class RecalculateLoanDues extends Command
             [
                 'interest_due' => DB::raw('round(original_interest-IF(interest_paid > 0,interest_paid,0),2)'),
                 'principal_due' => DB::raw('round(original_principal-IF(principal_paid > 0,principal_paid,0),2)'),
-                'amount_due' => DB::raw('round((interest_due+principal_due)2)')
+                'amount_due' => DB::raw('round((interest_due+principal_due),2)')
             ]
         );
 
@@ -101,9 +101,9 @@ class RecalculateLoanDues extends Command
             'principal_due',
             'interest_due',
             'amount_due',
-            DB::raw('SUM(deposit_to_loan_installment_repayments.interest_paid) AS interest_paid'),
-            DB::raw('SUM(deposit_to_loan_installment_repayments.principal_paid) AS principal_paid'),
-            DB::raw('SUM(deposit_to_loan_installment_repayments.total_paid) AS total_paid')
+            DB::raw('loan_account_installment_repayments.interest_paid AS interest_paid'),
+            DB::raw('loan_account_installment_repayments.principal_paid AS principal_paid'),
+            DB::raw('loan_account_installment_repayments.total_paid AS total_paid')
         )
         ->orderBy('installment','asc')
         ->whereDate('date','<=', now())
@@ -112,7 +112,7 @@ class RecalculateLoanDues extends Command
             [
                 'interest_due' => DB::raw('round(original_interest-IF(interest_paid > 0,interest_paid,0),2)'),
                 'principal_due' => DB::raw('round(original_principal-IF(principal_paid > 0,principal_paid,0),2)'),
-                'amount_due' => DB::raw('round((interest_due+principal_due)2)')
+                'amount_due' => DB::raw('round((interest_due+principal_due),2)')
             ]
         );
 
