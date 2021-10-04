@@ -81,9 +81,9 @@ class RecalculateLoanDues extends Command
         // ->where('loan_account_id', 102)
         ->update(
             [
-                'interest_due' => DB::raw('round(original_interest-IF(interest_paid != null,interest_paid,0),2)'),
-                'principal_due' => DB::raw('round(original_principal-IF(principal_paid != null,principal_paid,0),2)'),
-                'amount_due' => DB::raw('round((interest+principal_due)-IF(total_paid != null,total_paid,0),2)')
+                'interest_due' => DB::raw('round(original_interest-IF(interest_paid > 0,interest_paid,0),2)'),
+                'principal_due' => DB::raw('round(original_principal-IF(principal_paid > 0,principal_paid,0),2)'),
+                'amount_due' => DB::raw('round((interest_due+principal_due)2)')
             ]
         );
 
@@ -110,9 +110,9 @@ class RecalculateLoanDues extends Command
         ->where('paid',false)
         ->update(
             [
-                'interest_due' => DB::raw('round(original_interest-IF(interest_paid != null,interest_paid,0),2)'),
-                'principal_due' => DB::raw('round(original_principal-IF(principal_paid != null,principal_paid,0),2)'),
-                'amount_due' => DB::raw('round((interest+principal_due)-IF(total_paid != null,total_paid,0),2)')
+                'interest_due' => DB::raw('round(original_interest-IF(interest_paid > 0,interest_paid,0),2)'),
+                'principal_due' => DB::raw('round(original_principal-IF(principal_paid > 0,principal_paid,0),2)'),
+                'amount_due' => DB::raw('round((interest_due+principal_due)2)')
             ]
         );
 
