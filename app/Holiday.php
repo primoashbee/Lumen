@@ -4,16 +4,25 @@ namespace App;
 
 use App\Office;
 use Illuminate\Support\Carbon;
+
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use stdClass;
 
 class Holiday extends Model
 {
-    protected $fillable=['date','name','office_id'];
+    protected $fillable=['date','name','office_id','implemented'];
     protected $dates = ['date'];
+    protected $searchables = [
+        'name',
+        'date',
+    ];
+
     public static function today(){
         return Holiday::whereDate('date', now())->get();
     }
 
+   
     public function affectedAccounts(){
         $ids = Office::lowerOffices($this->office_id,true,true);
         $date = $this->date;
@@ -48,10 +57,34 @@ class Holiday extends Model
                 });
             });
         });
+        
+        $this->update(['implemented' => true]);
         echo 'Rescheduled ' . $total .' accounts succesfully';
     }
 
-    public static function list(Carbon $date){
-        return Holiday::whereDate('date',$date);
+    public static function list(){
+        return Holiday::where('implemented', false);
+    }
+
+    public static function search($query){
+        
+        $me = new static;
+        $searchables = $me->searchables;
+        $holidays = Holiday::with('office')->paginate(25);
+        if(!empty($holidays)){
+            
+            if($query!=null){
+                
+            $holidays = Holiday::with('office')->where(function(Builder $dbQuery) use($searchables, $query){
+                    foreach($searchables as $item){  
+                      return $dbQuery->where($item,'LIKE','%'.$query.'%');
+                    } 
+                });
+                return $holidays->paginate(25);
+                
+            }
+            
+            return $holidays;
+        }
     }
 }

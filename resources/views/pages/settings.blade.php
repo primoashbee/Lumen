@@ -105,7 +105,7 @@
 						
 					</li>
 					<li class="settings-item loans">
-						<a class="nav-link" id="home-tab" href="">
+						<a class="nav-link" id="home-tab" href="/settings/holidays">
 							<i class="fas fa-3x fa-flag"></i>
 							<p class="title text-center mt-2">Holidays</p>
 						</a>
