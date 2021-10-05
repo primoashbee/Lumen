@@ -71,18 +71,17 @@ class RecalculateLoanDues extends Command
             'principal_due',
             'interest_due',
             'amount_due',
-            DB::raw('loan_account_installment_repayments.interest_paid AS interest_paid'),
-            DB::raw('loan_account_installment_repayments.principal_paid AS principal_paid'),
-            DB::raw('loan_account_installment_repayments.total_paid AS total_paid')
+            DB::raw('SUM(loan_account_installment_repayments.interest_paid) AS interest_paid'),
+            DB::raw('SUM(loan_account_installment_repayments.principal_paid) AS principal_paid'),
+            DB::raw('SUM(loan_account_installment_repayments.total_paid) AS total_paid'),
         )
         ->orderBy('installment','asc')
         ->whereDate('date','<=', now())
         ->where('paid',false)
-        // ->where('loan_account_id', 102)
         ->update(
             [
-                'interest_due' => DB::raw('round(original_interest-interest_paid,2)'),
-                'principal_due' => DB::raw('round(original_principal-principal_paid,2)'),
+                'interest_due' => DB::raw('round(original_interest- IFNULL(interest_paid,0),2)'),
+                'principal_due' => DB::raw('round(original_principal - IFNULL(principal_paid,0),2)'),
                 'amount_due' => DB::raw('round((interest_due+principal_due),2)')
             ]
         );
@@ -101,17 +100,17 @@ class RecalculateLoanDues extends Command
             'principal_due',
             'interest_due',
             'amount_due',
-            DB::raw('loan_account_installment_repayments.interest_paid AS interest_paid'),
-            DB::raw('loan_account_installment_repayments.principal_paid AS principal_paid'),
-            DB::raw('loan_account_installment_repayments.total_paid AS total_paid')
+            DB::raw('SUM(loan_account_installment_repayments.interest_paid) AS interest_paid'),
+            DB::raw('SUM(loan_account_installment_repayments.principal_paid) AS principal_paid'),
+            DB::raw('SUM(loan_account_installment_repayments.total_paid) AS total_paid'),
         )
         ->orderBy('installment','asc')
         ->whereDate('date','<=', now())
         ->where('paid',false)
         ->update(
             [
-                'interest_due' => DB::raw('round(original_interest-interest_paid,2)'),
-                'principal_due' => DB::raw('round(original_principal-principal_paid2)'),
+                'interest_due' => DB::raw('round(original_interest- IFNULL(interest_paid,0),2)'),
+                'principal_due' => DB::raw('round(original_principal - IFNULL(principal_paid,0),2)'),
                 'amount_due' => DB::raw('round((interest_due+principal_due),2)')
             ]
         );
