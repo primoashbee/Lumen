@@ -82,7 +82,7 @@ class RecalculateLoanDues extends Command
         ->update(
             [
                 'interest_due' => DB::raw('round(original_interest-interest_paid,2)'),
-                'principal_due' => DB::raw('round(original_principal-principal_paid2)'),
+                'principal_due' => DB::raw('round(original_principal-principal_paid,2)'),
                 'amount_due' => DB::raw('round((interest_due+principal_due),2)')
             ]
         );
