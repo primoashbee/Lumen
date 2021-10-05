@@ -566,17 +566,10 @@ class Office extends Model
                         $dbQuery->where($item,'LIKE','%'.$query.'%');
                     }
                 });
+                
                 return $office;
             }
 
-            if($query!=null){
-                $office = Office::with('parent')->where('level',$level)->where(function(Builder $dbQuery) use($searchables, $query){
-                    foreach($searchables as $item){  
-                        $dbQuery->where($item,'LIKE','%'.$query.'%');
-                    }
-                });
-                return $office;
-            }
             $office = Office::with('parent')->where('level',$level);
             
             return $office;

@@ -163,6 +163,11 @@ Vue.component('deposit-list', require('./components/DepositProductsComponent.vue
 Vue.component('cluster-list', require('./components/Clusters/ClusterListComponent.vue').default);
 
 
+// Holdiays Components
+
+Vue.component('holidays-list', require('./components/HolidaysListComponent.vue').default);
+
+
 /**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application

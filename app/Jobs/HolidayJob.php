@@ -20,10 +20,10 @@ class HolidayJob implements ShouldQueue
      *
      * @return void
      */
-    protected $date;
-    public function __construct($date)
+    // protected $date;
+    public function __construct()
     {
-        $this->date = $date;
+        // $this->date = $date;
     }
 
     /**
@@ -35,7 +35,7 @@ class HolidayJob implements ShouldQueue
     {
         DB::beginTransaction();
         try {
-            Holiday::list($this->date)->get()->each->implement();
+            Holiday::list()->get()->each->implement();
             DB::commit();
         }catch(Exception $e){
             Log::warning($e->getMessage());

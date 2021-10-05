@@ -99,7 +99,14 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/settings/create/penalty', function(){
             return view('pages.create-penalty');
         });
-        
+
+        Route::get('/holidays', 'HolidayController@index');
+        Route::get('/holiday/edit/{holiday}', 'HolidayController@edit');
+        Route::get('/holidays/list', 'HolidayController@getHolidayList');
+        Route::post('/post/holiday', 'HolidayController@createHoliday');
+        Route::put('/holiday/edit/{holiday}', 'HolidayController@update');
+        Route::delete('/delete/holiday/{holiday}', 'HolidayController@delete');
+
         Route::get('/', function(){
             return view('pages.settings');
         })->name('administration');
