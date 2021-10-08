@@ -101,7 +101,6 @@ class LoanAccountController extends Controller
         // ]
         
         $calculator = LoanAccount::calculate($data);
-        
 
         //dependent on calculator result.
         $data = array(
@@ -756,6 +755,12 @@ class LoanAccountController extends Controller
             'list'=>$list
         ],200);
         
+    }
+
+    
+    public function request(Request $request){
+        
+
     }
 
 }

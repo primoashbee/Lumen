@@ -192,6 +192,8 @@ Route::group(['middleware' => ['auth']], function () {
 
         Route::get('/{client_id}/create/deposit', 'DepositAccountController@createClientDepositAccount')->name('client.deposit.create');
         Route::post('/{client_id}/create/deposit', 'DepositAccountController@storeClientDepositAccount')->name('client.deposit.create');
+
+        Route::get('/{client_id}/edit/loans/{loan_id}','LoanAccountController@edit')->name('loan.account');
         
     });
     Route::get('/create/client','ClientController@index')->name('precreate.client');
