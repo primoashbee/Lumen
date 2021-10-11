@@ -13,11 +13,11 @@ class AddNewColumnToTable extends Migration
      */
     public function up()
     {
-        Schema::table('holidays', function (Blueprint $table) {
-            if (!Schema::hasColumn('holidays', 'product_code')){
-                $table->boolean('implemented')->after('office_id');
-              };
-        });
+        // Schema::table('holidays', function (Blueprint $table) {
+        //     if (!Schema::hasColumn('holidays', 'product_code')){
+        //         $table->boolean('implemented')->after('office_id');
+        //       };
+        // });
     }
 
     /**
@@ -28,9 +28,9 @@ class AddNewColumnToTable extends Migration
     public function down()
     {
         
-            Schema::table('holidays', function (Blueprint $table) {
-                $table->dropColumn(['implemented']);
-            });
+            // Schema::table('holidays', function (Blueprint $table) {
+            //     $table->dropColumn(['implemented']);
+            // });
         
     }
 }
