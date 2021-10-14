@@ -15,8 +15,9 @@
                   </nav>
 				<div class="card-header">
                     <div class="row px-4">
-                        <div class="x">
-                            <h3 class="h3">{{client.full_name}} - {{loan_type}}</h3>
+                        <div class="w-100">
+                            <h3 class="h3 float-left">{{client.full_name}} - {{loan_type}}</h3>
+                            <a :href="editLoan" class="btn btn-primary float-right">Edit Loan</a>
                         </div>
                         <div class="text-right col-lg-6" v-if="account.disbursed!=0 && account.closed_at==null">
                             <button v-if="can('enter_repayment') || is('Super Admin')" type="button" class="btn btn-primary" data-toggle="modal" @click="modal.modalState=true">
@@ -538,7 +539,9 @@ export default {
     
     },
     computed:{
-       
+        editLoan(){
+            return '/client/'+this.client_id+'/loan/'+this.loan_account_id;
+        },
         client_profile(){
             return '/client/'+this.client_id
         },

@@ -115,6 +115,7 @@ Vue.component('create-client-dependents', require('./components/ClientDependentC
 Vue.component('client-dependents-list', require('./components/ClientDependentListComponent.vue').default);
 
 Vue.component('client-create-loan-account', require('./components/ClientCreateLoanAccountComponent.vue').default);
+Vue.component('client-edit-loan-account', require('./components/ClientEditLoanAccountComponent.vue').default);
 
 
 Vue.component('loan-profile', require('./components/LoanAccountDashboardComponent.vue').default);

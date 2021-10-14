@@ -1,13 +1,13 @@
 <template>
     <select class="d-inline-block form-control" @change="selected">
         <option :value="null">Please Select</option>
-        <option v-for="item in list" :key="item.id" :value="JSON.stringify({id:item.id,code:item.code})" :data-name="item.code">{{item.name}}</option>
+        <option :selected="item.id === default_id" v-for="item in list" :key="item.id" :value="JSON.stringify({id:item.id,code:item.code})" :data-name="item.code">{{item.name}}</option>
     </select>
 </template>
 
 <script>
 export default {
-    props: ['id'],
+    props: ['id', 'default_id'],
     data(){
         return {
             code: null,

@@ -193,8 +193,9 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/{client_id}/create/deposit', 'DepositAccountController@createClientDepositAccount')->name('client.deposit.create');
         Route::post('/{client_id}/create/deposit', 'DepositAccountController@storeClientDepositAccount')->name('client.deposit.create');
 
-        Route::get('/{client_id}/edit/loans/{loan_id}','LoanAccountController@edit')->name('loan.account');
-        
+        Route::get('/{client_id}/loan/{loan_id}','LoanAccountController@editAccount')->name('edit.loan.account');
+        Route::get('/{client_id}/edit/loan/{loan_id}','LoanAccountController@getLoanAccount');
+        Route::post('/{client_id}/edit/loan/{loan_id}','LoanAccountController@updateLoanAccount');
     });
     Route::get('/create/client','ClientController@index')->name('precreate.client');
     Route::post('/create/client','ClientController@createV1')->name('create.client'); 
@@ -351,7 +352,68 @@ Route::group(['middleware' => ['auth']], function () {
     });
 
 
-   
+    Route::get('/x', function(Request $request,$paginated = true){
+        $data = $request->all();
+        $space = " ";
+        $office_id = 1;
+        $status = null;
+        $type = null;
+        $age_from = 25;
+        $age_to = 50;
+        $educational_attainment = null;
+        $gender = null;
+        $is_summarized = null;
+        $offices = DB::table('offices');
+
+        $list = DB::table('clients')
+                    ->select(
+                        'clients.*',
+                        'offices.code as level',
+                        DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as fullname"),
+                        DB::raw('TIMESTAMPDIFF(YEAR, clients.birthday, CURDATE()) as age')
+                    )
+                    // ->when($office_id, function($q,$data){
+                    //     $ids = Office::lowerOffices($data);
+                    //     $q->whereIn('office_id', $ids);
+                    // })
+                    // ->when($status, function($q,$data){
+                    //     if ($data->count() > 0) {
+                    //         $q->whereIn('status', $data);
+                    //     }
+                    // })
+                    // ->when($type, function($q,$data){
+                    //     if ($data->count() > 0) {
+                    //         $q->whereIn('office_id', $ids);
+                    //     }
+                    // })
+                    ->when($age_from,function($q, $age_from) use ($age_to){
+                        $from = now()->subYears($age_from);
+                        $to = now()->subYears($age_to);
+                        $q->whereBetween('birthday',[$from, $to]);
+                    })
+                    ->when($educational_attainment,function($q, $data){
+                        if(collect($data)->count() > 0){
+                            $q->whereIn('education',$data);
+                        }  
+                    })
+                    ->when($gender,function($q, $data){
+                        if(collect($data)->count() > 0){
+                            $q->whereIn('gender',$data);
+                        }  
+                    })
+                    ->leftJoinSub($offices,'offices',function($join){
+                        $join->on('offices.id','=','clients.office_id');
+                    });
+                    
+
+                    
+
+        $summary = ['total'=>$list->count()];
+        $data = $paginated ? $list->paginate() : $list;
+
+        return $data;
+    });
+    
 
 });
  

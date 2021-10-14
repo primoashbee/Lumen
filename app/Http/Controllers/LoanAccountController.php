@@ -50,6 +50,7 @@ class LoanAccountController extends Controller
     }
 
     public function calculate(Request $request){
+        
         $this->validator($request->all())->validate();
 
         $client = Client::where('client_id',$request->client_id)->first();
@@ -63,8 +64,12 @@ class LoanAccountController extends Controller
         $fee_repayments = array();
         $dependents = null;
         $unit_of_plan = 2;
+        if ($request->status == 'Pending Approval') {
+            $dependents =  $client->dependents->where('loan_account_id',$request->loan_account_id)->first()->pivotList();
+        }else{
+            $dependents = $client->unUsedDependent()->pivotList();
+        }
         
-        $dependents = $client->unUsedDependent()->pivotList();
         
         foreach($loan->fees as $fee){
             
@@ -136,9 +141,19 @@ class LoanAccountController extends Controller
     }
 
     public function validator(array $data,$for_update=false){
-        
         if(!$for_update){
-            $rules = [
+            $rules = $data['status'] == 'Pending Approval' ? [
+                'credit_limit' => new CreditLimit($data['credit_limit'],$data['amount']),
+                'loan_id'=>'required|exists:loans,id',
+                'client_id'=>['required','exists:clients,client_id'],
+                'amount'=>['required',new LoanAmountModulo($data['loan_id']), new MaxLoanableAmount($data['loan_id'])],
+                // 'disbursement_date'=>['required','date', new DateIsWorkingDay],
+                
+                'first_payment'=>['required','date','after_or_equal:disbursement_date', new DateIsWorkingDay],
+                'number_of_installments'=>'required|gt:0|integer',
+                'interest_rate'=>'required', 
+            ] : 
+            [
                 'credit_limit' => new CreditLimit($data['credit_limit'],$data['amount']),
                 'loan_id'=>'required|exists:loans,id',
                 'client_id'=>['required','exists:clients,client_id',new HasNoUnusedDependent,new HasNoPendingLoanAccount],
@@ -207,7 +222,7 @@ class LoanAccountController extends Controller
         
         $calculator = LoanAccount::calculate($data);
         
-        //dependent on calculator result.
+        
 
         \DB::beginTransaction();
         try{
@@ -512,23 +527,23 @@ class LoanAccountController extends Controller
     public function account(Request $request, $client_id,$loan_id){
 
     if($request->wantsJson()){
-        $account  = LoanAccount::find($loan_id);
-        $loan_type = $account->type->name;
-        $account_1 = clone $account;
-        $activity = $account_1->transactions()->orderBy('transaction_date','DESC')->get();
-        $pre_term_amount = $account_1->preTermAmount();
-        $installment_repayments = \DB::table('loan_account_installment_repayments');
-        
-        $ctlp =  DB::table('loan_account_installments')
-                ->where('loan_account_id', $loan_id)
-                ->leftJoin('deposit_to_loan_installment_repayments', 'deposit_to_loan_installment_repayments.loan_account_installment_id', '=', 'loan_account_installments.id')
-                ->groupBy('loan_account_installments.id')
-                ->select(
-                'installment',
-                DB::raw('SUM(deposit_to_loan_installment_repayments.interest_paid) AS interest_paid'),
-                DB::raw('SUM(deposit_to_loan_installment_repayments.principal_paid) AS principal_paid')
-                )
-                ->get();
+    $account  = LoanAccount::find($loan_id);
+    $loan_type = $account->type->name;
+    $account_1 = clone $account;
+    $activity = $account_1->transactions()->orderBy('transaction_date','DESC')->get();
+    $pre_term_amount = $account_1->preTermAmount();
+    $installment_repayments = \DB::table('loan_account_installment_repayments');
+    
+    $ctlp =  DB::table('loan_account_installments')
+            ->where('loan_account_id', $loan_id)
+            ->leftJoin('deposit_to_loan_installment_repayments', 'deposit_to_loan_installment_repayments.loan_account_installment_id', '=', 'loan_account_installments.id')
+            ->groupBy('loan_account_installments.id')
+            ->select(
+            'installment',
+            DB::raw('SUM(deposit_to_loan_installment_repayments.interest_paid) AS interest_paid'),
+            DB::raw('SUM(deposit_to_loan_installment_repayments.principal_paid) AS principal_paid')
+            )
+            ->get();
 
 
     $installments= DB::table('loan_account_installments')
@@ -757,10 +772,144 @@ class LoanAccountController extends Controller
         
     }
 
-    
-    public function request(Request $request){
-        
+    public function editAccount($client_id, $loan_id){
+        $client = Client::fcid($client_id)->with(['businesses','household_income'])->first();
+        return view('pages.client-edit-loan-account', compact(['client_id','loan_id','client']));
 
     }
 
+    public function getLoanAccount($client_id, $loan_id){
+
+        $client = Client::fcid($client_id);
+        $account = LoanAccount::with('product')->find($loan_id);
+        $loan_accounts = DB::table('loan_accounts');
+        $fees = $account->FeePayments;
+        $installments= DB::table('loan_account_installments')
+
+        ->where('loan_account_id', $loan_id)
+        ->groupBy('loan_account_installments.id')
+        ->select(
+            'installment',
+            'original_principal',
+            'original_interest',
+            'date','amortization',
+            'principal','interest',
+            'interest_balance',
+            'principal_balance',
+            'principal_due',
+            'interest_due',
+            'amount_due',
+        )
+        ->orderBy('installment','asc')
+        ->get();
+        
+        return response()->json(
+            [
+                'installments' => $installments,
+                'client' => $client,
+                'loan_account' => $account,
+                'fees' => $fees
+            ]);
+
+    }
+
+    public function updateLoanAccount(Request $request,  $client_id,$loan_id){
+        
+        $this->validator($request->account)->validate();
+        $loan_account = LoanAccount::find($loan_id);
+        $client = Client::where('client_id',$request->client_id)->first();
+        $loan =  Loan::find($request->loan_id);
+        
+        $fees = $loan->fees;
+        $total_deductions = 0;
+
+        $loan_amount = (double) $request->account['amount'];
+        
+        $number_of_installments = $request->account['number_of_installments'];
+        $number_of_months = Loan::rates()->where('code',$loan->code)->first()->rates->where('installments',$number_of_installments)->first()->number_of_months;
+        // dd($number_of_months);
+        $fee_repayments = array();
+        
+        $dependents =  $client->dependents->where('loan_account_id',$loan_id)->first()->pivotList();
+        
+        foreach($loan->fees as $fee){
+            $fee_amount = $fee->calculateFeeAmount($loan_amount, $number_of_installments,$loan,$dependents);
+            $total_deductions += $fee_amount;
+            $fee_repayments[] = (object)[
+                'id'=>$fee->id,
+                'name'=>$fee->name,
+                'amount'=>$fee_amount
+            ];
+        }
+        
+        $disbursed_amount = $loan_amount - $total_deductions;
+        
+        $annual_rate = $loan->annual_rate;
+        $start_date = $request->account['first_payment'];
+
+        //get loan rates via loan and installment length
+        $loan_interest_rate = Loan::rates($loan->id)->where('installments',$number_of_installments)->first()->rate;
+
+        $data = array(
+            'product' => $loan->code,
+            'principal'=>$loan_amount,
+            'monthly_rate'=>$loan->monthly_rate,
+            'annual_rate'=>$annual_rate,
+            'interest_rate'=>$loan_interest_rate,
+            'monthly_rate'=>$loan->monthly_rate,
+            'interest_interval'=>$loan->interest_interval,
+            'term'=>$loan->installment_method,
+            'term_length'=>$number_of_installments,
+            'disbursement_date'=>$request->account['disbursement_date'],
+            'start_date'=>$start_date,
+            'office_id'=>$client->office->id
+        );
+
+        $calculator = LoanAccount::calculate($data);
+        
+        \DB::beginTransaction();
+        try{
+            $loan_account->update([
+                'loan_id'=>$loan->id,
+                'amount'=>$loan_amount,
+                'principal'=>$loan_amount,
+                'interest'=>$calculator->total_interest,
+                'total_loan_amount'=>$calculator->total_loan_amount,
+                'interest_rate'=>$loan_interest_rate,
+                'number_of_months'=>$number_of_months,
+                'number_of_installments'=>$number_of_installments,
+
+                'total_deductions'=>$total_deductions,
+                'disbursed_amount'=>$disbursed_amount, //net disbursement
+                
+                'total_balance'=>$loan_amount + $calculator->total_interest,
+                'principal_balance'=>$loan_amount,
+                'interest_balance'=>0,
+
+                'disbursement_date'=>$calculator->disbursement_date,
+                'first_payment_date'=>$calculator->start_date,
+                'last_payment_date'=>$calculator->end_date,
+                'created_by'=>auth()->user()->id,
+            ]);;
+            
+            $loan_account->feePayments()->delete();
+            $this->createFeePayments($loan_account,$fee_repayments);
+            $loan_account->installments()->delete();
+            $this->createInstallments($loan_account,$calculator->installments);
+            // $client->unUsedDependent()->update(['status'=>'For Loan Disbursement','loan_account_id'=>$loan_acc->id]);
+            // $loan_acc->account()->create([
+            //     'status'=>'Pending Approval',
+            //     'client_id'=>$client->client_id
+            // ]);
+            \DB::commit();
+            
+            
+            return response()->json(['msg'=>'Loan Account successfully updated'],200);
+        }catch(\Exception $e){
+            return response()->json(['msg'=>$e->getMessage()],500);
+
+        }
+    }
+
+    
 }

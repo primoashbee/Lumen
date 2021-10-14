@@ -60,6 +60,11 @@
                                             <a href="{{route('loan.account',[$client->client_id,$item->id])}}">
                                                 <button class="btn btn-light">View</button>
                                             </a>
+                                            @if($item->status=="Pending Approval")
+                                            <a href="/client/{{$client->client_id}}/loan/{{$item->id}}">
+                                                <button class="btn btn-light">Edit</button>
+                                            </a>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
