@@ -244,6 +244,12 @@ class DownloadController extends Controller
             if($type->installment_method == 'weeks'){
                 $str = "(X) Weekly               (  ) Semi-monthly          (  ) Monthly ";
             }
+            if($type->installment_method == 'days'){
+                $str = "() Weekly               ( X ) Semi-monthly          (  ) Monthly ";
+            }
+            if($type->installment_method == 'months'){
+                $str = "() Weekly               ( X ) Semi-monthly          ( X ) Monthly ";
+            }
             $dst->setCellValue('M10',$str);
             $dst->setCellValue('M11',$str2);
 
@@ -298,27 +304,25 @@ class DownloadController extends Controller
 
     public static function dstBulkV2($bulk_transaction_id){
         $file = public_path('templates/DSTv1.xlsx');
-    
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
         // $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader('Xlsx');
         // $spreadsheet = $reader->load($file);
         $sheet =$spreadsheet->getSheet(0);
         $bulk_transaction_id = collect($bulk_transaction_id);
-        $accounts = BulkDisbursement::whereIn('bulk_disbursement_id',$bulk_transaction_id)->get();
+        $accounts = BulkDisbursement::whereIn('bulk_disbursement_id',$bulk_transaction_id['data']->toArray())->get();
         $ctr = 1;
+        
         $accounts->map(function($acc) use ($sheet,$spreadsheet,&$ctr){
             $cw = clone $sheet;
             $loan_account = $acc->loanAccount;
             $type = $loan_account->type;
             $feePayments  = $loan_account->feePayments->sortBy('fee_id');
 
-
             $cw->setTitle('#'.$ctr.' '.$acc->loanAccount->client->full_name);
             $dst = $spreadsheet->addSheet($cw);
             $dst->getCell('C18')->setValueExplicit($loan_account->amount,\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
             $dst->setCellValue('D8',$type->code);
             $dst->getCell('D9')->setValueExplicit($loan_account->amount, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
-            
             $dst->getCell('D10')->setValueExplicit($loan_account->installments->first()->amortization, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
             $dst->getCell('D11')->setValueExplicit($type->interest_rate,\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
             $dst->getStyle('D11')->getNumberFormat()->setFormatCode('0.00'); 
@@ -373,7 +377,7 @@ class DownloadController extends Controller
                 $amortizartion_schedule_row++;
                 $row++;
             }
-
+            
             $dst->setCellValue('Q5',$loan_account->client->full_name);
             $dst->setCellValue('Q6',$loan_account->client->address());
             $dst->setCellValue('Y7','=D9');
@@ -415,6 +419,7 @@ class DownloadController extends Controller
             $dst->setCellValue('R36',$loan_account->installments->first()->date->format('F d, Y'));
             $dst->getCell('Y36')->setValueExplicit($loan_account->installments->first()->amortization, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
             $dst->getCell('O39')->setValueExplicit($loan_account->number_of_installments, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
+            
             $dst->getCell('O40')->setValueExplicit($loan_account->installments->first()->amortization, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
             
 
@@ -423,9 +428,10 @@ class DownloadController extends Controller
             $dst->setCellValue('F69','=SUM(F19:F67)');
             $dst->setCellValue('H76','=(1+G69)^52-1');
             $dst->setCellValue('H80','=((1+G69)^(52/12)-1)');
-
+            
 
         });
+        
         $spreadsheet->removeSheetByIndex(0);
         $spreadsheet->setActiveSheetIndex(0);
         
@@ -433,10 +439,12 @@ class DownloadController extends Controller
         $writer->setPreCalculateFormulas(false);
         $newFile = public_path('templates/test.xlsx');
         $writer->save($newFile);
-        $filename = 'DST - ' . $accounts->first()->loanAccount->client->office->code. ' ' . $accounts->first()->disbursement_date->format('F d, Y') .'.xlsx';
+        
+        $filename = 'DST - ' . $accounts->first()->disbursement_date->format('F d, Y') .'.xlsx';
         $headers = ['Content-Type'=> 'application/pdf','Content-Disposition'=> 'attachment;','filename'=>$filename];
         
-        return response()->download($newFile,$filename ,$headers)->deleteFileAfterSend(true);
+        return ['file'=>$newFile, 'filename' => $filename, 'headers'=>$headers];
+        
     }
 
     public static function ccr($request, $data){
@@ -619,7 +627,7 @@ class DownloadController extends Controller
             $file = public_path('templates/Reports/Deposit Report - Summary.xlsx');
             $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
             $sheet =$spreadsheet->getSheet(0);
-        
+            
             $start_row = 3  ;
             
             // foreach ($data['data']->chunk as $key=>$value) {
@@ -627,10 +635,10 @@ class DownloadController extends Controller
                 foreach($records as $key=>$value){
                     $sheet->setCellValue('A'.$start_row, $key + 1);
                     $sheet->setCellValue('B'.$start_row, $value->office_name);
-                    $sheet->setCellValue('C'.$start_row, $value->number_of_payments);
+                    $sheet->setCellValue('C'.$start_row, $value->number_of_transactions);
                     $sheet->setCellValue('D'.$start_row, $value->transaction_type);
-                    $sheet->setCellValue('E'.$start_row, $value->deposit_name);
-                    $sheet->setCellValue('F'.$start_row, $value->transaction_amount);
+                    $sheet->setCellValue('E'.$start_row, $value->amount);
+                    $sheet->setCellValue('F'.$start_row, $value->deposit_type);
                     $sheet->setCellValue('G'.$start_row, $value->balance);
                     $start_row++;
                 }
@@ -794,48 +802,82 @@ class DownloadController extends Controller
     }
     public static function clientReport($data){
         $ts = str_replace('.','',microtime(true));
-        $filename = 'Loan Accounts ('.$ts.').xlsx';
+        $filename = 'Clients Details ('.$ts.').xlsx';
             // $file = public_path('templates/Reports/Detailed Deposit Report.xlsx');
         $file = public_path('templates/Reports/Client Report.xlsx');
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
         $sheet =$spreadsheet->getSheet(0);
-    
         $start_row = 3  ;
-        $data['accounts']->orderBy('id','desc')->chunkById(200, function($items) use (&$sheet, &$start_row){
+        $data['data']->orderBy('id','desc')->chunkById(200, function($items) use (&$sheet, &$start_row){
+            
             foreach ($items as $key=>$value) {
                 $sheet->setCellValue('A'.$start_row, $key + 1);
-                $sheet->setCellValue('B'.$start_row, $value->office);
+                $sheet->setCellValue('B'.$start_row, $value->level);
                 $sheet->setCellValue('C'.$start_row, $value->client_id);
-                $sheet->setCellValue('D'.$start_row, $value->fullname);
-                $sheet->setCellValue('E'.$start_row, $value->code);
-                $sheet->setCellValue('F'.$start_row, $value->principal);
-                $sheet->setCellValue('G'.$start_row, $value->interest);
-                $sheet->setCellValue('H'.$start_row, $value->total_loan_amount);
-                $sheet->setCellValue('I'.$start_row, $value->principal_balance);
-                $sheet->setCellValue('J'.$start_row, $value->interest_balance);
-                $sheet->setCellValue('K'.$start_row, $value->total_balance);
-                $sheet->setCellValue('L'.$start_row, $value->first_payment_date);
-                $sheet->setCellValue('M'.$start_row, $value->last_payment_date);
-                $sheet->setCellValue('N'.$start_row, $value->disbursed_at);
-                $sheet->setCellValue('O'.$start_row, $value->disbursed_amount);
-                $sheet->setCellValue('P'.$start_row, $value->total_deductions);
-                $sheet->setCellValue('Q'.$start_row, $value->number_of_months);
-                $sheet->setCellValue('R'.$start_row, $value->number_of_installments);
-                $sheet->setCellValue('S'.$start_row, $value->interest_rate);
-                $sheet->setCellValue('T'.$start_row, $value->status);
+                $sheet->setCellValue('D'.$start_row, $value->firstname);
+                $sheet->setCellValue('E'.$start_row, $value->middlename);
+                $sheet->setCellValue('F'.$start_row, $value->lastname);
+                $sheet->setCellValue('G'.$start_row, $value->birthday);
+                $sheet->setCellValue('H'.$start_row, $value->civil_status);
+                $sheet->setCellValue('I'.$start_row, $value->education);
+                $sheet->setCellValue('J'.$start_row, $value->contact_number);
+                $sheet->setCellValue('K'.$start_row, $value->street_address);
+                $sheet->setCellValue('L'.$start_row, $value->barangay_address);
+                $sheet->setCellValue('M'.$start_row, $value->city_address);
+                $sheet->setCellValue('N'.$start_row, $value->province_address);
+                $sheet->setCellValue('O'.$start_row, $value->zipcode);
+                $sheet->setCellValue('P'.$start_row, $value->economic_activity);
+                $sheet->setCellValue('Q'.$start_row, $value->status);
+                $sheet->setCellValue('R'.$start_row, $value->created_at);
                 $start_row++;
             }
-        });
+            
+        },'clients.id','id');
         
         $writer = new Xlsx($spreadsheet);
         $writer->setPreCalculateFormulas(false);
         $newFile = public_path('created_reports/').$filename;
         $writer->save($newFile);
     
-
+        
         $headers = ['Content-Type'=> 'application/vnd.ms-excel','Content-Disposition'=> 'attachment;','filename'=>$filename];
         return ['file'=>$newFile, 'filename' => $filename, 'headers'=>$headers];
     }
+
+    public static function loanInArrearsPrincipalReport($data){
+        
+        $ts = str_replace('.','',microtime(true));
+        $filename = 'LoanInArrears ('.$ts.').xlsx';
+        
+        $file = public_path('templates/Reports/Loan In Arrears Principal.xlsx');
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+        $sheet =$spreadsheet->getSheet(0);
+        
+        $data['data']->orderBy('la_id','desc')->chunkById(200, function($items) use (&$sheet, &$start_row){
+        $start_row = 3;
+            foreach ($items as $key=>$value) {
+                
+                $sheet->setCellValue('A'.$start_row, $key + 1);
+                $sheet->setCellValue('B'.$start_row, $value->level);
+                $sheet->setCellValue('C'.$start_row, $value->client_id);
+                $sheet->setCellValue('D'.$start_row, $value->fullname);
+                $sheet->setCellValue('E'.$start_row, $value->code);
+                $sheet->setCellValue('F'.$start_row, $value->par_amount);
+                $start_row++;
+            }
+            
+        },'la_id');
+        
+        $writer = new Xlsx($spreadsheet);
+        $writer->setPreCalculateFormulas(false);
+        $newFile = public_path('created_reports/').$filename;
+        $writer->save($newFile);
+    
+        
+        $headers = ['Content-Type'=> 'application/vnd.ms-excel','Content-Disposition'=> 'attachment;','filename'=>$filename];
+        return ['file'=>$newFile, 'filename' => $filename, 'headers'=>$headers];
+    }
+
 
     public static function templateDataImport(){
         return 'hey';

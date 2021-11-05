@@ -45,13 +45,15 @@ class DataMigrationJob implements ShouldQueue
     {
 
         try {
-            
+            DB::beginTransaction();
             Excel::import(new GeneralDataImport($this->migration), $this->filepath);
             $this->migration->logs()->create([
                 'status'=>200,
                 'message'=>'Success'
             ]);
+            DB::commit();
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            
              $failures = $e->failures();
              $errors = [];
              foreach ($failures as $failure) {
@@ -70,6 +72,7 @@ class DataMigrationJob implements ShouldQueue
                 'status'=>422,
                 'message'=>'Error'
             ]);
+            DB::rollBack();
         }
 
 

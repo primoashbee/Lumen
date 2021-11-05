@@ -53,6 +53,7 @@ class CreateClientsTable extends Migration
             $table->string('mother_maiden_name');
 
             $table->string('notes')->nullable();
+            $table->string('status')->nullable()->default('Active');
             $table->unsignedInteger('office_id');
             $table->unsignedInteger('created_by');
             $table->timestamps();

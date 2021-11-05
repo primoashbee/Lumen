@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\DepositAccount;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class PostInterestOnDeposit extends Command
 {
@@ -40,11 +41,19 @@ class PostInterestOnDeposit extends Command
     {
 
         $this->info('Starting....');
-        $list = DepositAccount::listForInterestPosting();
+        try {
+            DB::beginTransaction();
+            $list = DepositAccount::listForInterestPosting();
 
-        $list->map(function($item){
+            $list->map(function($item){
             $item->postInterest();
+            DB::commit();
         });
+        } catch (\Throwable $e) {
+            DB::rollback();
+            Log::warning($e->getMessage());
+        }
+        
 
         $this->info('Done....');
 

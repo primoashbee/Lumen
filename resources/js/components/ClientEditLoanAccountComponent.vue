@@ -1,5 +1,5 @@
 <template>
-        <div class="card">
+    <div class="card">
 		<nav aria-label="breadcrumb">
           <ol class="breadcrumb">
             <li class="breadcrumb-item"><a :href="linkTo('clients')">Client</a></li>

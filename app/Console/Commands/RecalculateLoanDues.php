@@ -40,8 +40,8 @@ class RecalculateLoanDues extends Command
     public function handle()
     {
         // $accounts = LoanAccount::all();
-      
-        $accounts = LoanAccount::active()->get();
+        
+        
 
         // $accounts = LoanAccount::limit(500)->offset(0);
         
@@ -49,14 +49,17 @@ class RecalculateLoanDues extends Command
         //     foreach ($chunk as $item) {
         //         $item->updateDueInstallments();
         //         $item->updateStatus();
-                
+            
         //     }
         // }
-        DB::beginTransaction();
+        
         try {
-            foreach($accounts as $item){
-                $item->updateStatus();
-            }
+            DB::beginTransaction();
+            $accounts = LoanAccount::active()->chunkById(100, function($loans){
+                foreach($loans as $loan){
+                    $loan->updateStatus();
+                }
+            });
             $this->info('Starting....');
             $this->info('Date is ' . now()->toDateString());
             $lai = DB::table('loan_account_installments');
@@ -108,6 +111,7 @@ class RecalculateLoanDues extends Command
 
             DB::commit();
         } catch (Exception $e) {
+            DB::rollBack();
             Log::warning($e->getMessage());
         }            
         

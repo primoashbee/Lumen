@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use Exception;
-use App\Office;
-use App\PaymentMethod;
 use App\Client;
+use App\Office;
 use App\Deposit;
+use Carbon\Carbon;
+use App\PaymentMethod;
 use App\DepositAccount;
 use App\Rules\OfficeID;
+use App\Rules\StatusRule;
 use Illuminate\Http\Request;
+use App\Rules\HasZeroBalance;
 use App\Rules\TransactionType;
 use App\Rules\PaymentMethodList;
 use App\Rules\PreventFutureDate;
@@ -332,5 +335,23 @@ class DepositAccountController extends Controller
 
         return response()->json(['msg' => 'Deposit Account Created'], 200);
         }
+    }
+
+    public function changeStatus(Request $request, DepositAccount $depositaccount,$client_id){
+        $request->merge(['client_id' => $client_id]);
+        
+        $validated = $request->validate([
+            'status' => new StatusRule,
+            'balance' => new HasZeroBalance($depositaccount)
+        ]);
+        
+        $depositaccount->update(
+            [
+                'status' => $validated['status'],
+                'closed_at' => Carbon::now(),
+                'closed_by' => auth()->user()->id
+            ]
+        );
+        return response()->json(['msg' => 'Deposit Account Updated'], 200);
     }
 }

@@ -341,24 +341,115 @@ class Report extends Model
         $offices = DB::table('offices');
         
         $transaction_types = DepositAccount::$deposit_transactions_report;
+        $payments_selects = [
+            'deposit_payments.transaction_number as transaction_number',
+            'deposit_payments.deposit_account_id as deposit_account_id',
+            'deposit_payments.amount as amount',
+            'deposit_payments.balance as balance',
+            \DB::raw("IF(1=1,'Payment',NULL) as transaction_type"),
+            'payment_methods.name as payment_method_name',
+            'deposit_payments.repayment_date as repayment_date',
+            'offices.name as office_name',
+            'clients.client_id as client_id',
+            'deposits.product_id as deposit_type',
+            \DB::raw("CONCAT(users.firstname, '{$space}', users.lastname) as paid_by"),
+            \DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
+            'deposit_payments.notes as notes',
+            'paid_offices_at.name as paid_on',
+            'deposit_payments.created_at as timestamp'
+        ];
+        $withdrawals_selects = [
+            'deposit_withdrawals.transaction_number as transaction_number',
+            'deposit_withdrawals.deposit_account_id as deposit_account_id',
+            'deposit_withdrawals.amount as amount',
+            'deposit_withdrawals.balance as balance',
+            \DB::raw("IF(1=1,'Withdrawal',NULL) as transaction_type"),
+            'payment_methods.name as payment_method_name',
+            'deposit_withdrawals.repayment_date as repaymaent_date',
+            'offices.name as office_name',
+            'clients.client_id as client_id',
+            'deposits.product_id as deposit_type',
+            \DB::raw("CONCAT(users.firstname, '{$space}', users.lastname) as paid_by"),
+            \DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
+            'deposit_withdrawals.notes as notes',
+            'paid_offices_at.name as paid_on',
+            'deposit_withdrawals.created_at as timestamp'
+        ];
+        $ctlp_withdrawals_selects = [
+            'deposit_withdrawals.transaction_number as transaction_number',
+            'deposit_withdrawals.deposit_account_id as deposit_account_id',
+            'deposit_withdrawals.amount as amount',
+            'deposit_withdrawals.balance as balance',
+            \DB::raw("IF(1=1,'Withdrawal',NULL) as transaction_type"),
+            'payment_methods.name as payment_method_name',
+            'deposit_withdrawals.repayment_date as repaymaent_date',
+            'offices.name as office_name',
+            'clients.client_id as client_id',
+            'deposits.product_id as deposit_type',
+            \DB::raw("CONCAT(users.firstname, '{$space}', users.lastname) as paid_by"),
+            \DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
+            'deposit_withdrawals.notes as notes',
+            'paid_offices_at.name as paid_on',
+            'deposit_withdrawals.created_at as timestamp'
+        ];
+
+        $interest_posting_selects = [
+            'deposit_interest_posts.transaction_number as transaction_number',
+            'deposit_interest_posts.deposit_account_id as deposit_account_id',
+            'deposit_interest_posts.amount as amount',
+            'deposit_interest_posts.balance as balance',
+            \DB::raw("IF(1=1,'Interest Posting',NULL) as transaction_type"),
+            'payment_methods.name as payment_method_name',
+            'deposit_interest_posts.repayment_date as repayment_date',
+            'offices.name as office_name',
+            'clients.client_id as client_id',
+            'deposits.product_id as deposit_type',
+            \DB::raw("CONCAT(users.firstname, '{$space}', users.lastname) as paid_by"),
+            \DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
+            'deposit_interest_posts.notes as notes',
+            'paid_offices_at.name as paid_on',
+            'deposit_interest_posts.created_at as timestamp'
+        ];
+        
+        if($is_summarized){
+            $payments_selects = [
+                DB::raw('COUNT(deposit_payments.deposit_account_id) as number_of_transactions'),
+                DB::raw('SUM(deposit_payments.amount) as amount'),
+                DB::raw('SUM(deposit_payments.balance) as balance'),
+                \DB::raw("IF(1=1,'Payment',NULL) as transaction_type"),
+                'offices.name as office_name',
+                'deposits.product_id as deposit_type',
+            ];
+            $withdrawals_selects = [
+                DB::raw('COUNT(deposit_withdrawals.deposit_account_id) as number_of_transactions'),
+                DB::raw( 'SUM(deposit_withdrawals.amount) as amount'),
+                DB::raw('SUM(deposit_withdrawals.balance) as balance'),
+                \DB::raw("IF(1=1,'Withdrawal',NULL) as transaction_type"),
+                'offices.name as office_name',
+                'deposits.product_id as deposit_type',
+            ];
+            $ctlp_withdrawals_selects = [
+                DB::raw('COUNT(deposit_withdrawals.deposit_account_id) as number_of_transactions'),
+                DB::raw('SUM(deposit_withdrawals.amount) as amount'),
+                DB::raw('SUM(deposit_withdrawals.balance) as balance'),
+                \DB::raw("IF(1=1,'Withdrawal',NULL) as transaction_type"),
+                'offices.name as office_name',
+                'deposits.product_id as deposit_type',
+            ];
+
+            $interest_posting_selects = [
+                DB::raw('COUNT(deposit_interest_posts.deposit_account_id) as number_of_transactions'),
+                DB::raw('SUM(deposit_interest_posts.amount) as amount'),
+                DB::raw('SUM(deposit_interest_posts.balance) as balance'),
+                \DB::raw("IF(1=1,'Interest Posting',NULL) as transaction_type"),
+                'offices.name as office_name',
+                'deposits.product_id as deposit_type',
+            ];
+        }
 
         $payments = \DB::table('deposit_payments')
                         ->select(
-                            'deposit_payments.transaction_number as transaction_number',
-                            'deposit_payments.deposit_account_id as deposit_account_id',
-                            'deposit_payments.amount as amount',
-                            'deposit_payments.balance as balance',
-                            \DB::raw("IF(1=1,'Payment',NULL) as transaction_type"),
-                            'payment_methods.name as payment_method_name',
-                            'deposit_payments.repayment_date as repayment_date',
-                            'offices.name as office_name',
-                            'clients.client_id as client_id',
-                            'deposits.product_id as deposit_type',
-                            \DB::raw("CONCAT(users.firstname, '{$space}', users.lastname) as paid_by"),
-                            \DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
-                            'deposit_payments.notes as notes',
-                            'paid_offices_at.name as paid_on',
-                            'deposit_payments.created_at as timestamp'
+                            $payments_selects
                         )
                         ->when($data['office_id'],function($q,$data){
                             $q->whereExists(function($q2) use ($data){
@@ -406,25 +497,17 @@ class Report extends Model
                         ->leftJoinSub($offices,'offices',function($join){
                             $join->on('offices.id','deposit_payments.office_id');
                         })
-                        ->where('deposit_payments.reverted',false);
+                        ->where('deposit_payments.reverted',false)
+                        ->when($is_summarized,function($q, $data){
+                            if($data){
+                                $q->groupBy('office_name','deposit_type','transaction_type');
+                            }
+                        });
+                        
         
         $withdrawals = \DB::table('deposit_withdrawals')
                         ->select(
-                            'deposit_withdrawals.transaction_number as transaction_number',
-                            'deposit_withdrawals.deposit_account_id as deposit_account_id',
-                            'deposit_withdrawals.amount as amount',
-                            'deposit_withdrawals.balance as balance',
-                            \DB::raw("IF(1=1,'Withdrawal',NULL) as transaction_type"),
-                            'payment_methods.name as payment_method_name',
-                            'deposit_withdrawals.repayment_date as repaymaent_date',
-                            'offices.name as office_name',
-                            'clients.client_id as client_id',
-                            'deposits.product_id as deposit_type',
-                            \DB::raw("CONCAT(users.firstname, '{$space}', users.lastname) as paid_by"),
-                            \DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
-                            'deposit_withdrawals.notes as notes',
-                            'paid_offices_at.name as paid_on',
-                            'deposit_withdrawals.created_at as timestamp'
+                            $withdrawals_selects
                         )
                         ->when($data['office_id'],function($q,$data){
                             $q->whereExists(function($q2) use ($data){
@@ -449,6 +532,7 @@ class Report extends Model
                         ->when($data['transaction_by'], function($q,$data){
                             $q->whereIn('paid_by',$data);
                         })
+
                         ->where('deposit_withdrawals.reverted',false)
                         ->leftJoinSub($deposit_accounts,'deposit_accounts',function($join){
                             $join->on('deposit_accounts.id','deposit_withdrawals.deposit_account_id');
@@ -470,25 +554,16 @@ class Report extends Model
                         })
                         ->leftJoinSub($offices,'offices',function($join){
                             $join->on('offices.id','deposit_withdrawals.office_id');
+                        })
+                        ->when($is_summarized,function($q, $data){
+                            if($data){
+                                $q->groupBy('office_name','deposit_type','transaction_type');
+                            }
                         });
 
         $ctlp_withdrawals = \DB::table('deposit_withdrawals')
                         ->select(
-                            'deposit_withdrawals.transaction_number as transaction_number',
-                            'deposit_withdrawals.deposit_account_id as deposit_account_id',
-                            'deposit_withdrawals.amount as amount',
-                            'deposit_withdrawals.balance as balance',
-                            \DB::raw("IF(1=1,'Withdrawal',NULL) as transaction_type"),
-                            'payment_methods.name as payment_method_name',
-                            'deposit_withdrawals.repayment_date as repaymaent_date',
-                            'offices.name as office_name',
-                            'clients.client_id as client_id',
-                            'deposits.product_id as deposit_type',
-                            \DB::raw("CONCAT(users.firstname, '{$space}', users.lastname) as paid_by"),
-                            \DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
-                            'deposit_withdrawals.notes as notes',
-                            'paid_offices_at.name as paid_on',
-                            'deposit_withdrawals.created_at as timestamp'
+                            $ctlp_withdrawals_selects
                         )
                         ->when($data['office_id'],function($q,$data){
                             $q->whereExists(function($q2) use ($data){
@@ -536,25 +611,16 @@ class Report extends Model
                         })
                         ->leftJoinSub($offices,'offices',function($join){
                             $join->on('offices.id','deposit_withdrawals.office_id');
+                        })
+                        ->when($is_summarized,function($q, $data){
+                            if($data){
+                                $q->groupBy('office_name','deposit_type','transaction_type');
+                            }
                         });
 
         $interest_posting = \DB::table('deposit_interest_posts')
                         ->select(
-                            'deposit_interest_posts.transaction_number as transaction_number',
-                            'deposit_interest_posts.deposit_account_id as deposit_account_id',
-                            'deposit_interest_posts.amount as amount',
-                            'deposit_interest_posts.balance as balance',
-                            \DB::raw("IF(1=1,'Interest Posting',NULL) as transaction_type"),
-                            'payment_methods.name as payment_method_name',
-                            'deposit_interest_posts.repayment_date as repayment_date',
-                            'offices.name as office_name',
-                            'clients.client_id as client_id',
-                            'deposits.product_id as deposit_type',
-                            \DB::raw("CONCAT(users.firstname, '{$space}', users.lastname) as paid_by"),
-                            \DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
-                            'deposit_interest_posts.notes as notes',
-                            'paid_offices_at.name as paid_on',
-                            'deposit_interest_posts.created_at as timestamp'
+                            $interest_posting_selects
                         )
                         ->when($data['office_id'],function($q,$data){
                             $q->whereExists(function($q2) use ($data){
@@ -599,6 +665,12 @@ class Report extends Model
                         })
                         ->leftJoinSub($offices,'offices',function($join){
                             $join->on('offices.id','deposit_interest_posts.office_id');
+                        })
+                        ->when($is_summarized,function($q, $data){
+                            
+                            if($data){
+                                $q->groupBy('office_name','deposit_type','transaction_type');
+                            }
                         });
         
 
@@ -607,10 +679,9 @@ class Report extends Model
         $z = $type->count();
         if($type->count() == 0){
             $list = $payments
-                        ->unionAll($withdrawals)
-                        ->unionAll($interest_posting)
-                        ->unionAll($ctlp_withdrawals)
-                        ->orderBy('timestamp','desc');
+                ->unionAll($withdrawals)
+                ->unionAll($interest_posting)
+                ->unionAll($ctlp_withdrawals);
         }else{
             if($type->contains('Payment')){
                 $tables[] = $payments;
@@ -644,28 +715,37 @@ class Report extends Model
         }
         // $gg = $list->get();
         $summary = clone $list;
-
+        if($is_summarized){
+            $summary = [
+                'number_of_transactions'=> $summary->sum('number_of_transactions'),
+                // 'total_amount'=>$summary->sum('amount'),
+                // 'balance'=>$summary->sum('balance'),
+            ];
+        }else{
+            $summary = DB::query()->fromSub(function($query) use ($summary){
+                $query->from($summary);
+            },'summary')->select(
+                    DB::raw('COUNT(transaction_number) as number_of_transactions'),
+                    // DB::raw('SUM(amount) as total_amount'),
+                    // DB::raw('SUM(balance) as balance'),
+            )->first();
+        }
 
         // $summary = $summary->select(
         //         DB::raw('COUNT(transaction_number) as number_of_transactions'),
         //         DB::raw('SUM(amount) as total_amount'),
         //         DB::raw('SUM(balance) as balance'),
         // )->first();
-        $summary = DB::query()->fromSub(function($query) use ($summary){
-            $query->from($summary);
-        },'summary')->select(
-                DB::raw('COUNT(transaction_number) as number_of_transactions'),
-                DB::raw('SUM(amount) as total_amount'),
-                DB::raw('SUM(balance) as balance'),
-        )->first();
+        
         
         $data = $paginated ? $list->paginate($data['per_page']) : $list;
         return compact('data','summary','is_summarized');
     }
 
     public static function clientStatus($data, $paginated = true){
+        
         $space = " ";
-        $office_id = $data['office_id'];
+        $office_id = $data['office_id'] ? $data['office_id'] : auth()->user()->office->first()->id;
         $status = collect($data['status']);
         $type = collect($data['service_type']);
         $age_from = $data['age_from'];
@@ -674,49 +754,60 @@ class Report extends Model
         $gender = collect($data['gender']);
         $is_summarized = $data['is_summarized'];
         $offices = DB::table('offices');
-
+        $loan_accounts = DB::table('loan_accounts');
+        $household_income = DB::table('household_incomes');
+        $clients = DB::table('clients');
         $list = DB::table('clients')
                     ->select(
                         'clients.*',
                         'offices.code as level',
                         DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as fullname"),
-                        DB::raw('TIMESTAMPDIFF(YEAR, clients.birthday, CURDATE()) as age')
+                        DB::raw('TIMESTAMPDIFF(YEAR, clients.birthday, CURDATE()) as age'),
+                        'loan_account.status as status',
+                        DB::raw('IFNULL(household_income.service_type,"") as economic_activity')
                     )
                     ->when($office_id, function($q,$data){
                         $ids = Office::lowerOffices($data);
                         $q->whereIn('office_id', $ids);
                     })
-                    // ->when($status, function($q,$data){
-                    //     if ($data->count() > 0) {
-                    //         $q->whereIn('status', $data);
-                    //     }
-                    // })
-                    // ->when($type, function($q,$data){
-                    //     if ($data->count() > 0) {
-                    //         $q->whereIn('office_id', $ids);
-                    //     }
-                    // })
+                    ->when($status, function($q,$data){
+                        if ($data->count() > 0) {
+                            $q->whereIn('loan_account.status',$data);
+                        }
+                    })
+                    ->when($type, function($q,$data) use ($household_income){
+                        if ($data->count() > 0) {
+                            $q->whereIn('household_income.service_type',$data);
+                        }
+                    })
                     ->when($age_from,function($q, $age_from) use ($age_to){
+                        
                         $from = now()->subYears($age_from);
                         $to = now()->subYears($age_to);
-                        $q->whereBetween('birthday',[$from, $to]);
+                        $q->whereBetween('birthday',[$to, $from]);
                     })
                     ->when($educational_attainment,function($q, $data){
                         if(collect($data)->count() > 0){
                             $q->whereIn('education',$data);
                         }  
                     })
-                    ->when($gender,function($q, $data){
-                        if(collect($data)->count() > 0){
-                            $q->whereIn('gender',$data);
-                        }  
+                    // ->when($gender,function($q, $data){
+                    //     if(collect($data)->count() > 0){
+                    //         $q->whereIn('gender',$data);
+                    //     }  
+                    // })
+                    ->leftJoinSub($household_income,'household_income', function($query){
+                        $query->on('clients.client_id','household_income.client_id');
+                    })
+                    ->leftJoinSub($loan_accounts, 'loan_account', function($query){
+                        $query->on('clients.client_id', 'loan_account.client_id');
                     })
                     ->leftJoinSub($offices,'offices',function($join){
-                        $join->on('offices.id','=','clients.office_id');
+                        $join->on('offices.id','clients.office_id');
                     });
                     
+                
 
-                    
 
         $summary = ['total'=>$list->count()];
         $data = $paginated ? $list->paginate($data['per_page']) : $list;
@@ -795,7 +886,69 @@ class Report extends Model
             ->pluck('bulk_disbursement_id');
     }
     $summary = ['total'=>$list->count()];
-
+    
     return compact('data','summary');
+    }
+
+    public static function loanInArrearsPrincipal($data, $paginated = true, $for_export = false){
+        
+        $date = $data['date'] ? $data['date'] : now();
+        $products = $data['products'];
+        $office_id = $data['office_id'] ? $data['office_id'] : auth()->user()->office->first()->id;
+        $loan_accounts = DB::table('loan_accounts');
+        $clients = DB::table('clients');
+        $offices = DB::table('offices');
+        $loan = DB::table('loans');
+        $space = " ";
+        $list = DB::table('loan_account_installments')
+        ->select(
+            'loan_account_id as la_id',
+            DB::raw('loan_accounts.principal_balance as par_amount'),
+            'clients.client_id',
+            'offices.code as level',
+            // 'loan.code as code',
+            DB::raw("concat(clients.firstname, '{$space}', clients.lastname) as fullname"),
+        )
+        ->when($office_id, function($q,$data){
+            $office_ids = Office::lowerOffices($data);
+            $q->whereExists(function($q2) use ($office_ids){
+                $client_ids = DB::table('clients')->select('client_id')->whereIn('office_id',$office_ids)->pluck('client_id')->toArray();
+                $q2->from('loan_accounts')
+                    ->whereIn('client_id',$client_ids)
+                    ->whereColumn('loan_accounts.id', 'loan_account_installments.loan_account_id');
+            });
+        })
+        // ->when($products, function($q,$data){
+        //     $q->whereExists(function($q2) use ($data){
+        //         $q2->from('loan_accounts')
+        //             ->whereIn('loan_id',$data)
+        //             ->whereColumn('loan_accounts.id', 'loan_account_installments.loan_account_id');
+        //     });
+        // })
+        ->leftJoinSub($loan_accounts,'loan_accounts', function($join){
+            $join->on('loan_accounts.id', 'loan_account_installments.loan_account_id');
+        })
+        // ->leftJoinSub($loan,'loan',function($join){
+        //     $join->on('loan.id','loan_accounts.loan_id');
+        // })
+        ->leftJoinSub($clients, 'clients', function($join){
+            $join->on('clients.client_id','loan_accounts.client_id');
+        })
+        ->leftJoinSub($offices, 'offices', function($join){
+            $join->on('offices.id','=','clients.office_id');
+        })
+        ->groupBy('la_id')
+        ->orderBy('la_id','asc')
+        ->whereDate('date','<=', $date)
+        ->where('principal_due','>',0)
+        ->where('paid',false);
+        
+
+        $summary = [
+                'total_amount'=>$list->get()->sum('par_amount')
+            ];
+
+        $data =  $paginated  ? $list->paginate($data['per_page']) : $list;
+        return compact('data','summary');
     }
 }

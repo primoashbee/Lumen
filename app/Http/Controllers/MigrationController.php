@@ -50,7 +50,7 @@ class MigrationController extends Controller
             // DB::commit();
             return redirect()->route('settings.import')->with('message','File succesfully uploaded');
         }catch (Exception $e){
-            dd($e->getMessage());
+            $e->getMessage();
         }
 
     }

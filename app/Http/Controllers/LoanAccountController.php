@@ -50,9 +50,13 @@ class LoanAccountController extends Controller
     }
 
     public function calculate(Request $request){
+        if($request->has('account')){
+            $this->validator($request->all(),true)->validate();    
+        }else{
+            $this->validator($request->all())->validate();
+        }
         
-        $this->validator($request->all())->validate();
-
+        
         $client = Client::where('client_id',$request->client_id)->first();
         $loan =  Loan::find($request->loan_id);
         
@@ -141,8 +145,10 @@ class LoanAccountController extends Controller
     }
 
     public function validator(array $data,$for_update=false){
-        if(!$for_update){
-            $rules = $data['status'] == 'Pending Approval' ? [
+        
+        if($for_update){
+            $rules = 
+            [
                 'credit_limit' => new CreditLimit($data['credit_limit'],$data['amount']),
                 'loan_id'=>'required|exists:loans,id',
                 'client_id'=>['required','exists:clients,client_id'],
@@ -152,23 +158,32 @@ class LoanAccountController extends Controller
                 'first_payment'=>['required','date','after_or_equal:disbursement_date', new DateIsWorkingDay],
                 'number_of_installments'=>'required|gt:0|integer',
                 'interest_rate'=>'required', 
-            ] : 
-            [
-                'credit_limit' => new CreditLimit($data['credit_limit'],$data['amount']),
-                'loan_id'=>'required|exists:loans,id',
-                'client_id'=>['required','exists:clients,client_id',new HasNoUnusedDependent,new HasNoPendingLoanAccount],
-                'amount'=>['required',new LoanAmountModulo($data['loan_id']), new MaxLoanableAmount($data['loan_id'])],
-                // 'disbursement_date'=>['required','date', new DateIsWorkingDay],
-                
-                'first_payment'=>['required','date','after_or_equal:disbursement_date', new DateIsWorkingDay],
-                'number_of_installments'=>'required|gt:0|integer',
-                'interest_rate'=>'required', 
             ];
+            
             return Validator::make(
-                    $data,
-                    $rules,
-                );
-        }
+                $data,
+                $rules,
+            );
+        }   
+
+
+        $rules = [
+            'credit_limit' => new CreditLimit($data['credit_limit'],$data['amount']),
+            'loan_id'=>'required|exists:loans,id',
+            'client_id'=>['required','exists:clients,client_id',new HasNoUnusedDependent,new HasNoPendingLoanAccount],
+            'amount'=>['required',new LoanAmountModulo($data['loan_id']), new MaxLoanableAmount($data['loan_id'])],
+            // 'disbursement_date'=>['required','date', new DateIsWorkingDay],
+            
+            'first_payment'=>['required','date','after_or_equal:disbursement_date', new DateIsWorkingDay],
+            'number_of_installments'=>'required|gt:0|integer',
+            'interest_rate'=>'required', 
+        ];
+ 
+        return Validator::make(
+                $data,
+                $rules,
+            );
+        
     }
 
     
@@ -815,7 +830,6 @@ class LoanAccountController extends Controller
 
     public function updateLoanAccount(Request $request,  $client_id,$loan_id){
         
-        $this->validator($request->account)->validate();
         $loan_account = LoanAccount::find($loan_id);
         $client = Client::where('client_id',$request->client_id)->first();
         $loan =  Loan::find($request->loan_id);

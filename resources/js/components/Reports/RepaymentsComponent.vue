@@ -10,10 +10,10 @@
                     <div class="row">
                         <div class="col-lg-4">
                             <label for="" style="color:white" class="lead mr-2">Branch:</label>
-                            <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px;" ></v2-select>
+                            <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:100%;" ></v2-select>
                         </div>
                             <div class="col-lg-3">
-                            <label for="date" style="color:white" class="lead mr-2"> Disbursed By:</label>
+                            <label for="date" style="color:white" class="lead mx-2"> Disbursed By:</label>
                             <user-list @userSelected="userSelected" :multiple="true" ></user-list>
                         </div>
                         <div class="col-lg-3">

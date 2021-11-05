@@ -378,9 +378,8 @@ class LoanAccount extends Model
                 $data->end_date = $end_date;
                 // dd($data);
                 
-                
+
                 return $data;
-                
 
                 // $weekly_compounding_rate = ($interest_rate / 4) / 100;
             }   

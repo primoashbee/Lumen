@@ -2,23 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use App\Client;
 use App\Office;
 use Carbon\Carbon;
 use App\Rules\Gender;
 use App\DepositAccount;
-use App\Events\ClientCreated;
 use App\Rules\OfficeID;
 use App\HouseholdIncome;
 use App\Rules\HouseType;
+use App\Rules\StatusRule;
 use App\Rules\CivilStatus;
 use Illuminate\Http\Request;
+use App\Events\ClientCreated;
+use App\Rules\HasNoActiveDeposit;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\ClientRequest;
 use App\Rules\EducationalAttainment;
-
 use Illuminate\Support\Facades\File;
 use Intervention\Image\Facades\Image;
+use App\Rules\HasNoPendingLoanAccount;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -444,6 +447,24 @@ class ClientController extends Controller
             return response()->json(['msg'=>'Success','list'=>$list],200);
         }
         return response()->json(['msg'=>'Invalid Request'],422);
+    }
+
+    public function changeStatus(Request $request, $client_id){
+        
+        $client = Client::fcid($client_id);
+        request()->merge(['client_id' =>  $client_id]);
+        
+        $request->validate(
+            [
+                'client_id' => [new HasNoPendingLoanAccount,new HasNoActiveDeposit],
+                'status' => ['required', new StatusRule]
+            ]
+        );        
+
+        $client->update(['status' => $request->status]);
+
+        return redirect()->back();
+
     }
 
 }
