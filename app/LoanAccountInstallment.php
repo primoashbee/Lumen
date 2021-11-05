@@ -111,7 +111,7 @@ class LoanAccountInstallment extends Model
             $payment-=$interest_paid;
             $amount_paid->total_paid = $interest_paid + $principal_paid;
         }
-
+        
         // Payment for full principal
 
         // if(round($payment,2) >= round($principal,2)){
@@ -345,7 +345,7 @@ class LoanAccountInstallment extends Model
                 $this->update([
                     'interest'=>round($interest - $interest_paid,2),
                     'principal_due'=>round($principal - $principal_paid,2),
-                    
+
                 ]);
                 
             }

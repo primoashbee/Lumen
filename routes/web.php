@@ -6,6 +6,7 @@ use App\Office;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\ClientRequest;
+use App\LoanAccount;
 use App\Rules\CreditLimit;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -192,8 +193,13 @@ Route::group(['middleware' => ['auth']], function () {
 
         Route::get('/{client_id}/create/deposit', 'DepositAccountController@createClientDepositAccount')->name('client.deposit.create');
         Route::post('/{client_id}/create/deposit', 'DepositAccountController@storeClientDepositAccount')->name('client.deposit.create');
-        
+
+        Route::get('/{client_id}/loan/{loan_id}','LoanAccountController@editAccount')->name('edit.loan.account');
+        Route::get('/{client_id}/edit/loan/{loan_id}','LoanAccountController@getLoanAccount');
+        Route::post('/{client_id}/edit/loan/{loan_id}','LoanAccountController@updateLoanAccount');
+        Route::post('/change_status/{client_id}', 'ClientController@changeStatus');
     });
+
     Route::get('/create/client','ClientController@index')->name('precreate.client');
     Route::post('/create/client','ClientController@createV1')->name('create.client'); 
     Route::get('/clients','ClientController@list')->name('client.list');
@@ -229,6 +235,7 @@ Route::group(['middleware' => ['auth']], function () {
 
         Route::post('/reports/{type}','ReportController@getReport');
 
+        
 
     });
     Route::get('/bulk/approve/loans','LoanAccountController@bulkApproveForm')->name('bulk.approve.loans');
@@ -277,7 +284,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::post('/deposit/{deposit_account_id}','DepositAccountController@deposit')->name('client.make.deposit'); //make deposit transaction individually
     Route::post('/withdraw/{deposit_account_id}','DepositAccountController@withdraw')->name('client.make.withdrawal'); //make deposit transaction individually
-    
+    Route::put('/change_status/{depositaccount}/{client_id}', 'DepositAccountController@changeStatus');
 
     
     Route::get('/bulk/deposit', 'DepositAccountController@showBulkView')->name('bulk.deposit.deposit');
@@ -325,7 +332,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::prefix('reports')->group(function () {
         Route::get('/','ReportController@index')->name('reports.index');
-    
+
         Route::get('/v2/repayments','ReportController@rp');
         Route::get('/{class}/{type}','ReportController@view')->name('reports.view');
     });
@@ -347,9 +354,9 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/create/office/cluster', 'ClusterController@create');
         Route::post('/create/office/', 'OfficeController@createOffice');
     });
+    
 
 
-   
 
 });
  

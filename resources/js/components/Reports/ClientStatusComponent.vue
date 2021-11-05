@@ -90,18 +90,12 @@
                                 <td><p class="title">{{item.age}}</p></td>
                                 <td><p class="title">{{item.education}}</p></td>
                                 <td><p class="title">{{item.gender}}</p></td>
-                                <td><p class="title">Business</p></td>
-                                <td><p class="title">Status</p></td>
+                                <td><p class="title">{{item.economic_activity}}</p></td>
+                                <td><p class="title">{{item.status}}</p></td>
                             </tr>
                             <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td><p class="title"># of Clients</p></td>
-                                <td><p class="title">{{list.summary.total}}</p></td>
+                                <td colspan="6"><p class="title text-left"># of Clients:</p></td>
+                                <td colspan="2"><p class="title text-right">{{list.summary.total}}</p></td>
                             </tr>
                         </tbody>
                     </table>
@@ -179,7 +173,38 @@ export default {
                 })
         },
         download(){
+            var data = Object.assign({},this.request);
+            data['export'] = true;
+            axios.post(this.url+'?page='+this.request.page, data,
+            {
+                headers : {
+                    'Accept': 'application/vnd.ms-excel' 
+                },
+                responseType: 'blob',
+            })
+                .then(res=>{
+                    const url = window.URL.createObjectURL(new Blob([res.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', res.headers.filename);
+                    link.setAttribute('id', 'Ashbee');
+                    document.body.appendChild(link);
+                    link.click();
+                    URL.revokeObjectURL(url)
+                    // console.log('wata');
+                    //     let link=document.createElement('a');
+                    //     link.href=window.URL.createObjectURL(res);
+                    //     console.log(link);
+                    //     link.download=res.headers.filename;
+                    //     link.click();
+                    this.isLoading = false
 
+                })
+                .catch(err=>{
+                    this.isLoading = false
+
+                })
+            
         },
         addToFilter(value){
             if (this.filter.includes(value)) {
@@ -188,10 +213,10 @@ export default {
                     this.filter.splice(index,1)
                 }
 
-                console.log(this.filter);
+                // console.log(this.filter);
             }else{
                 this.filter.push(value) 
-                console.log(this.filter)
+                // console.log(this.filter)
             }
             
             

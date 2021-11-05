@@ -52,16 +52,23 @@ class ParMovementCompute extends Command
 
         
         $start = now()->startOfDay()->subDays(7);
-
-        for($x=0;$x<=6;$x++){
-            $date  = $start->copy()->addDays($x);
-            // $date = now();
-            $this->info('Generating for: ' . $date->toDateString());
-            // $date = Carbon::parse($this->argument('date'))->toDateString();
-            ParMovement::generate($date);
-            $this->info('Finished');
-
+        try {
+            DB::beginTransaction();
+            for($x=0;$x<=6;$x++){
+                $date  = $start->copy()->addDays($x);
+                // $date = now();
+                $this->info('Generating for: ' . $date->toDateString());
+                // $date = Carbon::parse($this->argument('date'))->toDateString();
+                ParMovement::generate($date);
+                $this->info('Finished');
+    
+            }
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollback();
+            Log::warning($e->getMessage());
         }
+        
         $time_end = microtime(true);
         $this->info('.......');
         $end_memory =memory_get_usage();

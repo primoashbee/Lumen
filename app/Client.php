@@ -68,7 +68,7 @@ class Client extends Model
 
     protected $appends = ['full_name'];
 
-    public static $status = ["Active", "In-Arrears", "Closed", "Written-Off"];
+    public static $status = ["Active", "In Arrears", "Closed", "Written-Off"];
     public static $educational_attainment = ["ELEMENTARY","HIGH SCHOOL","VOCATIONAL","COLLEGE"];
     public static $service_types = ['AGRICULTURE','TRADING/MERCHANDISING','MANUFACTURING','SERVICES','OTHERS'];
     
@@ -294,6 +294,9 @@ class Client extends Model
     }
     public function activeLoans(){
         return $this->loanAccounts->whereNull('closed_at');
+    }
+    public function activeDepositAccount(){
+        return $this->deposits->whereNull('closed_at');
     }
     public function ctlpAccount(){
         $ctlp = Deposit::where('product_id','MCBU')->first()->id;

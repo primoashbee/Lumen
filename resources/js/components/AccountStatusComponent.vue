@@ -31,7 +31,7 @@ export default {
       this.options = ['Active','Closed','Dormant'];
     }
     if(this.type=='client'){
-      this.options = ["Active", "In-Arrears", "Closed", "Written-Off"];
+      this.options = ["Active", "In Arrears", "Closed", "Written-Off"];
     }
     if(this.type=='all'){
       this.options = ['Active',"Cancelled", "Closed", "In Arrears", "Inactive", "Matured", "Pending Approval", "Rejected", "Written Off",'Dormant'];

@@ -40,8 +40,8 @@ class RecalculateLoanDues extends Command
     public function handle()
     {
         // $accounts = LoanAccount::all();
-      
-        $accounts = LoanAccount::active()->get();
+        
+        
 
         // $accounts = LoanAccount::limit(500)->offset(0);
         
@@ -49,62 +49,74 @@ class RecalculateLoanDues extends Command
         //     foreach ($chunk as $item) {
         //         $item->updateDueInstallments();
         //         $item->updateStatus();
-                
+            
         //     }
         // }
+        
+        try {
+            DB::beginTransaction();
+            $accounts = LoanAccount::active()->chunkById(100, function($loans){
+                foreach($loans as $loan){
+                    $loan->updateStatus();
+                }
+            });
+            $this->info('Starting....');
+            $this->info('Date is ' . now()->toDateString());
+            $lai = DB::table('loan_account_installments');
+            $loan_accounts_installments_repayments = DB::table('loan_account_installment_repayments')
+            ->select('principal_paid','interest_paid','total_paid','loan_account_installment_id')
+            ->leftJoinSub($lai,'loan_account_installment', function($join){
+                $join->on('loan_account_installment.id','loan_account_installment_repayments.loan_account_installment_id');
+            });
+            
 
-        foreach($accounts as $item){
-            $item->updateStatus();
-        }
+            $deposit_accounts_installments_repayments = DB::table('deposit_to_loan_installment_repayments')
+            ->select('principal_paid','interest_paid','total_paid','loan_account_installment_id')
+            ->leftJoinSub($lai,'loan_account_installment', function($join){
+                $join->on('loan_account_installment.id','deposit_to_loan_installment_repayments.loan_account_installment_id');
+            });
 
-        $this->info('Starting....');
-        $this->info('Date is ' . now()->toDateString());
-        $lai = DB::table('loan_account_installments');
-        $loan_accounts_installments_repayments = DB::table('loan_account_installment_repayments')
-        ->select('principal_paid','interest_paid','total_paid','loan_account_installment_id')
-        ->leftJoinSub($lai,'loan_account_installment', function($join){
-            $join->on('loan_account_installment.id','loan_account_installment_repayments.loan_account_installment_id');
-        });
+            $payments =  $loan_accounts_installments_repayments->unionAll($deposit_accounts_installments_repayments);
+
+            $lai = DB::table('loan_account_installments')
+            ->select(
+                'installment',
+                'amount_due',
+                'date','amortization',
+                'principal','interest',
+                'principal_due',
+                'interest_due',
+                'original_interest',
+                'original_principal',
+                DB::raw('loan_account_installments.id AS installment_id'),
+                DB::raw('SUM(payments.principal_paid) AS total_principal_paid'),
+                DB::raw('SUM(payments.interest_paid) AS total_interest_paid'),
+            )
+            ->leftJoinSub($payments, 'payments', function($join){
+                $join->on('loan_account_installments.id','payments.loan_account_installment_id');
+            })
+            ->groupBy('installment_id')
+            ->orderBy('installment','asc')
+            ->whereDate('date','<=', now())
+            ->where('paid',false)
+            ->update(
+                [
+                    'interest_due' => DB::raw('round(original_interest - IFNULL(payments.interest_paid,0),2)'),
+                    'principal_due' => DB::raw('round(original_principal - IFNULL(payments.principal_paid,0),2)'),
+                    'amount_due' => DB::raw('round(interest_due+principal_due,2)')
+                ]
+            );
+
+            $this->info('Updating ' . $lai . ' accounts.');
+
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::warning($e->getMessage());
+        }            
         
 
-        $deposit_accounts_installments_repayments = DB::table('deposit_to_loan_installment_repayments')
-        ->select('principal_paid','interest_paid','total_paid','loan_account_installment_id')
-        ->leftJoinSub($lai,'loan_account_installment', function($join){
-            $join->on('loan_account_installment.id','deposit_to_loan_installment_repayments.loan_account_installment_id');
-        });
-
-        $payments =  $loan_accounts_installments_repayments->unionAll($deposit_accounts_installments_repayments);
-
-        $lai = DB::table('loan_account_installments')
-        ->select(
-            'installment',
-            'amount_due',
-            'date','amortization',
-            'principal','interest',
-            'principal_due',
-            'interest_due',
-            'original_interest',
-            'original_principal',
-            DB::raw('loan_account_installments.id AS installment_id'),
-            DB::raw('SUM(payments.principal_paid) AS total_principal_paid'),
-            DB::raw('SUM(payments.interest_paid) AS total_interest_paid'),
-        )
-        ->leftJoinSub($payments, 'payments', function($join){
-            $join->on('loan_account_installments.id','payments.loan_account_installment_id');
-        })
-        ->groupBy('installment_id')
-        ->orderBy('installment','asc')
-        ->whereDate('date','<=', now())
-        ->where('paid',false)
-        ->update(
-            [
-                'interest_due' => DB::raw('round(original_interest - IFNULL(payments.interest_paid,0),2)'),
-                'principal_due' => DB::raw('round(original_principal - IFNULL(payments.principal_paid,0),2)'),
-                'amount_due' => DB::raw('round(interest_due+principal_due,2)')
-            ]
-        );
-
-        $this->info('Updating ' . $lai . ' accounts.');
+        
         
         // $list->update([
         //     'amount_due'=>\DB::raw('round(interest+principal_due,2)'),

@@ -27,16 +27,22 @@
                     <div class="row mt-4">
                         <div class="col-lg-4">
                             <label for="date" style="color:white" class="lead mr-2"> Transaction By: </label>
-                            <user-list @userSelected="userSelected" :multiple="true" ></user-list>
+                            <user-list @userSelected="userSelected" :multiple="true" class="w-100"></user-list>
                         </div>
                         <div class="col-lg-3">
                             <label for="date" style="color:white" class="lead"> From:</label>
-                            <input type="date" class="form-control" v-model="request.from_date">
+                            <input type="date" class="form-control" :class="hasErrors('from_date') ? 'is-invalid' : ''" v-model="request.from_date">
+                            <div class="invalid-feedback" v-if="hasErrors('from_date')">
+                                {{ errors.from_date[0]}}
+                            </div>
                         </div>
                         
                         <div class="col-lg-3">
                             <label for="date" style="color:white" class="lead mr-2"> To:</label>
-                            <input type="date" class="form-control" v-model="request.to_date">
+                            <input type="date" class="form-control" :class="hasErrors('to_date') ? 'is-invalid' : ''" v-model="request.to_date">
+                            <div class="invalid-feedback" v-if="hasErrors('to_date')">
+                                {{ errors.to_date[0]}}
+                            </div>
                         </div>
                     </div>    
 
@@ -60,16 +66,13 @@
                             <template v-if="report_class=='detailed'">
                             <tr>
                                 <td><p class="title">Office Level</p></td>
-                                <td><p class="title">Client ID</p></td>
                                 <td><p class="title">Name</p></td>
                                 <td><p class="title">Type</p></td>
                                 <td><p class="title">Transaction</p></td>
                                 <td><p class="title"> Amount</p> </td>
                                 <td><p class="title"> Balance</p> </td>
                                 <td><p class="title"> Payment Method </p></td>
-                                <td><p class="title">Paid By</p></td>
                                 <td><p class="title">Transaction Date</p></td>
-                                <td><p class="title">Timestamp</p></td>
                             </tr>
                             </template>
                             <template v-if="report_class=='summary'">
@@ -87,25 +90,22 @@
                              <template v-if="report_class=='detailed' && hasRecords">
                                 <tr v-for="(item,key) in list.data" :key="key">
                                     <td>{{item.office_name}}</td>
-                                    <td><a :href="clientLink(item.client_id)">{{item.client_id}}</a></td>
                                     <td><a :href="clientLink(item.client_id)">{{item.client_name}}</a></td>
                                     <td><a :href="depositLink(item.client_id,item.deposit_account_id)">{{item.deposit_type}}</a></td>
                                     <td>{{item.transaction_type}}</td>
                                     <td>{{moneyFormat(item.amount)}}</td>
                                     <td>{{moneyFormat(item.balance)}}</td>
                                     <td>{{(item.payment_method_name)}}</td>
-                                    <td>{{(item.paid_by)}}</td>
                                     <td>{{moment(item.transaction_date,'MMMM D, YYYY')}}</td>
-                                    <td>{{moment(item.created_at)}}</td>
                                 </tr>
                              </template>
                             <template v-if="report_class=='summary' && hasRecords">
                             <tr v-for="(item,key) in list.data" :key="key">
                                 <td><p class="title">{{item.office_name}}</p></td>
-                                <td><p class="title">{{item.number_of_payments}}</p></td>
+                                <td><p class="title">{{item.number_of_transactions}}</p></td>
                                 <td><p class="title">{{(item.transaction_type)}}</p></td>
-                                <td><p class="title">{{(item.deposit_name)}}</p></td>
-                                <td><p class="title">{{moneyFormat(item.transaction_amount)}}</p></td>
+                                <td><p class="title">{{(item.deposit_type)}}</p></td>
+                                <td><p class="title">{{moneyFormat(item.amount)}}</p></td>
                                 <td><p class="title">{{moneyFormat(item.balance)}}</p></td>
                             </tr>
                             </template>
@@ -115,10 +115,10 @@
                                     <td><p class="title"></p></td>
                                     <td><p class="title"></p></td>
                                     <td><p class="title"></p></td>
-                                    <td><p class="title text-right"># of Accounts: </p></td>
+                                    <td><p class="title text-right"># of Transactions: </p></td>
                                     <td><p class="title text-center">{{(summary.number_of_transactions)}}</p></td>
-                                    <td><p class="title">{{moneyFormat(summary.total_amount)}}</p></td>
-                                    <td><p class="title">{{moneyFormat(summary.balance)}}</p></td>
+                                    <!-- <td><p class="title">{{moneyFormat(summary.total_amount)}}</p></td>
+                                    <td><p class="title">{{moneyFormat(summary.balance)}}</p></td> -->
                                     <td><p class="title"></p></td>
                                     <td><p class="title"></p></td>
                                     <td><p class="title"></p></td>
@@ -130,15 +130,8 @@
                                     <td><p class="title"></p></td>
                                     <td><p class="title"></p></td>
                                     <td><p class="title"></p></td>
-                                    <td><p class="title text-center"># of Accounts: </p></td>
+                                    <td><p class="title text-center"># of Transactions: </p></td>
                                     <td><p class="title">{{(summary.number_of_transactions)}}</p></td>
-                                    <td><p class="title">{{moneyFormat(summary.total_amount)}}</p></td>
-                                    <td><p class="title">{{moneyFormat(summary.balance)}}</p></td>
-                                    <td><p class="title"></p></td>
-                                    <td><p class="title"></p></td>
-                                    <td><p class="title"></p></td>
-                                    <td><p class="title"></p></td>
-
                                 </tr>
                             </template>
                             
@@ -168,6 +161,7 @@ export default {
     },
     data(){
         return {
+            errors:{},
             request : {
                 is_summarized : false,
                 office_id:null,
@@ -198,6 +192,9 @@ export default {
         }
     },
     methods : {
+        hasErrors(field){
+            return this.errors.hasOwnProperty(field)
+        },
         moneyFormat(value){
             return moneyFormat(value);
         },
@@ -222,6 +219,15 @@ export default {
                     if(this.list.data.length > 0){
                         this.exportable = true;
                     }
+                }).catch(e => {
+                    
+                    this.errors = e.response.data.errors
+                    this.isLoading = false
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: e.message,
+                    })
                 })
         },
         userSelected(value){

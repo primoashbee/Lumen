@@ -43,10 +43,15 @@
 						
 					</li>
 					<li class="settings-item loans reports detailed">
-						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['detailed','disbursements'])}}">
-							
+						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['detailed','lo'])}}">
 							<i class="fas fa-3x fa-sign-out-alt"></i>
 							<p class="title text-center mt-2">Disbursements - Detailed</p>
+						</a>
+					</li>
+					<li class="settings-item loans reports detailed">
+						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['detailed','loan-in-arrears'])}}">
+							<i class="fas fa-3x fa-sign-out-alt"></i>
+							<p class="title text-center tx-lg mt-2" style="font-size:12px;">Loan In Arrears - Principal</p>
 						</a>
 						
 					</li>

@@ -17,6 +17,7 @@ class CreateHolidaysTable extends Migration
             $table->id();
             $table->date('date');
             $table->string('name');
+            $table->boolean('is_posted');
             $table->unsignedInteger('office_id');
             $table->timestamps();
         });

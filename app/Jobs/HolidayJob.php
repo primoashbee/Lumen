@@ -38,6 +38,7 @@ class HolidayJob implements ShouldQueue
             Holiday::list()->get()->each->implement();
             DB::commit();
         }catch(Exception $e){
+            DB::rollBack();
             Log::warning($e->getMessage());
         }
         

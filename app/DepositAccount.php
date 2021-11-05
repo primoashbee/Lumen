@@ -35,14 +35,17 @@ class DepositAccount extends Model
         'balance',
         'accrued_interest',
         'status',
-
+        'closed_by',
+        'closed_at'
     ];
     protected $casts = [
         'created_at' => 'datetime:F d, Y',
+        'closed_at' => 'datetime:F d, Y',
     ];
     protected $dates = [
         'created_at',
         'updated_at',
+        'closed_at'
 
     ];
     public function type(){

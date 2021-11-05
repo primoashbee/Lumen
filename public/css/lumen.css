@@ -5701,6 +5701,8 @@ a.dropdown-toggle.l-text+.dropdown-menu {
 
 
 /*FORMS*/
+
+
 button[data-dismiss='modal']{
     outline: none;
 }
@@ -6296,7 +6298,9 @@ ul.errors{
 li:before.errors {
     content: "\2022";
 }
-  
+.modal-content select.form-control{
+    color: #1d253b!important;;
+}
 
 
   

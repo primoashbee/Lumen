@@ -13,10 +13,11 @@
 					<div class="d-details b-btm">
 						<h1 class="title text-4xl">{{account.deposit_name}}</h1>
 						<h1 class="italic text-2xl">{{account.client_id}}  -  {{account.client_name}}</h1>
-						<p class="title text-xl mt-4 pb-4">Status: <span class="badge-pill badge-success">ACTIVE</span></p>
+						<p class="title text-xl mt-4 pb-4">Status: <span :class="[account.status == 'Active' ? 'badge-success' : 'badge-light','badge-pill' ]">{{account.status}}</span></p>
 					</div>
 				</div>
 				<div class="col-lg-6 text-right">
+					<b-button class="btn btn-primary" @click="showStatus()">Change Status</b-button>
 					<b-button class="btn btn-primary mr-2" @click="postInterest" v-if="account.accrued_interest  > 0">Post Interest</b-button>
 					<b-button class="btn btn-primary mr-2" @click="showModal('deposit')">Enter Deposit</b-button>
 					<b-button class="btn btn-primary" @click="showModal('withdraw')">Enter Withdrawal</b-button>
@@ -203,6 +204,20 @@
 		    </form>
 		</b-modal>
 
+		<b-modal id="change_status_deposit" v-model="statusModal.show" hide-footer size="lg" title="Change Status Deposit Account" :header-bg-variant="background" :body-bg-variant="background" >
+			
+				<div class="form-group">
+					<label for="status" class="text-xl">
+						Status
+					</label>
+					<select v-model="fields.status" class="form-control" style="color:#fff!important;">
+						<option value="" selected>Please Select an option</option>
+						<option value="Closed">Closed</option>
+					</select>
+					<button @click ="changeStatus" class="btn btn-primary mt-4">Submit</button>
+				</div>
+			
+		</b-modal>
 	</div>
 
 	
@@ -261,6 +276,11 @@ import Swal from 'sweetalert2';
 					receipt_number:null,
 					jv_number: null,
 					notes: null,
+					status:null,
+					balance:null
+				},
+				statusModal:{
+					show:false
 				},
                 errors:{},
 				account : null,
@@ -274,6 +294,31 @@ import Swal from 'sweetalert2';
 			this.fetch()
 		},
 		methods  : {
+			changeStatus(){
+				this.fields.balance = this.account.balance
+				axios.put('/change_status/'+this.deposit_account_id+'/'+this.client_id, this.fields)
+				.then(res => {
+					Swal.fire(
+						'Success',
+						res.data.msg,
+						'success'
+					)
+				})
+				.catch(
+					error=>{
+					var key = Object.keys(error.response.data.errors)[0]
+					
+					Swal.fire(
+						'Alert',
+						error.response.data.errors[key][0],
+						'error'
+					)
+				})
+			},
+			showStatus(){
+				this.statusModal.show = true;
+			},	
+
 			money(value){
 				return moneyFormat(value)
 			},

@@ -17,8 +17,10 @@
 	@endif
 	@if($type=='dst')
 	<report-dst report_class="{{$class}}"></report-dst>
-
 	{{-- <report-client report_class="{{$class}}"></report-client> --}}
+	@endif
+	@if($type=='loan-in-arrears')
+		<loan-in-arrears report_class="{{$class}}"></loan-in-arrears>
 	@endif
 </div>
 @endsection

@@ -27,7 +27,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('word:day')->cron('* * * * *')->appendOutputTo(public_path('/output.txt'));
+
         // $schedule->command('inspire')->hourly();
         $schedule->command('loan:update')->cron('01 0 * * *')->appendOutputTo(public_path('/output.txt'));
         $schedule->command('deposit:accrue')->cron('01 1 * * *')->appendOutputTo(public_path('/output.txt'));

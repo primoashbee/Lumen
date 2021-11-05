@@ -31,6 +31,7 @@ class ReportController extends Controller
     }
 
     public function view($class,$type){
+        
         return view('pages.reports.report-list',compact('class','type'));
         // if($type=='disbursements'){
         //     return view('pages.reports.report-list',compact('type'));
@@ -89,6 +90,7 @@ class ReportController extends Controller
             $for_download = $request->has('export') ? true : false;
             
             if($for_download){
+                
                 $list = Report::clientStatus($data,false);
                 $file = DownloadController::clientReport($list);
                 return response()->download($file['file'],$file['filename'],$file['headers'])->deleteFileAfterSend(true);
@@ -114,7 +116,19 @@ class ReportController extends Controller
             
             return response()->json($list,200);
         }
+
+        if ($type = 'loan_in_arrears_principal') {
+            $for_download = $request->has('export') ? true : false;
+        }
+
+        if ($for_download) {
+            $list = Report::loanInArrearsPrincipal($data,false,true);
+            $file = DownloadController::loanInArrearsPrincipalReport($list);
+            return response()->download($file['file'],$file['filename'],$file['headers'])->deleteFileAfterSend(true);
+        }
         
+        $list = Report::loanInArrearsPrincipal($data);
+        return response()->json($list, 200);
     }
 
     public function disbursements(array $data,$type){

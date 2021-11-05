@@ -115,6 +115,7 @@ Vue.component('create-client-dependents', require('./components/ClientDependentC
 Vue.component('client-dependents-list', require('./components/ClientDependentListComponent.vue').default);
 
 Vue.component('client-create-loan-account', require('./components/ClientCreateLoanAccountComponent.vue').default);
+Vue.component('client-edit-loan-account', require('./components/ClientEditLoanAccountComponent.vue').default);
 
 
 Vue.component('loan-profile', require('./components/LoanAccountDashboardComponent.vue').default);
@@ -132,6 +133,7 @@ Vue.component('report-deposit', require('./components/Reports/DepositsComponent.
 Vue.component('report-client', require('./components/Reports/ClientStatusComponent.vue').default);
 Vue.component('report-dst', require('./components/Reports/BulkDSTComponent.vue').default);
 Vue.component('user-list', require('./components/UserListComponent.vue').default);
+Vue.component('loan-in-arrears', require('./components/Reports/LoanInArrearsComponent.vue').default);
 Vue.component('transaction-method', require('./components/TransactionMethodComponent.vue').default);
 
 

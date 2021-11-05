@@ -2,9 +2,10 @@
 @section('content')
 
 	<div class="content content pl-32 pr-8 mt-4" id="content-full">
-
 	  <div class="row">
+		
 		    <div class="col-md-8"> 	
+				
 		      <div class="card pb-24">
 		      	<nav aria-label="breadcrumb">
 				  <ol class="breadcrumb">
@@ -12,7 +13,17 @@
 				    <li class="breadcrumb-item active" aria-current="page">Profile</li>
 				  </ol>
 				</nav>
+				@if (count($errors) > 0)
+					<div class = "alert alert-danger mx-3">
+						<ul>
+						@foreach ($errors->all() as $error)
+							<li>{{ $error }}</li>
+						@endforeach
+						</ul>
+					</div>
+				@endif
 				<div class="row">
+					
 					<div class="col-lg-4 profile-wrapper pl-8 pr-24">
 						<div class="text-center profile-picture">
 			            	<img src="{{$client->profile_picture_path == "" ? asset('assets/img/2x2.jpg') : asset('/storage/'.$client->profile_picture_path)}} " class="w-100 img-thumbnail" alt="Profile Photo">
@@ -50,6 +61,7 @@
 						@can('edit_client')
 						<a href="/client/{{$client->client_id}}/edit" type="submit" class="btn btn-primary float-right mr-4">Edit Client</a>
 						@endcan
+						<a href="#status" data-toggle="modal" type="submit" class="btn btn-primary float-right mr-4">Change Status</a>
 						<div class="p-details">
 							
 							<p class="title text-2xl">{{$client->name()}}</p>
@@ -64,21 +76,18 @@
 					            </div>
 							</div>
 							<div class="col-lg-6">
-								<div class="d-inline-block p-details mt-4 rating">
-									<p class="title text-xl">Rating</p>
-									 <i class="star-1">★</i>
-									  <i class="star-2">★</i>
-									  <i class="star-3">★</i>
-									  <i class="star-4">★</i>
-									  <i class="star-5">★</i>
-								</div>
 								<div class="p-details mt-4">
 									<p class="title text-xl">{{$client->office->name}}</p>
 									<p class="title text-xl">Created at</p>
 									<p class="text-light text-lg">{{$client->created_at->format('F, j Y')}} - {{$client->created_at->diffForHumans()}}</p>
 								</div>
 								<div class="p-details mt-2">
-									<p class="title text-xl">Status: <span class="badge badge-pill badge-success">Active</span></h1></p>
+									@if($client->status == 'Active')
+									<p class="title text-xl">Status:<span class="badge badge-pill badge-success">{{$client->status}}</span></p>
+									@else
+									<p class="title text-xl">Status:<span class="badge badge-pill badge-light">{{$client->status}}</span></p>
+									@endif
+									
 								</div>
 							</div>
 						</div>
@@ -186,9 +195,11 @@
 		          	<a href="{{route('client.loan.list',$client->client_id)}}"><h4 class="mt-2 text-2xl">Loan Accounts</h4></a>
 		          </div>
 		          @endcan
-		          @can('create_loan_account')
-		           <a href="{{route('client.loan.create',$client->client_id)}}" class="text-base float-right btn-create">Create Account</a>
-		          @endcan
+				  @if($client->status == 'Active')
+					@can('create_loan_account')
+					<a href="{{route('client.loan.create',$client->client_id)}}" class="text-base float-right btn-create">Create Account</a>
+					@endcan
+				  @endif
 		        </div>
 		        <div class="card-body">
 		          <div class="table-accounts table-full-width table-responsive">
@@ -245,10 +256,11 @@
 			          <div class="float-left text-center">
 			          	<h4 class="mt-2 text-2xl">Deposit Accounts</h4>
 			          </div>
+					  @if($client->status == 'Active')
 			          @can('create_deposit_account')
 			          <a href="/client/{{$client->client_id}}/create/deposit" class="float-right btn-create text-base">Create Account</a>
 			          @endcan
-
+					  @endif
 			        </div>
 			        <div class="card-body">
 			          <div class="table-accounts table-full-width mb-0 table-responsive">
@@ -278,10 +290,10 @@
 								
 			                  </td>
 			                  <td>
-								@if($cbu->status)
+								@if($cbu->status == 'Active')
 								<span class="badge badge-pill badge-success">{{$cbu->status}}</span></h1>
 								@else
-								<span class="badge badge-pill badge-danger">{{$cbu->status}}</span></h1>
+								<span class="badge badge-pill badge-light">{{$cbu->status}}</span></h1>
 								@endif
 			                  </td>
 							</tr>
@@ -305,7 +317,9 @@
 		          <div class="float-left text-center">
 		          	<h4 class="mt-2 h5">Micro-Insurance</h4>
 		          </div>
-					<a href="{{route('client.manage.dependents',$client->client_id)}}" class="float-right btn-create">Manage</a>
+				  	@if($client->status == 'Active')
+						<a href="{{route('client.manage.dependents',$client->client_id)}}" class="float-right btn-create text-xl">Manage</a>
+					@endif	
 				</div>
 				
 		        <div class="card-body">
@@ -333,27 +347,26 @@
 					</table>
 					</div>
 				</div>
-				
-				
-				
 		      </div>
-		    	<!-- <div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+		    	<div id="status" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
 				  <div class="modal-dialog modal-lg">
 				    <div class="modal-content">
-				    	<h4 class="h4">New Loan Account</h4>
-				     	<div class="row">
-				     		<div class="modal-form-group">
-					     		<form>
-						     		<div class="col-lg-12">
-						     			<label>Disbursement Date</label>
-						     			<date-picker></date-picker>
-						     		</div>
-					     		</form>
-				     		</div>
+				    	
+				     	<div class="row w-100 mx-0">
+							<form method="POST" class="w-100 px-2 py-2" action="/client/change_status/{{$client->client_id}}">
+								@csrf
+								<h4 class="h4" style="color:#1d253b;">Change Status</h4>
+								<label for="status" class="text-xl">Status:</label>
+								<select name="status" id="status" class="form-control">
+									<option value="">Please Select</option>
+									<option value="Closed">Closed</option>
+								</select>
+								<button class="btn btn-primary mt-4" type="submit">Submit</button>
+							</form>
 				     	</div>
 				    </div>
 				  </div>
-				</div> -->
+				</div> 
 		    </div>
 	  	</div>
 	</div>

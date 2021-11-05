@@ -585,13 +585,14 @@ class AppServiceProvider extends ServiceProvider
             $details = $validator->getData()[$row]; //-2 coz row 2 = index 0
             $loan_amount = (double) $details['loan_amount'];
 
-            $fees_rate = collect([0.05,0.03,0.15]);
+            $fees_rate = collect([0.05,0.03,0.015]);
             $possible_fee_amounts =[];
             $fees_rate->map(function($item) use (&$possible_fee_amounts, $loan_amount){
                 $possible_fee_amounts[] = $loan_amount * $item;
             });
             
-
+            
+            
             $result = in_array($value, $possible_fee_amounts) ? true : false;
             $customMessage = "Invalid Processing Fee Amount";
             $validator->addReplacer('possible_processing_fees', 
