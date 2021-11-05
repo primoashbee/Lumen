@@ -110,7 +110,7 @@ class LoanAccountController extends Controller
         // ]
         
         $calculator = LoanAccount::calculate($data);
-
+        dd($calculator);
         //dependent on calculator result.
         $data = array(
             'amount'=>$loan_amount,
