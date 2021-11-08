@@ -223,7 +223,7 @@
                         this.isLoading =false
                     })
                 }else{
-                    axios.get(this.fetchOfficeLink+'?page='+page)
+                    axios.get(this.fetchOfficeLink+'&page='+page)
                     .then(res => {
                         this.checkIfHasRecords()
                         this.isLoading =false
@@ -255,12 +255,13 @@
             fetchOfficeLink(){
                 var str ="/settings/office/list/"+this.level
                 var params_count=0
+                
                 if(this.query!=""){
                     params_count++
                     if(params_count > 1){
-                        str+="?&search="+this.query
+                        str+="?search="+this.query
                     }else{
-                        str+="?&search="+this.query
+                        str+="?search="+this.query
                     }
                 }
                 

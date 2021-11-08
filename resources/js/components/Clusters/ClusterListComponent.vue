@@ -223,7 +223,7 @@
                         this.isLoading =false
                     })
                 }else{
-                    axios.get(this.fetchOfficeLink+'?page='+page)
+                    axios.get(this.fetchOfficeLink+'&page='+page)
                     .then(res => {
                         this.checkIfHasRecords()
                         this.isLoading =false
@@ -263,9 +263,9 @@
                 if(this.query!=""){
                     params_count++
                     if(params_count > 1){
-                        str+="?&search="+this.query
+                        str+="?search="+this.query
                     }else{
-                        str+="?&search="+this.query
+                        str+="?search="+this.query
                     }
                 }
                 
