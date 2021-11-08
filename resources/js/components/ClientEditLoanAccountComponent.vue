@@ -235,6 +235,7 @@ export default {
 		updateLoan(){
 			this.form.client_id = this.client_id
 			this.form.interest_rate = this.selected_interest
+			// this.form.account.disbursement_date = moment(this.calculator.disbursement_date).format('YYYY-MM-DD')
 			axios.post(this.fetchLoanAccountLink,this.form)
 			.then(res=>{
 				Swal.fire({
@@ -270,11 +271,14 @@ export default {
 			.then(res=>{
 				this.calculator = res.data.data
 				this.fees = this.calculator.fees
+				this.form.account.disbursement_date = this.form.disbursement_date
 				this.form.installments = this.calculator.installments
 				this.form.account.amount = this.calculator.amount
 				this.form.account.loan_id = this.form.loan_id
-				this.form.account.first_payment = this.calculator.start_date
-				this.form.account.last_payment_date = this.calculator.end_date
+				this.form.account.first_payment = moment(this.calculator.start_date).format('YYYY-MM-DD')
+				this.form.account.first_payment_date = moment(this.calculator.start_date).format('YYYY-MM-DD')
+				this.form.account.last_payment_date = moment(this.calculator.end_date).format('YYYY-MM-DD')
+				
 				this.form.account.principal = this.calculator.principal
 				this.form.account.interest = this.calculator.interest
 				this.form.account.total_loan_amount = this.calculator.total_loan_amount
