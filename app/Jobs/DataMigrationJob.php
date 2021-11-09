@@ -66,6 +66,7 @@ class DataMigrationJob implements ShouldQueue
             //  Log::alert('tae');
              Log::alert($errors);
              $this->migration->error()->create([
+                 'migration_id' => $this->migration->id,
                 'errors'=>$errors
              ]);
              $this->migration->logs()->create([
@@ -81,9 +82,9 @@ class DataMigrationJob implements ShouldQueue
 
     }
 
-    // public function failed($event){
-    //     Log::alert($event);
-    //     // Notification::route('slack', env('SLACK_WEBHOOK_URL'))->notify(new DataMigrationJobFailed($event));
-    // }
+    public function failed($event){
+        Log::alert($event);
+        // Notification::route('slack', env('SLACK_WEBHOOK_URL'))->notify(new DataMigrationJobFailed($event));
+    }
 
 }

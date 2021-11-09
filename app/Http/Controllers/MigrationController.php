@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DataMigration;
+use App\DataMigrationError;
 use App\Events\TestEvent;
 use Illuminate\Http\Request;
 use App\Jobs\DataMigrationJob;
@@ -56,7 +57,8 @@ class MigrationController extends Controller
     }
 
     public function logs(DataMigration $migration){
-            
+
+        
         $logs = !is_null($migration->error) ? collect($migration->error->errors) : collect([]);
         
         
