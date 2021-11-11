@@ -22,6 +22,11 @@ class HolidayController extends Controller
     }
 
     public function update(Holiday $holiday, HolidayRequest $request){
+
+        if($holiday->implemented == true){
+            abort(403);
+        }
+
         $holiday->update([
                 'name' => $request->name,
                 'date' => $request->date,
@@ -32,8 +37,8 @@ class HolidayController extends Controller
     }
 
     public function createHoliday(HolidayRequest $request){
-        // dd($request);
-        Holiday::create($request->all());
+        $data = array_merge($request->all(), ['implemented' => false]);
+        Holiday::create($data);
 
         return response()->json(['msg' => 'Holiday Successfully Created']);
     }

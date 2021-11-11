@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use App\ParMovement;
 use Illuminate\Support\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ParMovementCompute extends Command
 {
@@ -53,7 +55,7 @@ class ParMovementCompute extends Command
         
         $start = now()->startOfDay()->subDays(7);
         try {
-            DB::beginTransaction();
+            \DB::beginTransaction();
             for($x=0;$x<=6;$x++){
                 $date  = $start->copy()->addDays($x);
                 // $date = now();
@@ -63,9 +65,9 @@ class ParMovementCompute extends Command
                 $this->info('Finished');
     
             }
-            DB::commit();
+            \DB::commit();
         } catch (\Throwable $e) {
-            DB::rollback();
+            \DB::rollback();
             Log::warning($e->getMessage());
         }
         

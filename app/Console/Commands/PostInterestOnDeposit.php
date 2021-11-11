@@ -42,15 +42,15 @@ class PostInterestOnDeposit extends Command
 
         $this->info('Starting....');
         try {
-            DB::beginTransaction();
+            \DB::beginTransaction();
             $list = DepositAccount::listForInterestPosting();
 
             $list->map(function($item){
             $item->postInterest();
-            DB::commit();
+            \DB::commit();
         });
         } catch (\Throwable $e) {
-            DB::rollback();
+            \DB::rollback();
             Log::warning($e->getMessage());
         }
         

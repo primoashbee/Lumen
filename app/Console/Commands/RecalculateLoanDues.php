@@ -54,7 +54,7 @@ class RecalculateLoanDues extends Command
         // }
         
         try {
-            DB::beginTransaction();
+            \DB::beginTransaction();
             $accounts = LoanAccount::active()->chunkById(100, function($loans){
                 foreach($loans as $loan){
                     $loan->updateStatus();
@@ -62,7 +62,7 @@ class RecalculateLoanDues extends Command
             });
             $this->info('Starting....');
             $this->info('Date is ' . now()->toDateString());
-            $lai = DB::table('loan_account_installments');
+            $lai = \DB::table('loan_account_installments');
             $loan_accounts_installments_repayments = DB::table('loan_account_installment_repayments')
             ->select('principal_paid','interest_paid','total_paid','loan_account_installment_id')
             ->leftJoinSub($lai,'loan_account_installment', function($join){
@@ -70,7 +70,7 @@ class RecalculateLoanDues extends Command
             });
             
 
-            $deposit_accounts_installments_repayments = DB::table('deposit_to_loan_installment_repayments')
+            $deposit_accounts_installments_repayments = \DB::table('deposit_to_loan_installment_repayments')
             ->select('principal_paid','interest_paid','total_paid','loan_account_installment_id')
             ->leftJoinSub($lai,'loan_account_installment', function($join){
                 $join->on('loan_account_installment.id','deposit_to_loan_installment_repayments.loan_account_installment_id');
@@ -78,7 +78,7 @@ class RecalculateLoanDues extends Command
 
             $payments =  $loan_accounts_installments_repayments->unionAll($deposit_accounts_installments_repayments);
 
-            $lai = DB::table('loan_account_installments')
+            $lai = \DB::table('loan_account_installments')
             ->select(
                 'installment',
                 'amount_due',
@@ -109,9 +109,9 @@ class RecalculateLoanDues extends Command
 
             $this->info('Updating ' . $lai . ' accounts.');
 
-            DB::commit();
+            \DB::commit();
         } catch (Exception $e) {
-            DB::rollBack();
+            \DB::rollBack();
             Log::warning($e->getMessage());
         }            
         
