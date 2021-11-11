@@ -725,15 +725,17 @@ class DownloadController extends Controller
     }
 
     public static function depositAccounts($data){
+        
         $ts = str_replace('.','',microtime(true));
         $filename = 'Deposit Accounts ('.$ts.').xlsx';
             // $file = public_path('templates/Reports/Detailed Deposit Report.xlsx');
         $file = public_path('templates/Reports/Deposit Accounts.xlsx');
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
         $sheet =$spreadsheet->getSheet(0);
-    
+        
         $start_row = 3  ;
         $data['accounts']->orderBy('id','desc')->chunkById(200, function($items) use (&$sheet, &$start_row){
+            
             foreach ($items as $key=>$value) {
                 $sheet->setCellValue('A'.$start_row, $key + 1);
                 $sheet->setCellValue('B'.$start_row, $value->office);
@@ -745,7 +747,8 @@ class DownloadController extends Controller
                 $sheet->setCellValue('H'.$start_row, $value->status);
                 $start_row++;
             }
-        });
+        },'deposit_id','id');
+        
         
         $writer = new Xlsx($spreadsheet);
         $writer->setPreCalculateFormulas(false);
