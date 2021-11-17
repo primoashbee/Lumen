@@ -19,7 +19,7 @@ class ParMovement extends Model
 
     public static $aging = [[1,30],[31,60],[61,90],[91,180],181];
     public static function generate($date){
-
+        
         $insert_data = [];
         $date = Carbon::parse($date);
 
@@ -64,9 +64,10 @@ class ParMovement extends Model
                         $q->whereIn('office_id', $ids);
                     })
                     ->where('aging.rowno', 1);
-      
+            
                 $count = count(ParMovement::$aging);
                 $ctr=1;
+                // dd($summary->get());
                 foreach(ParMovement::$aging as $aging){
                     $value = $aging;
                     if(is_array($aging)){
@@ -85,15 +86,16 @@ class ParMovement extends Model
                         })
                         ->when($ctr,function($q,$data) use($aging, $count){
                             if($data==$count){
-                                // dd($aging);
                                 $q->where('days','>',$aging);
                             }else{
                                 $q->whereBetween('days',$aging);
                             }
                         })
                         
-                        ->where('offices.id','=',$office_id)
+                        // ->where('offices.id','=',$office_id)
+                        ->groupBy('offices.id')
                         ->get();
+                        
                         // $movements[] = $temp_movement;
                         collect($temp_movement)->map(function($x) use(&$movements){
                             $movements[] = array(
@@ -106,10 +108,11 @@ class ParMovement extends Model
                                 'updated_at'=>now(),
                             );
                         });
+                        
                         $ctr++;
                 }
                     
-    
+                // dd($movements);
           
           
         }
@@ -170,7 +173,7 @@ class ParMovement extends Model
                     // ->get();
             $ctr=1;
             $count = count(ParMovement::$aging);
-
+            
             foreach (ParMovement::$aging as $aging) {
                 $tables = [];
                 $value = $aging;
