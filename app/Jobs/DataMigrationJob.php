@@ -29,6 +29,7 @@ class DataMigrationJob implements ShouldQueue
      */
     protected $migration;
     protected $filepath;
+    public $timeout = 0;
 
     public function __construct(DataMigration $migration, $filepath)
     {
@@ -46,8 +47,10 @@ class DataMigrationJob implements ShouldQueue
 
         try {
             DB::beginTransaction();
+            
             Excel::import(new GeneralDataImport($this->migration), $this->filepath);
-            $this->migration->logs()->create([
+            
+        $this->migration->logs()->create([
                 'status'=>200,
                 'message'=>'Success'
             ]);
@@ -62,11 +65,12 @@ class DataMigrationJob implements ShouldQueue
                  $error['errors'] = $failure->errors(); // Actual error messages from Laravel validator
                  $errors[] = $error;
                  
-             }
+            }
             //  Log::alert('tae');
              Log::alert($errors);
+             
              $this->migration->error()->create([
-                 'migration_id' => $this->migration->id,
+                'migration_id' => $this->migration->id,
                 'errors'=>$errors
              ]);
              $this->migration->logs()->create([
@@ -75,11 +79,6 @@ class DataMigrationJob implements ShouldQueue
             ]);
             DB::rollBack();
         }
-
-
-        
-
-
     }
 
     public function failed($event){
