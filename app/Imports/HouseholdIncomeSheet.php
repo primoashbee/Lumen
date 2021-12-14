@@ -6,6 +6,7 @@ use App\DataMigration;
 use App\HouseholdIncome;
 use App\Traits\Loggable;
 use App\Rules\ServiceType;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Events\BeforeSheet;
@@ -16,9 +17,10 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 
 // class HouseholdIncomeSheet implements ToModel, WithHeadingRow, WithStartRow
-class HouseholdIncomeSheet implements ToModel, WithStartRow, WithHeadingRow, WithValidation,SkipsEmptyRows, WithBatchInserts, WithMapping,WithCalculatedFormulas
+class HouseholdIncomeSheet implements ToModel, WithStartRow, WithHeadingRow,WithChunkReading, WithValidation,SkipsEmptyRows, WithBatchInserts, WithMapping,WithCalculatedFormulas,ShouldQueue
 
 {
     
@@ -27,6 +29,7 @@ class HouseholdIncomeSheet implements ToModel, WithStartRow, WithHeadingRow, Wit
         $this->migration =  $migration;
     }
 
+   
 
     
     public function model(array $row)
@@ -70,7 +73,11 @@ class HouseholdIncomeSheet implements ToModel, WithStartRow, WithHeadingRow, Wit
     }
     public function batchSize(): int
     {
-        return 2000;
+        return 500;
+    }
+    public function chunkSize(): int
+    {
+        return 1000;
     }
     public function headingRow() : int {
         return 1;

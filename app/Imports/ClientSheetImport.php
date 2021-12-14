@@ -7,6 +7,7 @@ use App\Client;
 use Carbon\Carbon;
 use App\DataMigration;
 use App\Traits\Loggable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Events\AfterImport;
@@ -23,8 +24,9 @@ use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\RegistersEventListeners;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class ClientSheetImport implements ToModel, WithStartRow,  WithValidation, WithHeadingRow, SkipsEmptyRows, WithBatchInserts, WithEvents
+class ClientSheetImport implements ToModel, WithStartRow,  WithValidation, WithHeadingRow, SkipsEmptyRows, WithBatchInserts, WithEvents,WithChunkReading,ShouldQueue
 {
     use Importable, RegistersEventListeners;
     
@@ -34,15 +36,17 @@ class ClientSheetImport implements ToModel, WithStartRow,  WithValidation, WithH
     }
     public function batchSize(): int
     {
-        return 2000;
+        return 20;
     }
     public function headingRow() : int {
         return 1;
     }
-
+    public function chunkSize(): int
+    {
+        return 20;
+    }
     public function map($row) : array
     {
-        
         return $row;
     }
     public function model(array $row){

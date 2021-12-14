@@ -21,10 +21,12 @@ use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use App\Http\Controllers\LoanAccountController;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\RegistersEventListeners;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class LoanAccountSheetImport implements ToCollection, WithValidation, WithStartRow, WithMapping, WithHeadingRow,SkipsEmptyRows, WithBatchInserts
+class LoanAccountSheetImport implements ToCollection, WithValidation, WithStartRow,WithChunkReading, WithMapping, WithHeadingRow,SkipsEmptyRows, WithBatchInserts,ShouldQueue
 {
     protected $migration;
     public function __construct(DataMigration $migration){
@@ -33,8 +35,12 @@ class LoanAccountSheetImport implements ToCollection, WithValidation, WithStartR
 
     public function batchSize(): int
     {
-        return 2000;
+        return 1;
     }   
+    public function chunkSize(): int
+    {
+        return 1;
+    }
     public function collection(Collection $rows)
     {
         
@@ -45,6 +51,7 @@ class LoanAccountSheetImport implements ToCollection, WithValidation, WithStartR
         
         foreach ($rows as $row) 
         {
+            \DB::beginTransaction();
             $loan = Loan::find($row['loan_id']);
             $client = Client::fcid($row['client_id']);
             $number_of_installments = $row['number_of_installments'];
@@ -101,7 +108,12 @@ class LoanAccountSheetImport implements ToCollection, WithValidation, WithStartR
                 'disbursement_date'=>$calculator->disbursement_date,
                 'first_payment_date'=>$calculator->start_date,
                 'last_payment_date'=>$calculator->end_date,
-                'created_by'=>$user_id
+                'created_by'=>$user_id,
+
+                'approved_by'=>$user_id,
+                'approved_at'=>Carbon::now(),
+                'status'=>'Approved',
+                'approved'=>true
             ]);
             $lac = new LoanAccountController;
             $lac->createInstallments($loan_acc,$calculator->installments);
@@ -122,7 +134,7 @@ class LoanAccountSheetImport implements ToCollection, WithValidation, WithStartR
                     'loan_account_id'=>$loan_acc->id,
                     'fee_id'=>$fees->where('name','CGLI Premium')->first()->id,
                     'amount'=>$cgli_premium
-                    
+
                 ];
             }
             if($dst > 0){
@@ -175,9 +187,9 @@ class LoanAccountSheetImport implements ToCollection, WithValidation, WithStartR
             });
             
             
-            //approve
-            $loan_acc->approve($user_id );
-            //disburse
+            // //approve
+            // // $loan_acc->approve($user_id );
+            // // //disburse
             $disbursement_info = [
                 'disbursement_date'=>$row['disbursement_date'],
                 'first_repayment_date'=>$row['first_payment_date'],
@@ -202,7 +214,7 @@ class LoanAccountSheetImport implements ToCollection, WithValidation, WithStartR
                 'notes'=>'Migration Repayment'
             ];
             $loan_acc->payV2($payment_info,true);
-
+            \DB::commit();
         }
     }
 

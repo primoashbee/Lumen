@@ -27,7 +27,7 @@ class DepositAccountSheetImport implements ToModel, WithStartRow, WithValidation
 
     public function batchSize(): int
     {
-        return 2000;
+        return 50;
     }
     
     public function headingRow() : int 
