@@ -7,6 +7,7 @@ use App\Business;
 use App\DataMigration;
 use App\Traits\Loggable;
 use App\Rules\ServiceType;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Events\BeforeSheet;
@@ -15,8 +16,9 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class BusinessSheetImport implements ToModel, WithStartRow, WithValidation,SkipsEmptyRows, WithBatchInserts
+class BusinessSheetImport implements ToModel, WithStartRow, WithValidation,SkipsEmptyRows, WithBatchInserts,WithChunkReading,ShouldQueue
 {
     use Loggable;
 
@@ -41,7 +43,7 @@ class BusinessSheetImport implements ToModel, WithStartRow, WithValidation,Skips
 
     public function batchSize(): int
     {
-        return 2000;
+        return 500;
     }
     public function model(array $row){
         
@@ -60,6 +62,10 @@ class BusinessSheetImport implements ToModel, WithStartRow, WithValidation,Skips
     public function startRow(): int 
     {
         return 2;
+    }
+    public function chunkSize(): int
+    {
+        return 500;
     }
 
     public function rules(): array
