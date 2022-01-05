@@ -137,6 +137,7 @@ class DownloadController extends Controller
         $dst->setCellValue('D69','=SUM(D19:D67)');
         $dst->setCellValue('E69','=SUM(E19:E67)');
         $dst->setCellValue('F69','=SUM(F19:F67)');
+        $dst->setCellValue('G69','=IF($D$9>0,IRR(G18:G67,0.09),1)');
         $dst->setCellValue('H76','=(1+G69)^52-1');
         $dst->setCellValue('H80','=((1+G69)^(52/12)-1)');
 
@@ -534,8 +535,10 @@ class DownloadController extends Controller
                     $sheet->setCellValue('P'.$start_row, $value->disbursement_date);
                     $sheet->setCellValue('Q'.$start_row, $value->first_payment_date);
                     $sheet->setCellValue('R'.$start_row, $value->last_payment_date);
-                    $sheet->setCellValue('S'.$start_row, $value->notes);
-                    $sheet->setCellValue('T'.$start_row, $value->office_level);
+                    $sheet->setCellValue('S'.$start_row, $value->rcbu);
+                    $sheet->setCellValue('T'.$start_row, $value->mcbu);
+                    $sheet->setCellValue('U'.$start_row, $value->notes);
+                    $sheet->setCellValue('V'.$start_row, $value->office_level);
                     $start_row++;
                 }
             });
@@ -811,7 +814,7 @@ class DownloadController extends Controller
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
         $sheet =$spreadsheet->getSheet(0);
         $start_row = 3  ;
-        $data['data']->orderBy('id','desc')->chunkById(200, function($items) use (&$sheet, &$start_row){
+        $data['data']->orderBy('id','desc')->chunk(200, function($items) use (&$sheet, &$start_row){
             
             foreach ($items as $key=>$value) {
                 $sheet->setCellValue('A'.$start_row, $key + 1);
@@ -856,7 +859,7 @@ class DownloadController extends Controller
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
         $sheet =$spreadsheet->getSheet(0);
         
-        $data['data']->orderBy('la_id','desc')->chunkById(200, function($items) use (&$sheet, &$start_row){
+        $data['data']->orderBy('la_id','desc')->chunk(200, function($items) use (&$sheet, &$start_row){
         $start_row = 3;
             foreach ($items as $key=>$value) {
                 
