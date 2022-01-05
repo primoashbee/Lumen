@@ -51,25 +51,20 @@
                                         </td>
                                         <td>
                                             @if($item->status=="Pending Approval")
-                                            <a href="{{route('loan.approve',$item->id)}}"><button class="btn btn-light">Approve</button></a>
-                                            @elseif($item->status=="Approved")
-                                            <a href="{{route('loan.disburse',$item->id)}}"><button class="btn btn-light">Disburse</button></a>
-                                            @else
-                                              
+                                                @can('approve_loan')
+                                                    <a href="{{route('loan.approve',$item->id)}}"><button class="btn btn-light">Approve</button></a>    
+                                                @endcan
+                                                
                                             @endif
                                             <a href="{{route('loan.account',[$client->client_id,$item->id])}}">
                                                 <button class="btn btn-light">View</button>
                                             </a>
-                                            @if($item->status=="Pending Approval")
-                                            <a href="/client/{{$client->client_id}}/loan/{{$item->id}}">
-                                                <button class="btn btn-light">Edit</button>
-                                            </a>
-                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                     </table>
+                    
 				</div>
 			</div>
 		</div>

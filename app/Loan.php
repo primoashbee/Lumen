@@ -128,7 +128,7 @@ class Loan extends Model
                             (object) [
                                 'code'=>'MPL',
                                 'installments'=>20,
-                                'rate'=>   3.70160  ,
+                                'rate'=>   3.70160,
                                 'number_of_months'=>5
                             ],
                             
@@ -243,7 +243,7 @@ class Loan extends Model
                             (object) [
                                 'code'=>'MPL',
                                 'installments'=>96,
-                                'rate'=> 3.48550 ,
+                                'rate'=>  3.48550,
                                 'number_of_months'=>24,
                             ],
                             
@@ -417,48 +417,48 @@ class Loan extends Model
                                 'rate'=>4.86304,
                                 'number_of_months'=>6
                             ],
-                            (object) [
-                                'code'=>'GML',
-                                'installments'=>18,
-                                'rate'=>4.87844,
-                                'number_of_months'=>9
-                            ],
-                            (object) [
-                                'code'=>'GML',
-                                'installments'=>20,
-                                'rate'=>4.86870,
-                                'number_of_months'=>10
-                            ],
-                            (object) [
-                                'code'=>'GML',
-                                'installments'=>22,
-                                'rate'=>4.85516,
-                                'number_of_months'=>11
-                            ],
+                            // (object) [
+                            //     'code'=>'GML',
+                            //     'installments'=>18,
+                            //     'rate'=>4.87844,
+                            //     'number_of_months'=>9
+                            // ],
+                            // (object) [
+                            //     'code'=>'GML',
+                            //     'installments'=>20,
+                            //     'rate'=>4.86870,
+                            //     'number_of_months'=>10
+                            // ],
+                            // (object) [
+                            //     'code'=>'GML',
+                            //     'installments'=>22,
+                            //     'rate'=>4.85516,
+                            //     'number_of_months'=>11
+                            // ],
                             (object) [
                                 'code'=>'GML',
                                 'installments'=>24,
                                 'rate'=> 4.83896,
                                 'number_of_months'=>12
                             ],
-                            (object) [
-                                'code'=>'GML',
-                                'installments'=>30,
-                                'rate'=>4.78116,
-                                'number_of_months'=>15
-                            ],
-                            (object) [
-                                'code'=>'GML',
-                                'installments'=>36,
-                                'rate'=>4.71728,
-                                'number_of_months'=>18
-                            ],
-                            (object) [
-                                'code'=>'GML',
-                                'installments'=>40,
-                                'rate'=>4.67386,
-                                'number_of_months'=>20
-                            ],
+                            // (object) [
+                            //     'code'=>'GML',
+                            //     'installments'=>30,
+                            //     'rate'=>4.78116,
+                            //     'number_of_months'=>15
+                            // ],
+                            // (object) [
+                            //     'code'=>'GML',
+                            //     'installments'=>36,
+                            //     'rate'=>4.71728,
+                            //     'number_of_months'=>18
+                            // ],
+                            // (object) [
+                            //     'code'=>'GML',
+                            //     'installments'=>42,
+                            //     'rate'=>4.67386,
+                            //     'number_of_months'=>20
+                            // ],
                         ]) 
                     ],
                     (object) [
@@ -811,9 +811,6 @@ class Loan extends Model
         return collect($data);
     }
 
-    public function sample(){
-
-    }
     public static function getRateFromInstallment($loan_id,$number_of_installments){
         return Loan::rates(1)->rates->where('installments', $number_of_installments)->first();
 

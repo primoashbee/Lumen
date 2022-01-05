@@ -36,7 +36,7 @@ class RevertController extends Controller
             }
             \DB::commit();
             return response()->json(['msg'=>'Successfully Reverted!']);  
-        }catch(Execption $e){
+        }catch(Exeception $e){
             return response()->json(['msg'=>$e->getMessage()],500);
         }
     }

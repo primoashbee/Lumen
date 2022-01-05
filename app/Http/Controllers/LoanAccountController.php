@@ -500,18 +500,19 @@ class LoanAccountController extends Controller
                 'disbursed_by'=>auth()->user()->id,
                 'payment_method_id'=>$payment_method_id 
             ]);
-        
+            
         $account->updateStatus();
+        
         $account->dependents->update([
             'status'=>'Used',
             'loan_account_id'=>$account->id,
             'activated_at'=>Carbon::now(),
             'expires_at'=>Carbon::now()->addDays(env('INSURANCE_MATURITY_DAYS'))
-            ]);
+        ]);
         
         
         \DB::commit();
-        return redirect()->back();
+        return response()->json(['msg' => "Loan Disburse Successfully"], 200);
         }catch(\Exception $e){
             return response()->json(['msg'=>$e->getMessage()],500);
     
@@ -788,7 +789,8 @@ class LoanAccountController extends Controller
     }
 
     public function editAccount($client_id, $loan_id){
-        $client = Client::fcid($client_id)->with(['businesses','household_income'])->first();
+        
+        $client = Client::fcid($client_id);
         return view('pages.client-edit-loan-account', compact(['client_id','loan_id','client']));
 
     }

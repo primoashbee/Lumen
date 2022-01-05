@@ -15,9 +15,20 @@
                   </nav>
 				<div class="card-header">
                     <div class="row px-4">
-                        <div class="w-100">
-                            <h3 class="h3 float-left">{{client.full_name}} - {{loan_type}}</h3>
-                            <a v-if="account.status == 'Pending Approval'" :href="editLoan" class="btn btn-primary float-right">Edit Loan</a>
+                        <div class="w-100 col-lg-6 px-0">
+                            <h3 class="h2">{{client.full_name}}</h3>
+                            <p class="text-xl text-white">{{loan_type}}</p>
+                        </div>  
+                        <div v-if="account.status == 'Approved'" class="col-lg-6 text-right">
+                            <button v-if="can('disburse_loan') || is('Super Admin')" 
+                            type="button" 
+                            class="btn btn-primary"
+                            @click="openDisburseModal">
+                                Disburse
+                            </button>
+                        </div>
+                        <div v-if="account.status == 'Pending Approval' && can('edit_loan_account')" class="text-right col-lg-6">
+                            <a :href="editLoan" class="btn btn-primary float-right">Edit Loan</a>
                         </div>
                         <div class="text-right col-lg-6" v-if="account.disbursed!=0 && account.closed_at==null">
                             <button v-if="can('enter_repayment') || is('Super Admin')" type="button" class="btn btn-primary" data-toggle="modal" @click="modal.modalState=true">
@@ -26,7 +37,7 @@
                             <button v-if="can('enter_repayment') || is('Super Admin')"   type="button" class="btn btn-primary" data-toggle="modal" @click="preTerm">
                                 PreTerminate
                             </button>
-                            <button   type="button" class="btn btn-primary" data-toggle="modal" @click="exportDST">
+                            <button type="button" class="btn btn-primary" data-toggle="modal" @click="exportDST">
                                 <i class="fas fa-file-invoice"></i> 
                             </button>
                         </div>
@@ -278,10 +289,63 @@
     </form>
 </b-modal>
 
+
+<b-modal id="disbursement-modal" v-model="disburseModalState" size="lg" hide-footer :title="modal.modal_title" :header-bg-variant="background" :body-bg-variant="background">
+    <div v-if="account">
+        <h1> Total Fees: {{account.total_deductions}} </h1>
+        <h1> Total Loan Amount (P + I): {{account.total_loan_amount}} </h1>
+        <h1> Total Disburse Amount: {{ account.disbursed_amount}}</h1>
+    </div>
+    <div class="row">
+        <div class="col-lg-12 px-4 py-2">
+            <form @submit.prevent="disburse">
+                <div class="form-group mt-4">
+                    <label class="text-lg">Branch</label>
+                    <v2-select @officeSelected="assignOfficeForm" list_level="branch" v-bind:class="hasError('office_id') ? 'is-invalid' : ''"></v2-select>
+                    <div class="invalid-feedback" v-if="hasError('office_id')">
+                        {{ errors.office_id[0]}}
+                    </div>
+                </div>
+                <div class="form-group mt-4">
+                    <label class="text-lg">Disbursement Date</label>
+                    <input type="date" v-model="formDisbursement.disbursement_date"  class="form-control" v-bind:class="hasError('disbursement_date') ? 'is-invalid' : ''">
+                    <div class="invalid-feedback" v-if="hasError('disbursement_date')">
+                        {{ errors.disbursement_date[0]}}
+                    </div>
+                </div>
+                <div class="form-group mt-4">
+                    <label class="text-lg">First Repayment Date</label>
+                    <input type="date" v-model="formDisbursement.first_repayment_date"  class="form-control" v-bind:class="hasError('first_repayment_date') ? 'is-invalid' : ''">
+                    <div class="invalid-feedback" v-if="hasError('first_repayment_date')">
+                        {{ errors.first_repayment_date[0]}}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="text-lg">Payment Method</label>
+                    <payment-methods payment_type="for_repayment" @paymentSelected="disbursePaymentSelected" v-bind:class="hasError('payment_method_id') ? 'is-invalid' : ''" ></payment-methods>
+                    <div class="invalid-feedback" v-if="hasError('payment_method_id')">
+                        {{ errors.payment_method_id[0]}}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="text-lg">CV #:</label>
+                    <input type="text" class="form-control" v-model="form.cv_number" v-bind:class="hasError('check_voucher') ? 'is-invalid' : ''">
+                    <div class="invalid-feedback" v-if="hasError('check_voucher')">
+                        {{ errors.check_voucher[0]}}
+                    </div>
+                </div>
+
+                
+                <button class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+</b-modal>
 </div>
 </template>
 
 <script>
+
 import moment from 'moment'
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
@@ -312,7 +376,7 @@ export default {
             },
             errors: null,
             office_id:null,
-            
+            disburseModalState:false,
             fees:null,
             form : {
                 loan_account_id: null,
@@ -325,6 +389,14 @@ export default {
                 jv_number: null,
                 payment_method_id: null,
             },
+            formDisbursement :{
+                office_id :null,
+                paymentSelected : null,
+                
+                disbursement_date : null,
+                first_repayment_date : null,
+                cv_number: null,
+            },
             total_paid: null,
             pre_term_amount: null,
             payment_type : null,
@@ -335,6 +407,12 @@ export default {
     methods:{
         money(item){
             return moneyFormat(item);
+        },
+        disburseModalStateMethod(){
+            console.log("bobo");
+        },
+        openDisburseModal(){
+            return this.disburseModalState = true;
         },
         exportDST(){
             this.isLoading = true;
@@ -348,6 +426,22 @@ export default {
                     link.click();
                     this.isLoading =false;
                 })
+        },
+        disburse(){
+            this.isLoading = true;
+            axios.post(this.disburseLoan,this.formDisbursement)
+            .then(res=>{
+                this.isLoading = false;
+                this.disburseModalState = false
+                Swal.fire({
+                    title: 'Successful!',
+                    text: res.data.msg,
+                    icon: 'success',
+                })
+            }).catch(err=>{
+                this.isLoading = false;
+                this.errors = err.response.data.errors || {}
+            })
         },
         revert(transaction_number){
         
@@ -459,7 +553,7 @@ export default {
                         confirmButtonText: 'OK'
                     })
                     .then(res=>{
-                        // location.reload()
+                        location.reload()
                     })
                     this.is_loading = false;
                 })
@@ -468,7 +562,6 @@ export default {
                     console.log(error.response.data.errors)
                     this.errors = error.response.data.errors || {}
                 })
-                console.log("posted")
         },
         hasError(field){
             if(this.errors != null){
@@ -484,7 +577,14 @@ export default {
 			this.office_id = value['id']
             this.form.office_id = value['id']
         },
+        assignOfficeForm(value){
+            this.formDisbursement.office_id = value['id']
+        },
+        disbursePaymentSelected(value){
+            this.formDisbursement.paymentSelected = value['id']
+        },
         paymentSelected(value){
+            console.log(value);
 			this.form.payment_method_id = value['id']
             if(value['name']== 'CTLP'){
                 this.form.receipt_number  = null
@@ -539,6 +639,9 @@ export default {
     
     },
     computed:{
+        disburseLoan(){
+            return '/loan/disburse/'+this.loan_account_id;
+        },
         editLoan(){
             return '/client/'+this.client_id+'/loan/'+this.loan_account_id;
         },
@@ -577,6 +680,12 @@ export default {
                 this.payment_method = null
                 this.errors = null
                 this.form.for_pre_term = false
+
+                this.office_id = null
+                this.paymentSelected  = null
+                this.disbursement_date  = null
+                this.first_repayment_date  = null
+                this.cv_number = null
             }
         }
     }

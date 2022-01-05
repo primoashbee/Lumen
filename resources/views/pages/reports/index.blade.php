@@ -43,7 +43,7 @@
 						
 					</li>
 					<li class="settings-item loans reports detailed">
-						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['detailed','lo'])}}">
+						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['detailed','disbursements'])}}">
 							<i class="fas fa-3x fa-sign-out-alt"></i>
 							<p class="title text-center mt-2">Disbursements - Detailed</p>
 						</a>
@@ -74,7 +74,6 @@
 					</li>
 					<li class="settings-item loans reports summary">
 						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['summary','repayments'])}}">
-							
 							<i class="fas fa-3x fa-money-bill-alt"></i>
 							<p class="title text-center mt-2">Repayments - Summary</p>
 						</a>

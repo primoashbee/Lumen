@@ -23,6 +23,8 @@ class Report extends Model
         $loans = DB::table('loans');
         $users = DB::table('users');
         $offices = DB::table('offices');
+        $deposit_accounts = DB::table('deposit_accounts');
+
 
         $select = [
             'clients.client_id',
@@ -41,6 +43,8 @@ class Report extends Model
             'loan_accounts.first_payment_date',
             'loan_accounts.last_payment_date',
             'loan_accounts.interest_rate',
+            'rcbu.balance as rcbu',
+            'mcbu.balance as mcbu',
             'loan_accounts.notes',
             'offices.code as office_level',
             DB::raw("CONCAT(users.firstname,'{$space}',users.lastname) as disbursed_by"),
@@ -58,6 +62,11 @@ class Report extends Model
                 DB::raw('sum(loan_accounts.total_deductions) as total_deductions'),
             ];
         }
+
+        
+
+        
+        
         $list = DB::table('loan_accounts')
                 ->select($select)
                 ->when($data['from_date'], function($q) use ($data){
@@ -85,6 +94,14 @@ class Report extends Model
                 })
                 ->leftJoinSub($clients,'clients',function($join){
                     $join->on('clients.client_id','loan_accounts.client_id');
+                })
+                ->leftJoinSub($deposit_accounts,'rcbu', function($join){
+                    $join->on('rcbu.client_id','clients.client_id')
+                    ->where('rcbu.deposit_id',1);
+                })
+                ->leftJoinSub($deposit_accounts,'mcbu', function($join){
+                    $join->on('mcbu.client_id','clients.client_id')
+                    ->where('mcbu.deposit_id',2);
                 })
                 ->leftJoinSub($offices,'offices',function($join){
                     $join->on('offices.id','clients.office_id');
@@ -117,7 +134,9 @@ class Report extends Model
                     'deductions'=>$list->sum('total_deductions'),
                 ];
             }   
+
         
+      
         
         $data =  $paginated  ? $list->paginate($data['per_page']) : $list;
         return compact('data','summary','is_summarized');
@@ -906,7 +925,7 @@ class Report extends Model
             DB::raw('loan_accounts.principal_balance as par_amount'),
             'clients.client_id',
             'offices.code as level',
-            // 'loan.code as code',
+            'loan.code as code',
             DB::raw("concat(clients.firstname, '{$space}', clients.lastname) as fullname"),
         )
         ->when($office_id, function($q,$data){
@@ -918,19 +937,19 @@ class Report extends Model
                     ->whereColumn('loan_accounts.id', 'loan_account_installments.loan_account_id');
             });
         })
-        // ->when($products, function($q,$data){
-        //     $q->whereExists(function($q2) use ($data){
-        //         $q2->from('loan_accounts')
-        //             ->whereIn('loan_id',$data)
-        //             ->whereColumn('loan_accounts.id', 'loan_account_installments.loan_account_id');
-        //     });
-        // })
+        ->when($products, function($q,$data){
+            $q->whereExists(function($q2) use ($data){
+                $q2->from('loan_accounts')
+                    ->whereIn('loan_id',$data)
+                    ->whereColumn('loan_accounts.id', 'loan_account_installments.loan_account_id');
+            });
+        })
         ->leftJoinSub($loan_accounts,'loan_accounts', function($join){
             $join->on('loan_accounts.id', 'loan_account_installments.loan_account_id');
         })
-        // ->leftJoinSub($loan,'loan',function($join){
-        //     $join->on('loan.id','loan_accounts.loan_id');
-        // })
+        ->leftJoinSub($loan,'loan',function($join){
+            $join->on('loan.id','loan_accounts.loan_id');
+        })
         ->leftJoinSub($clients, 'clients', function($join){
             $join->on('clients.client_id','loan_accounts.client_id');
         })

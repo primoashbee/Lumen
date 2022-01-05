@@ -41,7 +41,9 @@ class Transaction
     }
 
     public static function type($value){
-
+        if($value==='Z'){
+            return 'loan_disbursements';
+        }
         if($value==='P'){
             return 'deposit_interest_posts';
         }
@@ -63,6 +65,7 @@ class Transaction
     }
 
     public static function getAccount($transaction_number){
+        
         $type = Transaction::type(substr($transaction_number,0,1));
         if($type==='deposit_interest_posts'){
             return DepositInterestPost::where('transaction_number',$transaction_number)->first()->account;
@@ -75,6 +78,9 @@ class Transaction
         }
         if($type==='loan_account_repayments'){
             return LoanAccountRepayment::where('transaction_number',$transaction_number)->first()->loanAccount;
+        }
+        if($type==='loan_disbursements'){
+            return LoanAccountDisbursement::where('transaction_id',$transaction_number)->first()->loanAccount;
         }
         if(is_array($type)){
             return [
@@ -97,6 +103,9 @@ class Transaction
         }
         if($type==='loan_account_repayments'){
             return LoanAccountRepayment::where('transaction_number',$transaction_number)->first();
+        }
+        if($type==='loan_disbursements'){
+            return LoanAccountDisbursement::where('transaction_id',$transaction_number)->first();
         }
         if(is_array($type)){
             return [

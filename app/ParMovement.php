@@ -124,7 +124,7 @@ class ParMovement extends Model
 
 
     public static function dashboardReport($from,$to,$office_id,$now_only = false){
-
+        
         if($now_only){
             
             $ids = Office::lowerOffices($office_id,true,true);
@@ -173,7 +173,7 @@ class ParMovement extends Model
                     // ->get();
             $ctr=1;
             $count = count(ParMovement::$aging);
-            
+        
             foreach (ParMovement::$aging as $aging) {
                 $tables = [];
                 $value = $aging;
@@ -254,7 +254,7 @@ class ParMovement extends Model
             collect($date_list)->map(function ($value, $key) use (&$labels) {
                 $labels[] = $value->format('d-F');
             });
-        
+            
             foreach (ParMovement::$aging as $age) {
                 // $par_amount['age'] =[$age];
                 if (is_array($age)) {
@@ -278,8 +278,8 @@ class ParMovement extends Model
         $date_list  = CarbonPeriod::create($from, $to)->toArray();
         $movements= [];
 
-
-
+        
+ 
         foreach ($date_list as $item) {
             //per day
             $tables  = [];
@@ -301,25 +301,31 @@ class ParMovement extends Model
             }
             $movements[] = ['date'=>$item->format('d-F'), 'tables'=>collect($tables)->flatten()];
         }
-
         //last date
 
-
+        
         $par_amount = [];
         $labels = [];
 
         collect($date_list)->map(function ($value, $key) use (&$labels) {
             $labels[] = $value->format('d-F');
         });
-    
+        
         foreach (ParMovement::$aging as $age) {
             // $par_amount['age'] =[$age];
             if (is_array($age)) {
                 $age = (string) $age[0].'-'. (string) $age[1];
             }
             collect($movements)->map(function ($movement) use ($age, &$par_amount) {
-                $item = collect($movement['tables'])->where('aging', $age)->first()->total_par;
-                $par_amount[$age][] = collect($movement['tables'])->where('aging', $age)->first()->total_par;
+                $par_age = collect($movement['tables'])->where('aging', $age)->first();
+                if (!is_null($par_age)) {
+                    $item = $par_age->total_par;
+                    $par_amount[$age][] = collect($movement['tables'])->where('aging', $age)->first()->total_par;
+                }
+                
+                
+                
+                
             });
         }
     

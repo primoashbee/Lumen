@@ -60,10 +60,10 @@
                     <p class="title">{{ item.client_id }}</p>
                   </td>
                   <td>
-                    <p class="title">{{ item.code }}</p>
+                    <p class="title">{{ item.fullname }}</p>
                   </td>
                   <td>
-                    <p class="title">{{ item.fullname }}</p>
+                    <p class="title">{{ item.code }}</p>
                   </td>
                   <td>
                     <p class="title">{{ moneyFormat(item.par_amount) }}</p>
