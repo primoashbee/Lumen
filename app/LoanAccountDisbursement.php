@@ -61,6 +61,8 @@ class LoanAccountDisbursement extends Model
             'reverted'=>true,
             'reverted_by'=>$user_id
         ]);
+
+        $this->loanAccount()->update(['disbursed_by' => null,'disbursed_at' => null,'disbursed' => false,'status' => 'Approved']);
         return true;
     }
 

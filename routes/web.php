@@ -3,15 +3,17 @@
 use App\User;
 use App\Client;
 use App\Office;
+use Carbon\Carbon;
+use App\ParMovement;
+use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\ClientRequest;
-use App\LoanAccount;
-use App\Rules\CreditLimit;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Intervention\Image\Facades\Image;
 use Illuminate\Validation\ValidationException;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -251,7 +253,7 @@ Route::group(['middleware' => ['auth']], function () {
     
     
     Route::get('/loan/approve/{loan_id}','LoanAccountController@approve')->name('loan.approve');
-    Route::get('/loan/disburse/{loan_id}','LoanAccountController@disburse')->name('loan.disburse');
+    Route::post('/loan/disburse/{loan_id}','LoanAccountController@disburse')->name('loan.disburse');
     
     
     Route::post('/loans/repay','RepaymentController@accountPayment');
@@ -355,9 +357,10 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/create/office/', 'OfficeController@createOffice');
     });
     
-
-
-
-});
+    
+   Route::get('/xx', function(){
+        return view('test');
+   });
  
 
+});

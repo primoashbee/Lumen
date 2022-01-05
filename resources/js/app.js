@@ -169,7 +169,10 @@ Vue.component('cluster-list', require('./components/Clusters/ClusterListComponen
 
 Vue.component('holidays-list', require('./components/HolidaysListComponent.vue').default);
 
-
+// 
+Vue.component('disbursement-modal', require('./components/DisbursementModalComponent.vue').default);
+Vue.component('scorecard-component', require('./components/ScorecardComponent.vue').default);
+Vue.component('scorecard-question', require('./components/ScorecardQuestionComponent.vue').default);
 /**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application

@@ -600,6 +600,7 @@ class Office extends Model
         $offices = \DB::table('offices');
         $loans = \DB::table('loans');
         $deposits = \DB::table('deposits');
+        
         if($query['type'] == 'loan'){
             if($limited_fields){
                 $select = [
@@ -679,6 +680,7 @@ class Office extends Model
             ->first();
             return compact('accounts','summary');
         }
+        
         if($query['type'] == 'deposit'){
             $accounts = \DB::table('deposit_accounts')
                     ->select(
@@ -713,6 +715,9 @@ class Office extends Model
                 \DB::raw('ROUND(SUM(accrued_interest),2) as total_accrued_interest'),
             )
             ->first();
+            
+            
+            
             return compact('accounts','summary');
             
         }

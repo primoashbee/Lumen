@@ -1225,7 +1225,7 @@ class LoanAccount extends Model
         
         $disbursements = $this->disbursement->count()+1;
         $last = str_pad($disbursements, 3, 0, STR_PAD_LEFT);
-        $transaction = 'D'.$year.$month.$day.$loan_account_id.$last;
+        $transaction = 'Z'.$year.$month.$day.$loan_account_id.$last;
         return $transaction;
     }
 
@@ -2156,6 +2156,34 @@ class LoanAccount extends Model
                         })
                         ->where('loan_account_repayments.loan_account_id',$this->id);
 
+        $disbursement = DB::table("loan_account_disbursements")
+                        ->select(
+                            'loan_account_disbursements.transaction_id',
+                            'loan_account_disbursements.created_at as repayment_date',
+                            DB::raw("IF(1=1,'Disbursement',NULL) as particulars"),
+                            DB::raw('loan_accounts.interest as interest_paid'),
+                            DB::raw('loan_accounts.principal as principal_paid'),
+                            DB::raw('loan_account_disbursements.disbursed_amount as amount'),
+                            'payment_methods.name as payment_method_name',
+                            'loan_account_disbursements.reverted',
+                            DB::raw("CONCAT(users.firstname,'{$space}',users.lastname) as paid_by"),
+                            'loan_account_disbursements.created_at as transaction_date'
+                        )
+                        ->when($succesful_transactions, function ($q,$data){
+                            if($data){
+                                $q->where('loan_account_disbursements.reverted', false);
+                            }
+                        })
+                        ->leftJoinSub($loan_accounts,'loan_accounts',function($join){
+                            $join->on('loan_accounts.id','loan_account_disbursements.loan_account_id');
+                        })
+                        ->leftJoinSub($payment_methods,'payment_methods',function($join){
+                            $join->on('payment_methods.id','loan_account_disbursements.payment_method_id');
+                        })
+                        ->leftJoinSub($users,'users',function($join){
+                            $join->on('users.id','loan_account_disbursements.disbursed_by');
+                        })
+                        ->where('loan_account_disbursements.loan_account_id',$this->id);
 
 
         $fee_payments = DB::table("loan_account_fee_payments")
@@ -2234,6 +2262,7 @@ class LoanAccount extends Model
         }
         $list = $repayments
             ->unionAll($ctlp)
+            ->unionAll($disbursement)
             ->unionAll($fee_payments)
             ->when($succesful_transactions, function($q,$data){
                 if($data){

@@ -31,6 +31,7 @@ class LatestTransaction implements Rule
     {   
        
         // $transaction = Transaction::getAccount($value);
+        
         $transaction = Transaction::getAccount($value);
         if(is_array($transaction)){
             $loan_passes = false;
@@ -59,9 +60,18 @@ class LatestTransaction implements Rule
             }
             return false;
         }else{
+            
             $transaction = Transaction::getAccount($value)->lastTransaction(true);
-            $this->recent_transaction = $transaction->transaction_number;
-            return $transaction->transaction_number == $value ? true : false;
+            
+            
+
+            if (!is_null($transaction)) {
+                $this->recent_transaction = $transaction->transaction_number;
+                return $transaction->transaction_number  == $value ? true : false;    
+            }else{
+                
+                return true;
+            }
         }
     }
 

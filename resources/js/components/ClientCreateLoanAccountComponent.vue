@@ -82,7 +82,7 @@
 							<div v-for="fee in calculator.fees" :key="fee.id">
 								<div class="form-group col-lg-12 col-sm-12 pl-0 pb-0">
 									<label :for="fee.name">{{fee.name}}</label>
-									<input type="text" :id="fee.name" class="form-control" disabled :value="fee.amount">
+									<input type="text" :id="fee.name" class="form-control" :disabled="disabled(fee.name)" :value="fee.amount">
 								</div>
 							</div>
 						</div>
@@ -279,7 +279,13 @@ export default {
 			}else if(route=='clients'){
 				return '/clients';
 			}
-		}
+		},
+		disabled(value){
+			if(value == "MI Premium"){
+				return false;
+			}
+			return true;
+		},
 	},
 	computed:{
 		loan_products_route(){
@@ -309,6 +315,8 @@ export default {
 			return obj;
 			
 		},
+
+		
 		credit_limit(){
 			var total_business_income = 0;
 			var businesses = JSON.parse(this.businesses)
