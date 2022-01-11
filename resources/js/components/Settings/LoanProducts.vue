@@ -22,7 +22,6 @@
                         </td>
                         <td>
                             <a class="btn btn-warning" :href="settingsLink(item.id,'edit')" role="button"><i class='fas fa-edit'></i></a>
-                            <a class="btn btn-info" :href="settingsLink(item.id,'view')"  role="button"><i class='fas fa-eye'></i></a>
                         </td>
                     </tr>
                 </tbody>
