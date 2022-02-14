@@ -474,8 +474,7 @@ use App\Http\Controllers\LoanAccountController;
         Role::insert($role);
 
         $user = User::find(4)->syncRoles(1);
-        $user = User::find(3)->syncRoles(1);
-        $user = User::find(6)->syncRoles(1);
+        
         
         $role = Role::find(2)->syncPermissions([1,4,9,10,17,20,21,22,23,24,25,26,27]);
         $role = Role::find(3)->syncPermissions([1,2,3,4,10,11,12,13,14,15,16,17,18,19,20,24,25,26,28,29,3]);
@@ -515,14 +514,14 @@ use App\Http\Controllers\LoanAccountController;
         // $user->rooms()->attach(21);
 
         $user = User::create([
-            'firstname' => 'Ashbee',
-            'lastname' => 'Morgado',
-            'middlename' => 'Allego',
+            'firstname' => 'Michael',
+            'lastname' => 'Bomlarda',
+            'middlename' => '',
             'gender' => 'Male',
             'birthday' => Carbon::parse('1994-11-26'),
-            'email' => 'ashbee.morgado@icloud.com',
+            'email' => 'michael.bomlarda@light.org.ph',
             'notes'=>'ajalksdjfdlksafjaldf',
-            'password' => Hash::make('sv9h4pld')
+            'password' => Hash::make('lightmfi123')
         ]);
         $user->assignToOffice(1);
         // $user->rooms()->attach(1);
@@ -539,18 +538,6 @@ use App\Http\Controllers\LoanAccountController;
     
         $user->assignToOffice(1);
         // $user->rooms()->attach(1);
-        $user = User::create([
-            'firstname' => 'Hannah Arien',
-            'lastname' => 'Mangalindan',
-            'middlename' => 'Morgado',
-            'gender' => 'Female',
-            'birthday' => Carbon::parse('1997-05-31'),
-            'email' => 'arien@morgado.com',
-            'notes'=>'ajalksdjfdlksafjaldf',
-            'password' => Hash::make('sv9h4pld')
-        ]);
-    
-        $user->assignToOffice(21);
         // $user->rooms()->attach(21);
 
         $user = User::create([
