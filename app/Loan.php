@@ -72,6 +72,13 @@ class Loan extends Model
                         collect([
                             (object) [
                                 'code'=>'MPL',
+                                'installments'=>12,
+                                'rate'=>5.40545,
+                                'number_of_months'=>3,
+
+                            ],
+                            (object) [
+                                'code'=>'MPL',
                                 'installments'=>22,
                                 'rate'=>5.953621,
                                 'number_of_months'=>6

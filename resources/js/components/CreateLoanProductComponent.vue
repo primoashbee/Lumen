@@ -189,7 +189,7 @@
 					<div class="col-lg-12 px-3">
 						<div class="col-lg-12 mt-8">
 							<div class="form-group w-100">
-								<multi-select :multiple="true" :class="{'is-invalid': hasError('fees') }" track_by="id" label="name" list="fees" @changed="changed"></multi-select>
+								<multi-select :default_value="form.fees" :multiple="true" :class="{'is-invalid': hasError('fees') }" track_by="id" label="name" list="fees" @changed="changed"></multi-select>
                                 <div class="text-danger" v-if="hasError('fees.fees')">
                                     {{errorMessage('fees.fees')}}
                                 </div>

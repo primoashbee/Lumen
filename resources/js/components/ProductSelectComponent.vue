@@ -12,7 +12,7 @@
     label="name"
     @input = "emitToParent"
     >
-      <span slot="noResult">Oops! No payment method found. Consider changing the search query.</span>
+      <span slot="noResult">Oops! No information found. Consider changing the search query.</span>
     </multiselect>
     <input type="hidden" name="payment_method" :value="value.id" @change="emitToParent">
     
