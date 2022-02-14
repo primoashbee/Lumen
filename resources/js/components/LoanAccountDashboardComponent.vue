@@ -27,7 +27,7 @@
                                 Disburse
                             </button>
                         </div>
-                        <div v-if="account.status == 'Pending Approval' && can('edit_loan_account')" class="text-right col-lg-6">
+                        <div v-if="account.status == 'Pending Approval' && can('edit_loan_account') || is('Super Admin')" class="text-right col-lg-6">
                             <a :href="editLoan" class="btn btn-primary float-right">Edit Loan</a>
                         </div>
                         <div class="text-right col-lg-6" v-if="account.disbursed!=0 && account.closed_at==null">
@@ -196,7 +196,7 @@
                                     <tr v-for="(item,key) in activity"  :key="key">
                                         <td>{{key + 1}}</td>
                                         <td>{{item.transaction_number }}</td>
-                                        <td>{{moment(item.repayment_date) }}</td>
+                                        <td>{{moment(account.disbursement_date) }}</td>
                                         <td>{{moment(item.transaction_date) }}</td>
                                         <td>{{item.particulars}}</td>
                                         

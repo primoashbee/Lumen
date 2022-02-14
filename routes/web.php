@@ -357,10 +357,38 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/create/office/', 'OfficeController@createOffice');
     });
     
+
+    Route::get('/xx', function(){
+        $insert_data = [];
+        $date = Carbon::parse(now());
+        $aging_table = collect();
+        $accounts = \DB::table('loan_account_installments')->orderBy('date','asc')->chunk(5000, function($q) use ($aging_table){
+            $date = Carbon::parse(now());
+            
+             $accounts = $q
+            ->where('date','<',$date)
+            ->where('paid',0); 
+            $aging_table->push($accounts);
+        });
+
+        
+
+        $clients = \DB::table('clients')
+        ->select('client_id as c_id','office_id')
+        ->leftJoinSub('accounts',$aging_table, function($q){
+            $q->on('accounts.client_id','clients.client_id');
+        });
+        
+        return  \DB::select('*')
+        ->from($aging_table)
+        ->get();
     
-   Route::get('/xx', function(){
-        return view('test');
+
+        // return $aging_table[0]->first()->id;
+    
    });
  
+    
+
 
 });

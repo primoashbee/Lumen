@@ -31,7 +31,7 @@ class HasZeroBalance implements Rule
         $deposit = $this->deposit;
         $this->msg = "";
         if($deposit->balance > 0){
-            $this->msg  = 'Deposit Account balance must not greater that 0.';
+            $this->msg  = 'Deposit Account balance must not greater than 0.';
             return false;
         }
         if($deposit->accrued_interest > 0){
