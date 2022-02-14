@@ -1,21 +1,33 @@
 Starting....
-Date is 2022-02-02
-Updating 0 accounts.
-Done
-Starting....doneStarting....
-Date is 2022-02-02
-Updating 0 accounts.
-Done
-Starting....doneStarting....
-Date is 2022-02-02
-Updating 0 accounts.
-Done
-Starting....doneStarting....
-Date is 2022-02-11
-Updating 0 accounts.
+Date is 2021-09-20
+Starting deduction of CTLP
 Done
 Starting....
-Date is 2022-02-11
-Updating 0 accounts.
+Fetching Accounts
+Memory Usage: 18.18 MB
+.......
+Memory Usage: 1.7MB for this certain command
+Time taken :0.017454147338867 seconds
+Email Sent
+Starting....
+Date is 2021-09-20
+Starting deduction of CTLP
 Done
-Starting....done
+Starting....
+Fetching Accounts
+Memory Usage: 18.18 MB
+.......
+Memory Usage: 1.7MB for this certain command
+Time taken :0.017903804779053 seconds
+Email Sent
+Starting....
+Date is 2021-09-20
+Starting deduction of CTLP
+Done
+Starting....
+Fetching Accounts
+Memory Usage: 18.18 MB
+.......
+Memory Usage: 1.7MB for this certain command
+Time taken :0.011650085449219 seconds
+Email Sent

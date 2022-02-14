@@ -34,7 +34,7 @@ class CreateLoansTable extends Migration
             
             $table->string('interest_interval');
 
-            $table->unsignedDouble('monthly_rate')->nullable();
+            $table->unsignedDouble('monthly_rate');
             $table->unsignedDouble('annual_rate')->default(0.36);
             $table->string('interest_rate');
             
@@ -65,7 +65,7 @@ class CreateLoansTable extends Migration
 
             $table->boolean('has_optional_fees')->default(false);
             $table->boolean('next_working_day_if_holiday')->default(false);
-            $table->string('type')->default('normal');
+            $table->string('type');
             $table->timestamps();
         });
     }

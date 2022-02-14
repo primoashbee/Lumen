@@ -3,7 +3,7 @@
 @section('content')
 <div class="content content pl-32 pr-8 mt-4" id="content-full">
 	
-		<scorecard-component></scorecard-component>
+		<test-create-client-form></test-create-client-form>
 	
 </div>
 @endsection
