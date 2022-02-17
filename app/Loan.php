@@ -89,13 +89,7 @@ class Loan extends Model
                                 'rate'=>5.475500,
                                 'number_of_months'=>6
                             ],
-                            // (object) [
-                            //     'code'=>'MPL',
-                            //     'installments'=>44,
-                            //     'rate'=>5.10480,
-                            //     'number_of_months'=>10,
-
-                            // ],
+                            
                             // (object) [
                             //     'code'=>'MPL',
                             //     'installments'=>48,

@@ -29,7 +29,7 @@ class LoanAccountDisbursement extends Model
         
         $mutated['paid_by'] = $this->paidBy->fullname;
         $mutated['payment_method'] = $this->paymentMethod->name;
-    
+            
         
         $mutated['particulars'] = 'Disbursement';
         return $mutated;   

@@ -15,8 +15,6 @@ class Cluster extends Model
         'name',
     ];
 
-
-
     public function officer(){
         return $this->belongsTo(User::class);
     }
@@ -39,18 +37,18 @@ class Cluster extends Model
             return $item->level == 'cluster';
         });
         
-        $clusters = Office::with(['parent:name,id.parent:name,id','user:firstname,lastname'])->whereIn('id',$scopes->pluck('id'))->get();
+        $clusters = Office::with('parent.parent')->whereIn('id',$scopes->pluck('id'))->get();
         
         if(count($clusters)>0){
             if($query!=null){
-                $clusters = Office::with(['parent.parent:name,id','user:firstname,lastname'])->whereIn('id',$scopes->pluck('id'))->where(function(Builder $dbQuery) use($searchables, $query){
+                $clusters = Office::with('parent.parent')->whereIn('id',$scopes->pluck('id'))->where(function(Builder $dbQuery) use($searchables, $query){
                     foreach($searchables as $item){  
                         $dbQuery->where($item,'LIKE','%'.$query.'%');
                     }
                 });
                 return $clusters;
             }
-            $clusters = Office::with(['parent:name,id.parent:name,id','user:firstname,lastname'])->whereIn('id',$scopes->pluck('id'));
+            $clusters = Office::with('parent.parent')->whereIn('id',$scopes->pluck('id'));
             
             return $clusters;
         }

@@ -416,25 +416,20 @@ class LoanAccountController extends Controller
     }
     
     public function payFeePayments($fees,$payment_method_id,$disbursed_by,$transaction_id){
-        
         $x = 1;
         $now  = Carbon::now();        
         foreach($fees as $fee){
-            
             $res = $fee->update([
                 'loan_account_disbursement_transaction_id'=>$transaction_id,
-                'transaction_number'=> 'F'.str_replace('.','',microtime(true)),
+                'transaction_id'=>$fee->generateTransactionID($x),
                 'paid_at'=>Carbon::now(),
                 'paid_by'=>$disbursed_by,
                 'payment_method_id'=>$payment_method_id,
                 'paid'=>true,
-                'reverted' => false,
                 'created_at'=>$now
             ]);
-            
             $x++;
         }
-        
         return $res;
     }
     public function createSchedules(array $data){
@@ -476,8 +471,8 @@ class LoanAccountController extends Controller
         return view('pages.client-loans-list',compact('client'));
     }
 
-    public function disburse(Request $request,$loan_id=null){
-       
+    public function disburse($loan_id=null){
+        
         if($loan_id!=null){
             $id = $loan_id; 
         }else{
@@ -494,8 +489,8 @@ class LoanAccountController extends Controller
             $this->payFeePayments($fee_payments,$payment_method_id,$disbursed_by,$transaction_id);
 
             $account->update([
-                'disbursed_at'=>$request->disbursement_date,
-                'disbursed_by' => $disbursed_by,
+                'disbursed_at'=>Carbon::now(),
+                'status'=>'Active',
                 'disbursed'=>true
             ]);
             

@@ -1176,7 +1176,7 @@ class LoanAccount extends Model
         if ($dues->overdue->total > 0) {
             return $this->update([
                 'status'=>'In Arrears'
-            ]);
+                ]);
         }
         
         if ($this->getRawOriginal('total_balance') == 0) {
@@ -1189,7 +1189,7 @@ class LoanAccount extends Model
 
         return $this->update([
             'status'=>'Active'
-        ]);
+            ]);
 
         
     }
