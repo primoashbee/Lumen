@@ -138,6 +138,13 @@ class Loan extends Model
                                 'rate'=>   3.70160,
                                 'number_of_months'=>5
                             ],
+
+                            (object) [
+                                'code'=>'MPL',
+                                'installments'=>22,
+                                'rate'=>   4.030560,
+                                'number_of_months'=>6
+                            ],
                             
                             (object) [
                                 'code'=>'MPL',
@@ -289,6 +296,12 @@ class Loan extends Model
                             'installments'=>20,
                             'rate'=>   3.70160  ,
                             'number_of_months'=>5
+                        ],
+                        (object) [
+                            'code'=>'MPL',
+                            'installments'=>22,
+                            'rate'=>   4.030560,
+                            'number_of_months'=>6
                         ],
                         
                         (object) [
