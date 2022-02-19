@@ -51,7 +51,7 @@ class LoanAccountSheetImport implements ToCollection, WithValidation, WithStartR
         
         foreach ($rows as $row) 
         {
-            \DB::beginTransaction();
+            
             $loan = Loan::find($row['loan_id']);
             $client = Client::fcid($row['client_id']);
             $number_of_installments = $row['number_of_installments'];
@@ -214,7 +214,7 @@ class LoanAccountSheetImport implements ToCollection, WithValidation, WithStartR
                 'notes'=>'Migration Repayment'
             ];
             $loan_acc->payV2($payment_info,true);
-            \DB::commit();
+            
         }
     }
 
