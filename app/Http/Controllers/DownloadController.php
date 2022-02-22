@@ -737,7 +737,7 @@ class DownloadController extends Controller
         $sheet =$spreadsheet->getSheet(0);
         
         $start_row = 3  ;
-        $data['accounts']->orderBy('id','desc')->chunkById(200, function($items) use (&$sheet, &$start_row){
+        $data['accounts']->orderBy('id','desc')->chunk(200, function($items) use (&$sheet, &$start_row){
             
             foreach ($items as $key=>$value) {
                 $sheet->setCellValue('A'.$start_row, $key + 1);
@@ -750,7 +750,7 @@ class DownloadController extends Controller
                 $sheet->setCellValue('H'.$start_row, $value->status);
                 $start_row++;
             }
-        },'deposit_id','id');
+        });
         
         
         $writer = new Xlsx($spreadsheet);
@@ -771,9 +771,11 @@ class DownloadController extends Controller
         $sheet =$spreadsheet->getSheet(0);
     
         $start_row = 3  ;
+        
         $data['accounts']->orderBy('id','desc')->chunkById(200, function($items) use (&$sheet, &$start_row){
             foreach ($items as $key=>$value) {
-                $sheet->setCellValue('A'.$start_row, $key + 1);
+                
+                $sheet->setCellValue('A'.$start_row, $value->id);
                 $sheet->setCellValue('B'.$start_row, $value->office);
                 $sheet->setCellValue('C'.$start_row, $value->client_id);
                 $sheet->setCellValue('D'.$start_row, $value->fullname);
@@ -781,8 +783,8 @@ class DownloadController extends Controller
                 $sheet->setCellValue('F'.$start_row, $value->principal);
                 $sheet->setCellValue('G'.$start_row, $value->interest);
                 $sheet->setCellValue('H'.$start_row, $value->total_loan_amount);
-                $sheet->setCellValue('I'.$start_row, $value->principal_balance);
-                $sheet->setCellValue('J'.$start_row, $value->interest_balance);
+                $sheet->setCellValue('I'.$start_row, $value->interest_balance);
+                $sheet->setCellValue('J'.$start_row, $value->principal_balance);
                 $sheet->setCellValue('K'.$start_row, $value->total_balance);
                 $sheet->setCellValue('L'.$start_row, $value->first_payment_date);
                 $sheet->setCellValue('M'.$start_row, $value->last_payment_date);
@@ -795,7 +797,7 @@ class DownloadController extends Controller
                 $sheet->setCellValue('T'.$start_row, $value->status);
                 $start_row++;
             }
-        });
+        },'id','id');
         
         $writer = new Xlsx($spreadsheet);
         $writer->setPreCalculateFormulas(false);

@@ -437,6 +437,8 @@ export default {
                     title: 'Successful!',
                     text: res.data.msg,
                     icon: 'success',
+                }).then(res =>{
+                    location.reload();
                 })
             }).catch(err=>{
                 this.isLoading = false;
