@@ -28,7 +28,7 @@ class GeneralDataImport implements WithMultipleSheets, WithProgressBar
         $migration = $this->migration;
     
         return [
-            'OFFICES' => new OfficeImport($migration),
+            // 'OFFICES' => new OfficeImport($migration),
            'CLIENT' => new ClientSheetImport($migration),
            'HOUSEHOLD INCOMES' => new HouseholdIncomeSheet($migration),
            'BUSINESSES' => new BusinessSheetImport($migration),
