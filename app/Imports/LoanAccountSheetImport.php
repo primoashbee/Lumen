@@ -229,7 +229,7 @@ class LoanAccountSheetImport implements ToCollection, WithValidation, WithStartR
         'number_of_installments'=>['required','gte:1'],
         'disbursement_date'=>['required','date'],
         'first_payment_date'=>['required','date','after_or_equal:disbursement_date'],
-        'processing_fee'=>['nullable','gt:0','possible_processing_fees'],
+        'processing_fee'=>['nullable'],
        ];
     }
     

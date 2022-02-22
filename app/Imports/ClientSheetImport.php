@@ -26,7 +26,7 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\RegistersEventListeners;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class ClientSheetImport implements ToModel, WithStartRow,  WithValidation, WithHeadingRow, SkipsEmptyRows, WithBatchInserts, WithEvents,WithChunkReading,ShouldQueue
+class ClientSheetImport implements ToModel,  WithValidation, WithHeadingRow, SkipsEmptyRows, WithBatchInserts, WithEvents,WithChunkReading,ShouldQueue
 {
     use Importable, RegistersEventListeners;
     
