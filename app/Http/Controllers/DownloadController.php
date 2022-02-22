@@ -772,7 +772,7 @@ class DownloadController extends Controller
     
         $start_row = 3  ;
         
-        $data['accounts']->orderBy('id','desc')->chunkById(200, function($items) use (&$sheet, &$start_row){
+        $data['accounts']->orderBy('id','desc')->chunk(200, function($items) use (&$sheet, &$start_row){
             foreach ($items as $key=>$value) {
                 
                 $sheet->setCellValue('A'.$start_row, $value->id);
@@ -797,7 +797,7 @@ class DownloadController extends Controller
                 $sheet->setCellValue('T'.$start_row, $value->status);
                 $start_row++;
             }
-        },'id','id');
+        });
         
         $writer = new Xlsx($spreadsheet);
         $writer->setPreCalculateFormulas(false);
