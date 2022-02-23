@@ -54,7 +54,7 @@ class RecalculateLoanDues extends Command
         // }
         
         try {
-            // \DB::beginTransaction();
+            \DB::beginTransaction();
             
             $this->info('Starting....');
             $this->info('Date is ' . now()->toDateString());
@@ -111,7 +111,7 @@ class RecalculateLoanDues extends Command
 
             $this->info('Updating ' . $lai . ' accounts.');
 
-            // \DB::commit();
+            \DB::commit();
         } catch (Exception $e) {
             // \DB::rollBack();
             Log::warning($e->getMessage());

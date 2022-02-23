@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Carbon\Carbon;
 use App\DepositAccount;
 use App\PostedAccruedInterest;
+use Exception;
 use Illuminate\Console\Command;
 
 class CalculateAccruedInterestCommand extends Command
@@ -37,10 +38,16 @@ class CalculateAccruedInterestCommand extends Command
         $start_memory =memory_get_usage();
         $this->info('Memory Usage: '.round(memory_get_usage()/1048576,2).''.' MB');
         
-
-        
-        DepositAccount::accrueInterestAll();
-
+       
+        try {
+            \DB::beginTransaction();
+                DepositAccount::accrueInterestAll();
+            \DB::commit();
+        }
+        catch (Exception $e){
+            \DB::rollback();
+            Log::warning($e->getMessage());
+        }
         $time_end = microtime(true);
         $runtime = $time_end - $time_start;
 

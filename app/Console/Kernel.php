@@ -29,9 +29,9 @@ class Kernel extends ConsoleKernel
     {
 
         // $schedule->command('inspire')->hourly();
-        $schedule->command('loan:update')->cron('* * * * *')->appendOutputTo(public_path('/output.txt'));
-        // $schedule->command('deposit:accrue')->cron('01 1 * * *')->appendOutputTo(public_path('/output.txt'));
-        // $schedule->command('par:calculate')->cron('* * * * *');
+        $schedule->command('loan:update')->cron('01 0 * * *')->appendOutputTo(public_path('/output.txt'));
+        $schedule->command('deposit:accrue')->cron('30 2 * * *')->appendOutputTo(public_path('/output.txt'));
+        // $schedule->command('par:calculate')->cron('01 3 * * *');
         $schedule->command('holiday:implement')->cron('30 0 * * *')->appendOutputTo(public_path('/output.txt'));
         // $schedule->command('word:day')->cron('* * * * *')->appendOutputTo(public_path('/output.txt'));
         // $schedule->command('command:test')->everyMinute();

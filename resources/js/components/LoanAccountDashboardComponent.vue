@@ -34,24 +34,23 @@
                                     Abandoned
                                 </button>
                             </div>
-                            <div v-if="account.status == 'Approved'" class="col-lg-6 text-right">
-                                
+                            <div class="text-right col-lg-12" v-if="account.disbursed!=0 && account.closed_at==null">
+                                <button v-if="can('enter_repayment') || is('Super Admin')" type="button" class="btn btn-primary" data-toggle="modal" @click="modal.modalState=true">
+                                    Pay
+                                </button>
+                                <button v-if="can('enter_repayment') || is('Super Admin')"   type="button" class="btn btn-primary" data-toggle="modal" @click="preTerm">
+                                    PreTerminate
+                                </button>
+                                <button type="button" class="btn btn-primary" data-toggle="modal" @click="exportDST">
+                                    <i class="fas fa-file-invoice"></i> 
+                                </button>
+                            </div>
+                            <div v-if="account.status == 'Pending Approval' && can('edit_loan_account')" class="text-right col-lg-12">
+                                <a :href="editLoan" class="btn btn-primary float-right">Edit Loan</a>
                             </div>
                         </div>
-                        <div v-if="account.status == 'Pending Approval' && can('edit_loan_account')" class="text-right col-lg-6">
-                            <a :href="editLoan" class="btn btn-primary float-right">Edit Loan</a>
-                        </div>
-                        <div class="text-right col-lg-6" v-if="account.disbursed!=0 && account.closed_at==null">
-                            <button v-if="can('enter_repayment') || is('Super Admin')" type="button" class="btn btn-primary" data-toggle="modal" @click="modal.modalState=true">
-                                Pay
-                            </button>
-                            <button v-if="can('enter_repayment') || is('Super Admin')"   type="button" class="btn btn-primary" data-toggle="modal" @click="preTerm">
-                                PreTerminate
-                            </button>
-                            <button type="button" class="btn btn-primary" data-toggle="modal" @click="exportDST">
-                                <i class="fas fa-file-invoice"></i> 
-                            </button>
-                        </div>
+                        
+                        
                     </div>
                     <div class="row px-4">
                         <p class="title text-xl mt-4 pb-4">Status: 
@@ -658,7 +657,7 @@ export default {
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!'
+                confirmButtonText: 'Yes, Abandoned it!'
                 }).then((result) => {
                 if (result.isConfirmed) {
 
@@ -667,6 +666,7 @@ export default {
                         Swal.fire(
                             'Success!',
                             'Loan Successfully Abandoned',
+                            'success'
                             
                         )
                     })
