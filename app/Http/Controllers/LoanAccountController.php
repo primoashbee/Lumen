@@ -540,6 +540,29 @@ class LoanAccountController extends Controller
 
         
     }
+
+    public function abandoned($loan_id=null){
+        
+        if($loan_id!=null){
+            $id = $loan_id;
+        }else{
+            $id = $this->id;
+        }
+        \DB::beginTransaction();
+        
+        try{
+            $account = LoanAccount::findOrFail($id);
+            $account->abandoned();
+            
+            \DB::commit();
+            return response()->json(['msg'=> 'Sucess!'],200);
+        }catch(\Exception $e){ 
+            return response()->json(['msg'=>$e->getMessage()],500);
+        }
+
+        
+    }
+
     public function account(Request $request, $client_id,$loan_id){
 
     if($request->wantsJson()){
