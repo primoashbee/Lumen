@@ -1823,6 +1823,28 @@ class LoanAccount extends Model
         ]);
     }
 
+    public function abandoned()
+    {
+        $this->installments()->delete();
+        $this->feePayments()->delete();
+        
+        $this->dependents()->update([
+            'loan_account_id' => null,
+            'status' => 'Unused'
+            ]
+        );
+        return $this->update([
+            'status'=>'Abandoned',
+            'closed_by'=>auth()->user()->id,
+            'closed_at'=>Carbon::now(),
+            'approved'=>false,
+            'total_deductions' => 0,
+            'disbursed_amount' => 0,
+            'total_balance' => 0,
+            'principal_balance' =>0
+        ]);
+    }
+
 
     public static function bulkList($type,$office_id){
         $office_ids = Office::find($office_id)->getLowerOfficeIDS();

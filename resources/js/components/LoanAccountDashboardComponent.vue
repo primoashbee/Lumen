@@ -19,13 +19,24 @@
                             <h3 class="h2">{{client.full_name}}</h3>
                             <p class="text-xl text-white">{{loan_type}}</p>
                         </div>  
-                        <div v-if="account.status == 'Approved'" class="col-lg-6 text-right">
-                            <button v-if="can('disburse_loan') || is('Super Admin')" 
-                            type="button" 
-                            class="btn btn-primary"
-                            @click="openDisburseModal">
-                                Disburse
-                            </button>
+                        <div class="col-lg-6 row">
+                            <div v-if="account.status == 'Approved'" class="col-lg-12 text-right">
+                                <button v-if="can('disburse_loan') || is('Super Admin')" 
+                                type="button" 
+                                class="btn btn-primary"
+                                @click="openDisburseModal">
+                                    Disburse
+                                </button>
+                                <button v-if="can('change_status_loan_account') || is('Super Admin')" 
+                                type="button" 
+                                class="btn btn-primary ml-2"
+                                @click="abandonedConfirmation">
+                                    Abandoned
+                                </button>
+                            </div>
+                            <div v-if="account.status == 'Approved'" class="col-lg-6 text-right">
+                                
+                            </div>
                         </div>
                         <div v-if="account.status == 'Pending Approval' && can('edit_loan_account')" class="text-right col-lg-6">
                             <a :href="editLoan" class="btn btn-primary float-right">Edit Loan</a>
@@ -637,8 +648,33 @@ export default {
                 this.is_loading = false;
             });
         
+        },
+
+        abandonedConfirmation(){
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                if (result.isConfirmed) {
+
+                    axios.patch('/loan/reject/'+this.loan_account_id, this.loan_account_id)
+                    .then(res =>{
+                        Swal.fire(
+                            'Success!',
+                            'Loan Successfully Abandoned',
+                            
+                        )
+                    })
+
+                    
+                }
+            })
         }
-    
     },
     computed:{
         disburseLoan(){

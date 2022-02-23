@@ -251,7 +251,7 @@ Route::group(['middleware' => ['auth']], function () {
     
     
     
-    
+    Route::patch('/loan/reject/{loan_id}','LoanAccountController@abandoned')->name('loan.approve');
     Route::get('/loan/approve/{loan_id}','LoanAccountController@approve')->name('loan.approve');
     Route::post('/loan/disburse/{loan_id}','LoanAccountController@disburse')->name('loan.disburse');
     
