@@ -173,6 +173,9 @@ export default {
                 case 'Approved':
                     status = '<span class="badge badge-info">'+value+'</span>';
                     break;
+                case 'Abandoned':
+                    status = '<span class="badge badge-dark">'+value+'</span>';
+                    break;    
             }
 
             return status;

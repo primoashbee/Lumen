@@ -33,12 +33,13 @@ class HolidayJob implements ShouldQueue
      */
     public function handle()
     {
-        DB::beginTransaction();
+        
         try {
+        \DB::beginTransaction();
             Holiday::list()->get()->each->implement();
-            DB::commit();
+        \DB::commit();
         }catch(Exception $e){
-            DB::rollBack();
+        \DB::rollBack();
             Log::warning($e->getMessage());
         }
         
