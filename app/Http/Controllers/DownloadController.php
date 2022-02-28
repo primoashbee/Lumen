@@ -287,6 +287,7 @@ class DownloadController extends Controller
             $dst->setCellValue('E69','=SUM(E19:E67)');
             $dst->setCellValue('F69','=SUM(F19:F67)');
             $dst->setCellValue('H76','=(1+G69)^52-1');
+            $dst->setCellValue('G69','=IF($D$9>0,IRR(G18:G67,0.09),1)');
             $dst->setCellValue('H80','=((1+G69)^(52/12)-1)');
 
 
