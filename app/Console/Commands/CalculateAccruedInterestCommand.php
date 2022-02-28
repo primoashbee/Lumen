@@ -54,7 +54,7 @@ class CalculateAccruedInterestCommand extends Command
         $this->info('.......');
         $end_memory =memory_get_usage();
         $memory_usage = round(($end_memory - $start_memory)/1048576,2).'MB';
-        $this->info('Memory Usage: '.$memory_usage.' for this certain command');
+        $this->info('Memory Usage: '.$memory_usage.' for this CBU ACCRUED INTEREST COMMAND');
         
 
         $this->info('Time taken :'.$runtime.' seconds');

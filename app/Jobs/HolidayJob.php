@@ -21,6 +21,7 @@ class HolidayJob implements ShouldQueue
      * @return void
      */
     // protected $date;
+    public $timeout = 0;
     public function __construct()
     {
         // $this->date = $date;

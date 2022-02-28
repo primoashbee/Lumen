@@ -103,17 +103,17 @@ class RecalculateLoanDues extends Command
                 ]
             );
 
-            $accounts = LoanAccount::active()->chunkById(100, function($loans){
+            $accounts = LoanAccount::active()->chunkById(2000, function($loans){
                 foreach($loans as $loan){
                     $loan->updateStatus();
                 }
             });
 
-            $this->info('Updating ' . $lai . ' accounts.');
+            $this->info('Updating ' . $lai . ' accounts. for RECALCULATING LOAN DUES');
 
             \DB::commit();
         } catch (Exception $e) {
-            // \DB::rollBack();
+            \DB::rollBack();
             Log::warning($e->getMessage());
         }            
         
