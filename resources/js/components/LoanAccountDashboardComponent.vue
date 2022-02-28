@@ -39,7 +39,7 @@
                                     Pay
                                 </button>
                                 <button v-if="can('enter_repayment') || is('Super Admin')"   type="button" class="btn btn-primary" data-toggle="modal" @click="preTerm">
-                                    PreTerminate
+                                    Pre-Terminate
                                 </button>
                                 <button type="button" class="btn btn-primary" data-toggle="modal" @click="exportDST">
                                     <i class="fas fa-file-invoice"></i> 
