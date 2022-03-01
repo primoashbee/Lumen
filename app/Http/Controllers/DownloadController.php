@@ -862,7 +862,7 @@ class DownloadController extends Controller
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
         $sheet =$spreadsheet->getSheet(0);
         
-        $data['data']->orderBy('la_id','desc')->chunk(200, function($items) use (&$sheet, &$start_row){
+        $data['data']->orderBy('la_id','desc')->chunk(2000, function($items) use (&$sheet, &$start_row){
         $start_row = 3;
             foreach ($items as $key=>$value) {
                 
@@ -875,7 +875,7 @@ class DownloadController extends Controller
                 $start_row++;
             }
             
-        },'la_id');
+        });
         
         $writer = new Xlsx($spreadsheet);
         $writer->setPreCalculateFormulas(false);
