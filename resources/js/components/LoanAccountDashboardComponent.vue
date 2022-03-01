@@ -340,7 +340,7 @@
                 </div>
                 <div class="form-group">
                     <label class="text-lg">CV #:</label>
-                    <input type="text" class="form-control" v-model="form.cv_number" v-bind:class="hasError('check_voucher') ? 'is-invalid' : ''">
+                    <input type="text" class="form-control" v-model="formDisbursement.cv_number" v-bind:class="hasError('check_voucher') ? 'is-invalid' : ''">
                     <div class="invalid-feedback" v-if="hasError('check_voucher')">
                         {{ errors.check_voucher[0]}}
                     </div>
