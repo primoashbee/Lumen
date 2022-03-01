@@ -72,11 +72,11 @@ class ParMovementCompute extends Command
         }
         
         $time_end = microtime(true);
-        $this->info('.......');
+        $this->info('.......for PAR CALCUTE......');
         $end_memory =memory_get_usage();
         $memory_usage = round(($end_memory - $start_memory)/1048576,2).'MB';
         $runtime = $time_end - $time_start;
-        $this->info('Memory Usage: '.$memory_usage.' for this certain command');
+        $this->info('Memory Usage: '.$memory_usage.' for this certain command for PAR CALCUTE');
         $this->info('Time taken :'.$runtime.' seconds');
 
     }

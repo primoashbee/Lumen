@@ -1007,7 +1007,7 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 	                        allowEnterKey: true // default value
 	                    })
 	                    .then(res=>{
-	                        	// location.href = this.toClient()
+	                        	location.href = this.toClient()
 	                    	})
 	                    },1)
 	                })
