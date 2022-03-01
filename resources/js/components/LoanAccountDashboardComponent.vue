@@ -35,6 +35,9 @@
                                 </button>
                             </div>
                             <div class="text-right col-lg-12" v-if="account.disbursed!=0 && account.closed_at==null">
+                                <button type="button" class="btn btn-primary" data-toggle="modal" @click="exportSOA">
+                                    SOA
+                                </button>
                                 <button v-if="can('enter_repayment') || is('Super Admin')" type="button" class="btn btn-primary" data-toggle="modal" @click="modal.modalState=true">
                                     Pay
                                 </button>
@@ -675,6 +678,19 @@ export default {
                     
                 }
             })
+        },
+        exportSOA(){
+            this.isLoading = true;
+            axios.get('/download/soa/'+this.loan_account_id,{responseType:'blob'})
+                .then(res=>{
+                    const url = window.URL.createObjectURL(new Blob([res.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', res.headers.filename);
+                    document.body.appendChild(link);
+                    link.click();
+                    this.isLoading =false;
+                })
         }
     },
     computed:{

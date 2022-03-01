@@ -16,6 +16,63 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class DownloadController extends Controller
 {
+
+    public function soa($loan_account_id=1){
+        $loan_account = LoanAccount::find($loan_account_id);
+        $file = public_path('templates/SOA.xlsx');
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+        $sheet =$spreadsheet->getSheet(0);
+        
+        $cw = clone $sheet;
+        
+        $ctr = 1;
+        $cw->setTitle('#'.$ctr.' '.$loan_account->client->full_name);
+        $soa = $spreadsheet->addSheet($cw);
+        $soa->setCellValue('B7',$loan_account->client->office->parent->parent->name);
+        $soa->setCellValue('B8',Carbon::now()->format('M d, Y'));
+        $soa->setCellValue('B13',$loan_account->client_id);
+        $soa->setCellValue('B14',$loan_account->client->full_name);
+        $soa->setCellValue('B16',
+                            $loan_account->client->street_address.' '.
+                            $loan_account->client->barangay_address.' '.
+                            $loan_account->client->city_address.', '.
+                            $loan_account->client->province_address);
+        $soa->setCellValue('C18',$loan_account->product->code);
+        $soa->setCellValue('C19',$loan_account->amount);
+        $soa->setCellValue('C20',$loan_account->interest);
+
+        $number_of_months = $loan_account->number_of_installments == 22 ? 6 : $loan_account->number_of_installments/4;
+
+        $soa->setCellValue('C21',$number_of_months);
+        $soa->setCellValue('C22',$loan_account->number_of_installments);
+        $soa->setCellValue('C23',Carbon::parse($loan_account->disbursement_date)->format('M d, Y'));
+        $soa->setCellValue('C24',Carbon::parse($loan_account->installments()->orderBy('id','desc')->first()->date)->format('M d, Y'));
+        $soa->setCellValue('C25',Carbon::parse($loan_account->installments()->first()->date)->format('M d, Y'));
+        $soa->setCellValue('C26',$loan_account->principal_balance);
+        $soa->setCellValue('C27',$loan_account->interest_balance);
+        $soa->setCellValue('C28',$loan_account->total_balance);
+
+        $principal_paid = $loan_account->principal - $loan_account->principal_balance;
+        $interest_paid = $loan_account->interest - $loan_account->interest_balance;
+        $soa->setCellValue('C31',$principal_paid);
+        $soa->setCellValue('C32',$interest_paid);
+        $soa->setCellValue('C33',$interest_paid+$principal_paid);
+
+        $soa->setCellValue('C36',$loan_account->principal_balance);
+        $soa->setCellValue('C37',$loan_account->interest_balance);
+
+        $soa->setCellValue('C42',$loan_account->total_balance);
+        $spreadsheet->removeSheetByIndex(0);
+        $spreadsheet->setActiveSheetIndex(0);
+        
+        $writer = new Xlsx($spreadsheet);
+        $writer->setPreCalculateFormulas(false);
+        $newFile = public_path('templates/test.xlsx');
+        $writer->save($newFile);
+        $filename = 'SOA - '.$loan_account->client->full_name . '.xlsx';
+        $headers = ['Content-Type'=> 'application/pdf','Content-Disposition'=> 'attachment;','filename'=>$filename];
+        return response()->download($newFile,$filename,$headers)->deleteFileAfterSend(true);
+    }
     
     public function dst($loan_account_id=1){
 

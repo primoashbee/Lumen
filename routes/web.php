@@ -55,6 +55,7 @@ Route::group(['middleware' => ['auth']], function () {
 
         Route::get('/transactions', 'TransactionController@list');
         Route::get('/download/dst/{loan_account_id}','DownloadController@dst');
+        Route::get('/download/soa/{loan_account_id}','DownloadController@soa');
         Route::get('/download/dst/bulk/{bulk_transaction_id}','DownloadController@dstBulk');
         Route::post('/download/ccr','DownloadController@ccr');
         
