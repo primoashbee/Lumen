@@ -416,12 +416,10 @@ class LoanAccountController extends Controller
     }
     
     public function payFeePayments($fees,array $data){
-        
         $x = 1;
         $now  = Carbon::now();        
         foreach($fees as $fee){
             $transaction_number = 'F'.str_replace('.','',microtime(true));
-
             $res = $fee->update([
                 'loan_account_disbursement_transaction_id'=>$data['transaction_id'],
                 'transaction_number'=>$transaction_number,
@@ -478,9 +476,8 @@ class LoanAccountController extends Controller
         return view('pages.client-loans-list',compact('client'));
     }
 
-    public function disburse(Request $request, $loan_id=null){
+    public function disburse(Request $request,$loan_id=null){
         
-        // dd($request->all());
         $request->validate([
             'office_id' => 'required|exists:offices,id',
             'disbursement_date'=>'required|date|before:tomorrow',
@@ -489,8 +486,6 @@ class LoanAccountController extends Controller
             'accounts.*' => ['required', 'exists:loan_accounts,id',new LoanAccountCanBeDisbursed],
             'paymentSelected' =>['required',new PaymentMethodList]
         ]);
-        
-        
         if($loan_id!=null){
             $id = $loan_id; 
         }else{
@@ -498,6 +493,7 @@ class LoanAccountController extends Controller
         }
         $account = LoanAccount::findOrFail($id);
         $fee_payments = $account->feePayments;
+
         $feePayments =[
             'payment_method_id' => $request->paymentSelected,
             'disbursed_by' => auth()->user()->id,
@@ -506,7 +502,7 @@ class LoanAccountController extends Controller
             'transaction_id' => $account->generateDisbursementTransactionNumber()
         ];
         
-
+        $disbursed_by = auth()->user()->id;
         $disbursement_date = Carbon::parse($request->disbursement_date)->startOfDay();
         $start_date = Carbon::parse($request->first_repayment_date)->startOfDay();
         $original_disbursement_date = $account->disbursement_date;
@@ -514,6 +510,7 @@ class LoanAccountController extends Controller
         \DB::beginTransaction();
         
         try {
+
             if ($diff != 0) {
                 $account->disbursement_date = $disbursement_date;
                 $account->save();
@@ -553,9 +550,11 @@ class LoanAccountController extends Controller
 
             
             $this->payFeePayments($fee_payments,$feePayments);
+
             
-                
+
             $account->update([
+                'disbursed_at'=>Carbon::now(),
                 'status' => $account->overdue()->total == 0 ? 'Active' : 'In Arrears',
                 'disbursed'=>true
             ]);

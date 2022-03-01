@@ -877,8 +877,6 @@ class DownloadController extends Controller
             
         });
         
-        
-
         $writer = new Xlsx($spreadsheet);
         $writer->setPreCalculateFormulas(false);
         $newFile = public_path('created_reports/').$filename;

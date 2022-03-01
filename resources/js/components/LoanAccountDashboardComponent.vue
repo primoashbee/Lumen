@@ -216,7 +216,7 @@
                                         <td>{{item.paid_by}}</td>
                                        
                                         <td>
-                                            <div v-if="item.transaction_number.charAt(0) != 'F'">
+                                            <div v-if="item.transaction_number.charAt(0) !== 'F'">
                                                 <span v-if="item.reverted=='0'">
                                                     <button @click="revert(item.transaction_number)" class="btn btn-danger"><i class="fa fa-undo" aria-hidden="true"></i></button>
                                                 </span>
@@ -399,14 +399,14 @@ export default {
                 receipt_number: null,
                 jv_number: null,
                 payment_method_id: null,
-                
             },
             formDisbursement :{
+                office_id :null,
+                paymentSelected : null,
+                
                 disbursement_date : null,
                 first_repayment_date : null,
-                payment_method:null,
-                cv_number:null,
-                office_id:null
+                cv_number: null,
             },
             total_paid: null,
             pre_term_amount: null,
@@ -449,7 +449,7 @@ export default {
                     text: res.data.msg,
                     icon: 'success',
                 }).then(res =>{
-                    location.reload();
+                    // location.reload();
                 })
             }).catch(err=>{
                 this.isLoading = false;
@@ -478,8 +478,7 @@ export default {
                             'Reverted!',
                             res.data.msg,
                             'success'
-                        ).then(() => location.reload())
-                            
+                        )
                     })
                     .catch(error=>{
                         Swal.fire(
@@ -573,6 +572,7 @@ export default {
                 })
                 .catch(error=>{
                     this.is_loading =false
+                    console.log(error.response.data.errors)
                     this.errors = error.response.data.errors || {}
                 })
         },
@@ -644,7 +644,7 @@ export default {
                 
 
             }).catch(error=>{
-                
+                console.log(error);
                 this.is_loading = false;
             });
         
@@ -668,8 +668,8 @@ export default {
                             'Success!',
                             'Loan Successfully Abandoned',
                             'success'
-                        ).then(() => 
-                        location.reload())
+                            
+                        )
                     })
 
                     
@@ -678,7 +678,6 @@ export default {
         }
     },
     computed:{
-        
         disburseLoan(){
             return '/loan/disburse/'+this.loan_account_id;
         },

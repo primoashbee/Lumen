@@ -103,7 +103,7 @@ class RecalculateLoanDues extends Command
                 ]
             );
 
-            $accounts = LoanAccount::active()->chunkById(2000, function($loans){
+            $accounts = LoanAccount::active()->chunk(2000, function($loans){
                 foreach($loans as $loan){
                     $loan->updateStatus();
                 }
