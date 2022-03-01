@@ -861,9 +861,9 @@ class DownloadController extends Controller
         $file = public_path('templates/Reports/Loan In Arrears Principal.xlsx');
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
         $sheet =$spreadsheet->getSheet(0);
-        
-        $data['data']->orderBy('la_id','desc')->chunk(200, function($items) use (&$sheet, &$start_row){
         $start_row = 3;
+        $data['data']->orderBy('la_id','desc')->chunk(2000, function($items) use (&$sheet, &$start_row){
+        
             foreach ($items as $key=>$value) {
                 
                 $sheet->setCellValue('A'.$start_row, $key + 1);
@@ -875,8 +875,10 @@ class DownloadController extends Controller
                 $start_row++;
             }
             
-        },'la_id');
+        });
         
+        
+
         $writer = new Xlsx($spreadsheet);
         $writer->setPreCalculateFormulas(false);
         $newFile = public_path('created_reports/').$filename;

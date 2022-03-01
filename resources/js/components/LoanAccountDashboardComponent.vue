@@ -216,13 +216,14 @@
                                         <td>{{item.paid_by}}</td>
                                        
                                         <td>
-                                            <span v-if="item.reverted=='0'">
-                                                <button @click="revert(item.transaction_number)" class="btn btn-danger"><i class="fa fa-undo" aria-hidden="true"></i></button>
-                                            </span>
-                                            <span v-else>
-                                                Reverted
-                                            </span>
-
+                                            <div v-if="item.transaction_number.charAt(0) != 'F'">
+                                                <span v-if="item.reverted=='0'">
+                                                    <button @click="revert(item.transaction_number)" class="btn btn-danger"><i class="fa fa-undo" aria-hidden="true"></i></button>
+                                                </span>
+                                                <span v-else>
+                                                    Reverted
+                                                </span>
+                                            </div>
                                             
                                         </td>
                                     </tr>
@@ -339,7 +340,7 @@
                 </div>
                 <div class="form-group">
                     <label class="text-lg">CV #:</label>
-                    <input type="text" class="form-control" v-model="form.cv_number" v-bind:class="hasError('check_voucher') ? 'is-invalid' : ''">
+                    <input type="text" class="form-control" v-model="formDisbursement.cv_number" v-bind:class="hasError('check_voucher') ? 'is-invalid' : ''">
                     <div class="invalid-feedback" v-if="hasError('check_voucher')">
                         {{ errors.check_voucher[0]}}
                     </div>
@@ -398,14 +399,14 @@ export default {
                 receipt_number: null,
                 jv_number: null,
                 payment_method_id: null,
+                
             },
             formDisbursement :{
-                office_id :null,
-                paymentSelected : null,
-                
                 disbursement_date : null,
                 first_repayment_date : null,
-                cv_number: null,
+                payment_method:null,
+                cv_number:null,
+                office_id:null
             },
             total_paid: null,
             pre_term_amount: null,
@@ -477,7 +478,8 @@ export default {
                             'Reverted!',
                             res.data.msg,
                             'success'
-                        )
+                        ).then(() => location.reload())
+                            
                     })
                     .catch(error=>{
                         Swal.fire(
@@ -571,7 +573,6 @@ export default {
                 })
                 .catch(error=>{
                     this.is_loading =false
-                    console.log(error.response.data.errors)
                     this.errors = error.response.data.errors || {}
                 })
         },
@@ -643,7 +644,7 @@ export default {
                 
 
             }).catch(error=>{
-                console.log(error);
+                
                 this.is_loading = false;
             });
         
@@ -667,8 +668,8 @@ export default {
                             'Success!',
                             'Loan Successfully Abandoned',
                             'success'
-                            
-                        )
+                        ).then(() => 
+                        location.reload())
                     })
 
                     
@@ -677,6 +678,7 @@ export default {
         }
     },
     computed:{
+        
         disburseLoan(){
             return '/loan/disburse/'+this.loan_account_id;
         },

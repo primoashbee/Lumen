@@ -415,17 +415,24 @@ class LoanAccountController extends Controller
         return $fee_payments;
     }
     
-    public function payFeePayments($fees,$payment_method_id,$disbursed_by,$transaction_id){
+    public function payFeePayments($fees,array $data){
+        
         $x = 1;
         $now  = Carbon::now();        
         foreach($fees as $fee){
+            $transaction_number = 'F'.str_replace('.','',microtime(true));
+
             $res = $fee->update([
-                'loan_account_disbursement_transaction_id'=>$transaction_id,
-                'transaction_id'=>$fee->generateTransactionID($x),
-                'paid_at'=>Carbon::now(),
-                'paid_by'=>$disbursed_by,
-                'payment_method_id'=>$payment_method_id,
+                'loan_account_disbursement_transaction_id'=>$data['transaction_id'],
+                'transaction_number'=>$transaction_number,
+                'repayment_date'=>$data['repayment_date'],
+                'office_id' => $data['office_id'],
+                'paid_by'=>$data['disbursed_by'],
+                'payment_method_id'=>$data['payment_method_id'],
                 'paid'=>true,
+                'reverted'=>false,
+                'reverted_by' => null,
+                'reverted_at' => null,
                 'created_at'=>$now
             ]);
             $x++;
@@ -471,7 +478,18 @@ class LoanAccountController extends Controller
         return view('pages.client-loans-list',compact('client'));
     }
 
-    public function disburse($loan_id=null){
+    public function disburse(Request $request, $loan_id=null){
+        
+        // dd($request->all());
+        $request->validate([
+            'office_id' => 'required|exists:offices,id',
+            'disbursement_date'=>'required|date|before:tomorrow',
+            'first_repayment_date'=>'required|after_or_equal:disbursement_date',
+            'cv_number'=>'required|unique:check_vouchers,check_voucher_number',
+            'accounts.*' => ['required', 'exists:loan_accounts,id',new LoanAccountCanBeDisbursed],
+            'paymentSelected' =>['required',new PaymentMethodList]
+        ]);
+        
         
         if($loan_id!=null){
             $id = $loan_id; 
@@ -480,25 +498,73 @@ class LoanAccountController extends Controller
         }
         $account = LoanAccount::findOrFail($id);
         $fee_payments = $account->feePayments;
-        $payment_method_id = 1;
-        $disbursed_by = auth()->user()->id;
+        $feePayments =[
+            'payment_method_id' => $request->paymentSelected,
+            'disbursed_by' => auth()->user()->id,
+            'repayment_date' => $request->disbursement_date,
+            'office_id' => $request->office_id,
+            'transaction_id' => $account->generateDisbursementTransactionNumber()
+        ];
+        
+
+        $disbursement_date = Carbon::parse($request->disbursement_date)->startOfDay();
+        $start_date = Carbon::parse($request->first_repayment_date)->startOfDay();
+        $original_disbursement_date = $account->disbursement_date;
+        $diff = $original_disbursement_date->diffInDays($disbursement_date, false);
         \DB::beginTransaction();
         
         try {
-            $transaction_id = $account->generateDisbursementTransactionNumber();
-            $this->payFeePayments($fee_payments,$payment_method_id,$disbursed_by,$transaction_id);
+            if ($diff != 0) {
+                $account->disbursement_date = $disbursement_date;
+                $account->save();
+            }
 
+            $original_start_date_date = $account->installments()->first()->date;
+            $diff = $original_start_date_date->diffInDays($start_date, false);
+
+            if ($diff != 0) {
+                //create new installments
+                $account->installments()->delete();
+                
+                $product = $account->product;
+                
+                $annual_rate = $product->annual_date;
+                $monthly_rate = $product->monthly_rate;
+                $loan_interest_rate = Loan::rates($account->product->id)->where('installments', $account->number_of_installments)->first()->rate;
+                
+                $data = array(
+                    'product' => $product->code,
+                    'principal'=>$account->amount,
+                    'annual_rate'=>$annual_rate,
+                    'monthly_rate'=>$monthly_rate,
+                    'interest_rate'=>$loan_interest_rate,
+                    'interest_interval'=>$product->interest_interval,
+                    'term'=>$product->installment_method,
+                    'term_length'=>$account->number_of_installments,
+                    'disbursement_date'=>$disbursement_date,
+                    'start_date'=>$start_date,
+                    'office_id'=>$request->office_id
+                );
+                
+                $calculator = LoanAccount::calculate($data);
+                $account->createInstallments($account, $calculator->installments);
+                
+            }
+
+            
+            $this->payFeePayments($fee_payments,$feePayments);
+            
+                
             $account->update([
-                'disbursed_at'=>Carbon::now(),
-                'status'=>'Active',
+                'status' => $account->overdue()->total == 0 ? 'Active' : 'In Arrears',
                 'disbursed'=>true
             ]);
             
             $account->disbursement()->create([
-                'transaction_id'=>$transaction_id,
+                'transaction_id'=>$feePayments['transaction_id'],
                 'disbursed_amount'=>$account->disbursed_amount,
                 'disbursed_by'=>auth()->user()->id,
-                'payment_method_id'=>$payment_method_id 
+                'payment_method_id'=>$feePayments['payment_method_id'] 
             ]);
             
         $account->updateStatus();
@@ -506,8 +572,8 @@ class LoanAccountController extends Controller
         $account->dependents->update([
             'status'=>'Used',
             'loan_account_id'=>$account->id,
-            'activated_at'=>Carbon::now(),
-            'expires_at'=>Carbon::now()->addDays(env('INSURANCE_MATURITY_DAYS'))
+            'activated_at'=>Carbon::parse($request->disbursement_date),
+            'expires_at'=>Carbon::parse($request->disbursement_date)->addDays(env('INSURANCE_MATURITY_DAYS'))
         ]);
         
         

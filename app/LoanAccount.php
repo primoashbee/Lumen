@@ -1157,7 +1157,6 @@ class LoanAccount extends Model
 
     public function updateStatus()
     {
-        
         $x = 0;
         if (is_null($this->disbursed_by)){
             return $this->update([
@@ -1171,15 +1170,17 @@ class LoanAccount extends Model
         }
 
         $dues = $this->getDuesFromDate(now());
-        
+        dd($dues);
         //if has past dues
         if ($dues->overdue->total > 0) {
+            dd("in arrears");
             return $this->update([
                 'status'=>'In Arrears'
                 ]);
         }
         
         if ($this->getRawOriginal('total_balance') == 0) {
+            dd("closed");
             return $this->update([
                 
                 'status'=>'Closed'
@@ -2070,7 +2071,7 @@ class LoanAccount extends Model
             // ->where('amount_due','>',0)
         ->where('paid', false)
         ->where('date', '=', $date);
-
+        dd($installments);
         $due = new stdClass;
         $due->interest = round($installments->sum('interest_due'), 2);
         $due->_interest = money($installments->sum('interest_due'), 2);
