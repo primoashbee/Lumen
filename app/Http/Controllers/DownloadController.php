@@ -800,12 +800,13 @@ class DownloadController extends Controller
             foreach ($items as $key=>$value) {
                 $sheet->setCellValue('A'.$start_row, $key + 1);
                 $sheet->setCellValue('B'.$start_row, $value->office);
-                $sheet->setCellValue('C'.$start_row, $value->client_id);
-                $sheet->setCellValue('D'.$start_row, $value->fullname);
-                $sheet->setCellValue('E'.$start_row, $value->code);
-                $sheet->setCellValue('F'.$start_row, $value->accrued_interest);
-                $sheet->setCellValue('G'.$start_row, $value->balance);
-                $sheet->setCellValue('H'.$start_row, $value->status);
+                $sheet->setCellValue('C'.$start_row, $value->loan_officer);
+                $sheet->setCellValue('D'.$start_row, $value->client_id);
+                $sheet->setCellValue('E'.$start_row, $value->fullname);
+                $sheet->setCellValue('F'.$start_row, $value->code);
+                $sheet->setCellValue('G'.$start_row, $value->accrued_interest);
+                $sheet->setCellValue('H'.$start_row, $value->balance);
+                $sheet->setCellValue('I'.$start_row, $value->status);
                 $start_row++;
             }
         });
@@ -833,26 +834,27 @@ class DownloadController extends Controller
         $data['accounts']->orderBy('id','desc')->chunk(200, function($items) use (&$sheet, &$start_row){
             foreach ($items as $key=>$value) {
                 
-                $sheet->setCellValue('A'.$start_row, $value->id);
+                $sheet->setCellValue('A'.$start_row, $key + 1);
                 $sheet->setCellValue('B'.$start_row, $value->office);
-                $sheet->setCellValue('C'.$start_row, $value->client_id);
-                $sheet->setCellValue('D'.$start_row, $value->fullname);
-                $sheet->setCellValue('E'.$start_row, $value->code);
-                $sheet->setCellValue('F'.$start_row, $value->principal);
-                $sheet->setCellValue('G'.$start_row, $value->interest);
-                $sheet->setCellValue('H'.$start_row, $value->total_loan_amount);
-                $sheet->setCellValue('I'.$start_row, $value->interest_balance);
-                $sheet->setCellValue('J'.$start_row, $value->principal_balance);
-                $sheet->setCellValue('K'.$start_row, $value->total_balance);
-                $sheet->setCellValue('L'.$start_row, $value->first_payment_date);
-                $sheet->setCellValue('M'.$start_row, $value->last_payment_date);
-                $sheet->setCellValue('N'.$start_row, $value->disbursed_at);
-                $sheet->setCellValue('O'.$start_row, $value->disbursed_amount);
-                $sheet->setCellValue('P'.$start_row, $value->total_deductions);
-                $sheet->setCellValue('Q'.$start_row, $value->number_of_months);
-                $sheet->setCellValue('R'.$start_row, $value->number_of_installments);
-                $sheet->setCellValue('S'.$start_row, $value->interest_rate);
-                $sheet->setCellValue('T'.$start_row, $value->status);
+                $sheet->setCellValue('C'.$start_row, $value->loan_officer);
+                $sheet->setCellValue('D'.$start_row, $value->client_id);
+                $sheet->setCellValue('E'.$start_row, $value->fullname);
+                $sheet->setCellValue('F'.$start_row, $value->code);
+                $sheet->setCellValue('G'.$start_row, $value->principal);
+                $sheet->setCellValue('H'.$start_row, $value->interest);
+                $sheet->setCellValue('I'.$start_row, $value->total_loan_amount);
+                $sheet->setCellValue('J'.$start_row, $value->interest_balance);
+                $sheet->setCellValue('K'.$start_row, $value->principal_balance);
+                $sheet->setCellValue('L'.$start_row, $value->total_balance);
+                $sheet->setCellValue('M'.$start_row, $value->first_payment_date);
+                $sheet->setCellValue('N'.$start_row, $value->last_payment_date);
+                $sheet->setCellValue('O'.$start_row, $value->disbursed_at);
+                $sheet->setCellValue('P'.$start_row, $value->disbursed_amount);
+                $sheet->setCellValue('Q'.$start_row, $value->total_deductions);
+                $sheet->setCellValue('R'.$start_row, $value->number_of_months);
+                $sheet->setCellValue('S'.$start_row, $value->number_of_installments);
+                $sheet->setCellValue('T'.$start_row, $value->interest_rate);
+                $sheet->setCellValue('U'.$start_row, $value->status);
                 $start_row++;
             }
         });
@@ -866,6 +868,57 @@ class DownloadController extends Controller
         $headers = ['Content-Type'=> 'application/vnd.ms-excel','Content-Disposition'=> 'attachment;','filename'=>$filename];
         return ['file'=>$newFile, 'filename' => $filename, 'headers'=>$headers];
     }
+
+    public static function LoansAndDeposit($data){
+        $ts = str_replace('.','',microtime(true));
+        $filename = 'Loan Accounts ('.$ts.').xlsx';
+            // $file = public_path('templates/Reports/Detailed Deposit Report.xlsx');
+        $file = public_path('templates/Reports/Loan and Deposit Accounts.xlsx');
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+        $sheet =$spreadsheet->getSheet(0);
+    
+        $start_row = 3  ;
+        
+        $data['accounts']->orderBy('id','desc')->chunk(200, function($items) use (&$sheet, &$start_row){
+            foreach ($items as $key=>$value) {
+                
+                $sheet->setCellValue('A'.$start_row, $key + 1);
+                $sheet->setCellValue('B'.$start_row, $value->office);
+                $sheet->setCellValue('C'.$start_row, $value->loan_officer);
+                $sheet->setCellValue('D'.$start_row, $value->client_id);
+                $sheet->setCellValue('E'.$start_row, $value->fullname);
+                $sheet->setCellValue('F'.$start_row, $value->code);
+                $sheet->setCellValue('G'.$start_row, $value->principal);
+                $sheet->setCellValue('H'.$start_row, $value->interest);
+                $sheet->setCellValue('I'.$start_row, $value->total_loan_amount);
+                $sheet->setCellValue('J'.$start_row, $value->interest_balance);
+                $sheet->setCellValue('K'.$start_row, $value->principal_balance);
+                $sheet->setCellValue('L'.$start_row, $value->total_balance);
+                $sheet->setCellValue('M'.$start_row, $value->first_payment_date);
+                $sheet->setCellValue('N'.$start_row, $value->last_payment_date);
+                $sheet->setCellValue('O'.$start_row, $value->disbursed_at);
+                $sheet->setCellValue('P'.$start_row, $value->disbursed_amount);
+                $sheet->setCellValue('Q'.$start_row, $value->total_deductions);
+                $sheet->setCellValue('R'.$start_row, $value->number_of_months);
+                $sheet->setCellValue('S'.$start_row, $value->number_of_installments);
+                $sheet->setCellValue('T'.$start_row, $value->interest_rate);
+                $sheet->setCellValue('U'.$start_row, $value->status);
+                $sheet->setCellValue('V'.$start_row, $value->RCBU);
+                $sheet->setCellValue('W'.$start_row, $value->MCBU);
+                $start_row++;
+            }
+        });
+        
+        $writer = new Xlsx($spreadsheet);
+        $writer->setPreCalculateFormulas(false);
+        $newFile = public_path('created_reports/').$filename;
+        $writer->save($newFile);
+    
+
+        $headers = ['Content-Type'=> 'application/vnd.ms-excel','Content-Disposition'=> 'attachment;','filename'=>$filename];
+        return ['file'=>$newFile, 'filename' => $filename, 'headers'=>$headers];
+    }
+
     public static function clientReport($data){
         $ts = str_replace('.','',microtime(true));
         $filename = 'Clients Details ('.$ts.').xlsx';

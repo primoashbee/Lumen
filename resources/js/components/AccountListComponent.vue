@@ -31,9 +31,10 @@
                 <thead>
                     <tr v-if="type=='loan'">
                         <td><p class="title">Level</p></td>
+                        <td><p class="title">Loan Officer</p></td>
                         <td><p class="title">Client ID</p></td>
                         <td><p class="title">Name</p></td>
-                        <td><p class="title">Type</p></td>
+                        <td><p class="title">Code</p></td>
                         <td><p class="title">Principal</p></td>
                         <td><p class="title">Interest</p></td>
                         <td><p class="title">Total Loan Amount</p></td>
@@ -42,6 +43,7 @@
                     </tr>
                     <tr v-if="type=='deposit'">
                         <td><p class="title">Level</p></td>
+                        <td><p class="title">Loan Officer</p></td>
                         <td><p class="title">Client ID</p></td>
                         <td><p class="title">Name</p></td>
                         <td><p class="title">Type</p></td>
@@ -49,11 +51,25 @@
                         <td><p class="title">Balance</p></td>
                         <td><p class="title">Status</p></td>
                     </tr>
+                     <tr v-if="type=='all'">
+                        <td><p class="title">Level</p></td>
+                        <td><p class="title">Loan Officer</p></td>
+                        <td><p class="title">Client ID</p></td>
+                        <td><p class="title">Name</p></td>
+                        <td><p class="title">Code</p></td>
+                        <td><p class="title">Principal</p></td>
+                        <td><p class="title">Interest</p></td>
+                        <td><p class="title">Total Balance</p></td>
+                        <td><p class="title">RCBU</p></td>
+                        <td><p class="title">MCBU</p></td>
+                        <td><p class="title">Status</p></td>
+                    </tr>
                 </thead>
                 <tbody v-if="hasRecords">
                     <template v-if="type=='loan'">
                         <tr v-for="(item, key) in lists.data" :key="key">
                             <td class="text-lg">{{item.office}}</td>
+                            <td class="text-lg">{{item.loan_officer}}</td>
                             <td><a class="text-lg" href="#">{{item.client_id}}</a></td>
                             <td class="text-lg">{{item.fullname}}</td>
                             <td class="text-lg">{{item.code}}</td>
@@ -67,6 +83,7 @@
                     <template v-if="type=='deposit'">
                         <tr v-for="(item, key) in lists.data" :key="key">
                             <td class="text-lg">{{item.office}}</td>
+                            <td class="text-lg">{{item.loan_officer}}</td>
                             <td><a class="text-lg" href="#">{{item.client_id}}</a></td>
                             <td class="text-lg">{{item.fullname}}</td>
                             <td class="text-lg">{{item.code}}</td>
@@ -75,6 +92,23 @@
                             <td class="text-lg" v-html="status(item.status)"></td>
                         </tr>
                     </template>
+                    <template v-if="type=='all'">
+                        <tr v-for="(item, key) in lists.data" :key="key">
+                            <td class="text-lg">{{item.office}}</td>
+                            <td class="text-lg">{{item.loan_officer}}</td>
+                            <td><a class="text-lg" href="#">{{item.client_id}}</a></td>
+                            <td class="text-lg">{{item.fullname}}</td>
+                            <td class="text-lg">{{item.code}}</td>
+                            <td class="text-lg">{{moneyFormat(item.principal)}}</td>
+                            <td class="text-lg">{{moneyFormat(item.interest)}}</td>
+                            <td class="text-lg">{{moneyFormat(item.total_balance)}}</td>
+                            <td class="text-lg">{{moneyFormat(item.RCBU)}}</td>
+                            <td class="text-lg">{{moneyFormat(item.MCBU)}}</td>
+                            
+                            <td class="text-lg" v-html="status(item.status)"></td>
+                        </tr>
+                    </template>
+
                     <template v-if="type=='loan'">
                         <tr >
                             <td></td>
@@ -96,6 +130,20 @@
                             <td class="text-lg"> {{moneyFormat(this.summary.total_accrued_interest)}}</td>
                             <td class="text-lg"> {{moneyFormat(this.summary.total_balance)}}</td>
                             <td></td>
+                        </tr>
+                    </template>
+
+                    <template v-if="type=='all'">
+                        <tr>
+                           
+                            <td class="text-lg"># of Accounts</td>
+                            <td class="text-lg"> {{this.summary.total_accounts}}</td>
+                            <td class="text-lg text-right" colspan="4"> {{moneyFormat(this.summary.total_principal)}}</td>
+                            <td class="text-lg"> {{moneyFormat(this.summary.total_interest)}}</td>
+                            <td class="text-lg"> {{moneyFormat(this.summary.total_balance)}}</td>
+                            <td class="text-lg"> {{moneyFormat(this.summary.total_rcbu)}}</td>
+                            <td class="text-lg"> {{moneyFormat(this.summary.total_mcbu)}}</td>
+                            
                         </tr>
                     </template>
                 </tbody>
