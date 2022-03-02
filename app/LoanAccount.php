@@ -24,8 +24,9 @@ class LoanAccount extends Model
         'amount',
         'principal',
         'interest',
+        'penalty',
         'total_loan_amount',
-
+        
         'annual_rate',
         'interest_rate',
         

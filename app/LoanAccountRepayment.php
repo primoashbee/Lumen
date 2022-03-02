@@ -15,6 +15,7 @@ class LoanAccountRepayment extends Model
         'interest_paid',
         'principal_paid',
         'total_paid',
+        'penalty_paid',
         'carried_over_amount',
         'paid_by',
         'payment_method_id',

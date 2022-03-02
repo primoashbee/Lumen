@@ -18,6 +18,7 @@ class LoanAccountInstallment extends Model
         'original_interest',
         'principal',
         'interest',
+        'penalty',
         'principal_due',
         'interest_due',
         'amount_due',
