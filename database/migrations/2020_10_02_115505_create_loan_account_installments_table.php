@@ -31,7 +31,7 @@ class CreateLoanAccountInstallmentsTable extends Migration
             
             $table->unsignedDouble('principal_balance');
             $table->unsignedDouble('interest_balance');
-
+            $table->unsignedDouble('penalty')->default(0);
             $table->unsignedDouble('interest_days_incurred')->default(0);
 
             $table->boolean('paid')->default(false);

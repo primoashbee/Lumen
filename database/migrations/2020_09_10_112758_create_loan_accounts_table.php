@@ -21,6 +21,7 @@ class CreateLoanAccountsTable extends Migration
             $table->unsignedDouble('amount');
             $table->unsignedDouble('principal');
             $table->unsignedDouble('interest');
+            $table->unsignedDouble('penalty')->default(0);
             $table->unsignedDouble('total_loan_amount');
 
             
