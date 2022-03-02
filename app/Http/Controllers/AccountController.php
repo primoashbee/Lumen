@@ -53,12 +53,15 @@ class AccountController extends Controller
         // });
         
         $q = $request->all();
+        
         if($request->has('export')){
             $accounts  = Office::find($request->office_id)->accounts($q, false);
             if ($request->type=='loan') {
                 $file = DownloadController::loanAccounts($accounts);
-            }else{
+            }else if($request->type == 'deposit'){
                 $file = DownloadController::depositAccounts($accounts);
+            }else{
+                $file = DownloadController::LoansAndDeposit($accounts);
             }
             return response()->download($file['file'],$file['filename'],$file['headers']);
 
@@ -67,7 +70,7 @@ class AccountController extends Controller
         $accounts  = Office::find($request->office_id)->accounts($q);
         
         $summary = $accounts['summary'];
-        $accounts = $accounts['accounts']->paginate(25);
+        $accounts = $accounts['accounts']->paginate($q['per_page']);
         return response()->json(['msg'=>'nice','data'=>$accounts,'summary'=>$summary],200);
     }
 }

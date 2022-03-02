@@ -600,8 +600,12 @@ class Office extends Model
         $offices = \DB::table('offices');
         $loans = \DB::table('loans');
         $deposits = \DB::table('deposits');
-        
-        if($query['type'] == 'loan'){
+        $users = \DB::table('users');
+        $office_user = \DB::table('office_user');   
+        $space=' ';
+        $deposits_accounts = \DB::table('deposit_accounts');
+
+        if($query['type'] == 'all'){
             if($limited_fields){
                 $select = [
                     'offices.name as office',
@@ -617,7 +621,10 @@ class Office extends Model
                     'loan_accounts.interest_balance as interest_balance',
                     'loan_accounts.total_balance as total_balance',
                     'loan_accounts.disbursed_amount as disbursed_amount',
-                    'loan_accounts.status as status'
+                    'loan_accounts.status as status',
+                    'rcbu.balance as RCBU',
+                    'mcbu.balance as MCBU',
+                    \DB::raw("CONCAT(users.firstname,'{$space}',users.lastname) as loan_officer"),
                 ];
             }else{
                 $select = [
@@ -642,6 +649,108 @@ class Office extends Model
                     'loan_accounts.disbursed_amount as disbursed_amount',
                     'loan_accounts.first_payment_date as first_payment_date',
                     'loan_accounts.last_payment_date as last_payment_date',
+                    'rcbu.balance as RCBU',
+                    'mcbu.balance as MCBU',
+                    \DB::raw("CONCAT(users.firstname,'{$space}',users.lastname) as loan_officer"),
+                ];
+            }
+            $accounts = \DB::table('loan_accounts')
+                    ->select(
+                       $select
+                    )
+                    ->when($query['office_id'], function($q, $data){
+                        $ids = Office::lowerOffices($data,true,true);
+                        $q->whereIn('clients.office_id',$ids);
+                    })
+                    ->when($query['products'], function($q, $data){
+                        $q->whereIn('loans.id',$data);
+                    })
+                    ->when($query['status'], function($q, $data){
+                        $q->whereIn('loan_accounts.status',$data);
+                    })
+                    ->leftJoinSub($clients, 'clients', function ($join) {
+                        $join->on('clients.client_id', '=', 'loan_accounts.client_id');
+                    })
+                    ->leftJoinSub($offices, 'offices', function ($join) {
+                        $join->on('offices.id', '=', 'clients.office_id');
+                    })
+                    ->leftJoinSub($loans, 'loans', function ($join) {
+                        $join->on('loans.id', '=', 'loan_accounts.loan_id');
+                    })
+                    ->leftJoinSub($deposits_accounts,'rcbu', function($join){
+                        $join->on('clients.client_id','rcbu.client_id')
+                        ->where('rcbu.deposit_id','1');
+                    })
+                    ->leftJoinSub($deposits_accounts,'mcbu', function($join){
+                        $join->on('clients.client_id','mcbu.client_id')
+                        ->where('mcbu.deposit_id','2');
+                    })
+                    ->leftJoinSub($office_user,'office_user', function($join){
+                        $join->on('office_user.office_id','offices.id')
+                        ->where('offices.level','cluster');
+                    })
+                    ->leftJoinSub($users,'users',function($join){
+                        $join->on('users.id','office_user.user_id');
+                    });
+            $summary = clone $accounts;
+            $summary = $summary->select(
+                \DB::raw('COUNT(loan_accounts.id) as total_accounts'),
+                \DB::raw('ROUND(SUM(principal),2) as total_principal'),
+                \DB::raw('ROUND(SUM(interest),2) as total_interest'),
+                \DB::raw('ROUND(SUM(total_loan_amount),2) as total_loan_amount'),
+                \DB::raw('ROUND(SUM(principal_balance),2) as total_principal_balance'),
+                \DB::raw('ROUND(SUM(total_balance),2) as total_balance'),
+                \DB::raw('ROUND(SUM(rcbu.balance),2) as total_rcbu'),
+                \DB::raw('ROUND(SUM(mcbu.balance),2) as total_mcbu'),
+                
+            )
+            ->first();
+            return compact('accounts','summary');
+        }
+        
+        if($query['type'] == 'loan'){
+            if($limited_fields){
+                $select = [
+                    'offices.name as office',
+                    'clients.client_id as client_id',
+                    'loan_accounts.id as id',
+                    'loan_accounts.amount as loan_amount',
+                    \DB::raw("CONCAT(clients.firstname,'{$space}',clients.lastname) as fullname"),
+                    'loans.code as code',
+                    'loan_accounts.principal as principal',
+                    'loan_accounts.interest as interest',
+                    'loan_accounts.total_loan_amount as total_loan_amount',
+                    'loan_accounts.principal_balance as principal_balance',
+                    'loan_accounts.interest_balance as interest_balance',
+                    'loan_accounts.total_balance as total_balance',
+                    'loan_accounts.disbursed_amount as disbursed_amount',
+                    'loan_accounts.status as status',
+                    \DB::raw("CONCAT(users.firstname,'{$space}',users.lastname) as loan_officer")
+                ];
+            }else{
+                $select = [
+                    'offices.name as office',
+                    'clients.client_id as client_id',
+                    'loan_accounts.id as id',
+                    'loan_accounts.amount as loan_amount',
+                    \DB::raw("CONCAT(clients.firstname,'{$space}',clients.lastname) as fullname"),
+                    'loans.code as code',
+                    'loan_accounts.principal as principal',
+                    'loan_accounts.interest as interest',
+                    'loan_accounts.total_loan_amount as total_loan_amount',
+                    'loan_accounts.principal_balance as principal_balance',
+                    'loan_accounts.interest_balance as interest_balance',
+                    'loan_accounts.total_balance as total_balance',
+                    'loan_accounts.status as status',
+                    'loan_accounts.interest_rate as interest_rate',
+                    'loan_accounts.number_of_months as number_of_months',
+                    'loan_accounts.number_of_installments as number_of_installments',
+                    'loan_accounts.total_deductions as total_deductions',
+                    'loan_accounts.disbursed_at as disbursed_at',
+                    'loan_accounts.disbursed_amount as disbursed_amount',
+                    'loan_accounts.first_payment_date as first_payment_date',
+                    'loan_accounts.last_payment_date as last_payment_date',
+                    \DB::raw("CONCAT(users.firstname,'{$space}',users.lastname) as loan_officer"),
                 ];
             }
             $accounts = \DB::table('loan_accounts')
@@ -667,6 +776,13 @@ class Office extends Model
                     })
                     ->leftJoinSub($loans, 'loans', function ($join) {
                         $join->on('loans.id', '=', 'loan_accounts.loan_id');
+                    })
+                    ->leftJoinSub($office_user,'office_user', function($join){
+                        $join->on('office_user.office_id','offices.id')
+                        ->where('offices.level','cluster');
+                    })
+                    ->leftJoinSub($users,'users',function($join){
+                        $join->on('users.id','office_user.user_id');
                     });
             $summary = clone $accounts;
             $summary = $summary->select(
@@ -689,9 +805,11 @@ class Office extends Model
                         'deposit_accounts.id as id',
                         \DB::raw("CONCAT(clients.firstname,'{$space}',clients.lastname) as fullname"),
                         'deposits.product_id as code',
+                        \DB::raw("CONCAT(users.firstname,'{$space}',users.lastname) as loan_officer"),
                         'deposit_accounts.accrued_interest as accrued_interest',
                         'deposit_accounts.balance as balance',
-                        'deposit_accounts.status as status'
+                        'deposit_accounts.status as status',
+                        \DB::raw("CONCAT(users.firstname,'{$space}',users.lastname) as loan_officer"),
                     )
                     ->when($query['products'], function($q, $data){
                         $q->whereIn('deposits.id',$data);
@@ -707,7 +825,14 @@ class Office extends Model
                     })
                     ->leftJoinSub($deposits, 'deposits', function ($join) {
                         $join->on('deposits.id', '=', 'deposit_accounts.deposit_id');
-                    });
+                    })
+                    ->leftJoinSub($office_user,'office_user', function($join){
+                        $join->on('office_user.office_id','offices.id')
+                        ->where('offices.level','cluster');
+                    })
+                    ->leftJoinSub($users,'users',function($join){
+                        $join->on('users.id','office_user.user_id');
+                    });;
             $summary = clone $accounts;
             $summary = $summary->select(
                 \DB::raw('COUNT(deposit_accounts.id) as total_accounts'),
@@ -721,6 +846,8 @@ class Office extends Model
             return compact('accounts','summary');
             
         }
+
+        
         
         
     }
