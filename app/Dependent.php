@@ -161,9 +161,13 @@ class Dependent extends Model
         foreach($relationships as $relationship){
 
             $name =$this[$relationship.'_lastname'].', '.$this[$relationship.'_firstname'].', '.$this[$relationship.'_middlename'].'.';
-            if($relationship =="spouse" || $relationship =="father" || $relationship =="mother"){
+            if($relationship =="spouse"){
                 $level="adult";
-            }else{
+            }
+            elseif($relationship =="father" || $relationship =="mother"){
+                $level="parent";
+            }
+            else{
                 $level="young";
             }
 
