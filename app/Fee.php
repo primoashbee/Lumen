@@ -144,85 +144,97 @@ class Fee extends Model
         
         $rates[] = (object) array(
             'months'=>1,
-            'member'=>125,
-            'adult'=>115,
-            'young'=>15
+            'member'=>201,
+            'adult'=> 164.50,
+            'young'=>15,
+            'parent'=>115
         );
         $rates[] = (object) array(
             'months'=>2,
-            'member'=>125,
-            'adult'=>115,
-            'young'=>15
+            'member'=>201,
+            'adult'=> 164.50,
+            'young'=>15,
+            'parent'=>115
         );
 
         $rates[] = (object) array(
             'months'=>3,
-            'member'=>125,
-            'adult'=>115,
-            'young'=>15
+            'member'=>201,
+            'adult'=> 164.50,
+            'young'=>15,
+            'parent'=>115
         );
 
         $rates[] = (object) array(
             'months'=>4,
-            'member'=>275,
-            'adult'=>170,
-            'young'=>19
+            'member'=>298,
+            'adult'=> 243,
+            'young'=>19,
+            'parent'=>170
         );
 
         $rates[] = (object) array(
             'months'=>5,
-            'member'=>320,
-            'adult'=>211,
-            'young'=>22
+            'member'=> 372.50,
+            'adult'=>304,
+            'young'=>21.50,
+            'parent'=>211
         );
 
         $rates[] = (object) array(
             'months'=>6,
-            'member'=>330,
-            'adult'=>218,
-            'young'=>23
+            'member'=> 387.50,
+            'adult'=>316,
+            'young'=>23,
+            'parent'=>218
         );
 
         $rates[] = (object) array(
             'months'=>7,
-            'member'=>365,
-            'adult'=>253,
-            'young'=>27
+            'member'=>447,
+            'adult'=>364.50,
+            'young'=>26.50,
+            'parent'=>253
         );
 
         $rates[] = (object) array(
             'months'=>8,
-            'member'=>410,
-            'adult'=>295,
-            'young'=>31
+            'member'=>521,
+            'adult'=>425.50,
+            'young'=>31,
+            'parent'=>295
         );
 
         $rates[] = (object) array(
             'months'=>9,
-            'member'=>455,
-            'adult'=>335,
-            'young'=>35
+            'member'=>595.50,
+            'adult'=>486.50,
+            'young'=>35,
+            'parent'=>335
         );
 
         $rates[] = (object) array(
             'months'=>10,
-            'member'=>500,
-            'adult'=>378,
-            'young'=>38
+            'member'=>670,
+            'adult'=>547,
+            'young'=>38,
+            'parent'=>378
         );
 
         $rates[] = (object) array(
             'months'=>11,
-            'member'=>524,
-            'adult'=>417,
-            'young'=>40
+            'member'=>707.50,
+            'adult'=>577.50,
+            'young'=>40,
+            'parent'=>417
         );
 
         $rates[] = (object) array(
             'months'=>12,
-            'member'=>544,
-            'adult'=>417,
-            'young'=>43
+            'member'=>744,
+            'adult'=>607.50,
+            'young'=>42.50,
+            'parent'=>417
         );
         return collect($rates);
     }
@@ -232,6 +244,7 @@ class Fee extends Model
         // var_dump($term);
         
         $rate = $rates->where('months',$term)->first();
+        
         $amount = $rate->member;
         $unit_of_plan =1;
         
@@ -246,6 +259,7 @@ class Fee extends Model
         }
         
         $total = round($amount*$unit_of_plan,2);
+        
         return $total;
     }
     
