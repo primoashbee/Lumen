@@ -142,9 +142,9 @@ class LoanAccountInstallment extends Model
             $amount_paid->principal = $payment;
             $principal_paid = $payment;
             $payment-=$principal_paid;
-            $amount_paid->total_paid = $principal_paid + $principal_paid;
+            $amount_paid->total_paid = $interest_paid + $principal_paid;
         }
-
+        
         $total_interest_paid = round($this->interest_paid + $interest_paid, 2);
         $total_principal_paid = round($this->principal_paid + $principal_paid, 2);
         $total_principal_paid = 0;
@@ -201,8 +201,11 @@ class LoanAccountInstallment extends Model
             $amount_paid->interest += $temp->interest;
             $amount_paid->principal += $temp->principal;
             $amount_paid->total_paid += $temp->interest + $temp->principal;
+            
         }
         
+        
+
         return $amount_paid;
 
     }
