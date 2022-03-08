@@ -288,11 +288,13 @@ export default {
 			})
 		},	
 		depositAll(){
+			
 			this.finalizeData()
 			axios.post(this.postUrl,this.form)
 			.then(res=>{
 				this.errors = [];
-					Swal.fire({
+					if (this.transactionType == "withdraw" || this.transactionType == "deposit") {
+						Swal.fire({
                         icon: 'success',
                         title: '<span style="font-family:\'Open Sans\', sans-serif!important;color:black;font-size:1.875em;font-weight:600">Transaction Successful</span> ',
                         html: 
@@ -323,9 +325,21 @@ export default {
 						</table>
 						`,
                         confirmButtonText: 'OK'
-					}).then(res=>{
-						location.reload()
-					})
+						}).then(res=>{
+							location.reload()
+						})
+					}
+
+					if (this.transactionType == "post_interest") {
+						Swal.fire({
+							title: 'Successful!',
+							text: res.data.msg,
+							icon: 'success',
+						}).then(res =>{
+							location.reload();
+						})
+					}
+					
 					
 			})
 			.catch(err => {
@@ -475,6 +489,8 @@ export default {
 					this.lists = res.data.accounts
                     this.checkIfHasRecords()
                     this.isLoading =false
+
+					
                 })
             }else{
                 axios.get(this.queryString+'&page='+page)
@@ -482,6 +498,8 @@ export default {
                     this.lists = res.data.accounts
                     this.checkIfHasRecords()
                     this.isLoading =false
+
+					
                 })
             }
 
