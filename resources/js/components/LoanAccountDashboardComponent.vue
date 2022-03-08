@@ -221,7 +221,7 @@
                                         <td>
                                             <div v-if="item.transaction_number.charAt(0) !== 'F'">
                                                 <span v-if="item.reverted=='0'">
-                                                    <button @click="revert(item.transaction_number)" class="btn btn-danger"><i class="fa fa-undo" aria-hidden="true"></i></button>
+                                                    <button v-if="can('revert_transactions')" @click="revert(item.transaction_number)" class="btn btn-danger"><i class="fa fa-undo" aria-hidden="true"></i></button>
                                                 </span>
                                                 <span v-else>
                                                     Reverted
