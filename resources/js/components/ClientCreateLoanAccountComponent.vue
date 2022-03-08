@@ -289,7 +289,7 @@ export default {
 	},
 	computed:{
 		loan_products_route(){
-			return '/settings/api/get/loans?has_page=false'
+			return '/api/get/loans?has_page=false'
 		},
 		calculate_route(){
 			return '/loan/calculator';

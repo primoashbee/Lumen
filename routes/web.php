@@ -41,7 +41,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::post('/search','SearchController@search');
 
-
+    Route::get('/api/get/loans','LoanController@loanProducts')->name('settings.loan-list');
     Route::get('/logout','Auth\LoginController@logout')->name('logout');
 
     Route::prefix('/download')->group(function(){
