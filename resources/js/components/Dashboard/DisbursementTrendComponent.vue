@@ -63,13 +63,13 @@ export default {
                   data: [0,0,0,0,0,0,0], 
                 },
                 {
-                  label:'Repayment (P)',
+                  label:'Repayment (I)',
                   borderColor: "#3e95cd",
                   backgroundColor: "#3e95cd",
                   data: [0,0,0,0,0,0,0]
                 },
                 {
-                  label:'Repayment (I)',
+                  label:'Repayment (P)',
                   borderColor: "#8e5ea2",
                   backgroundColor: "#8e5ea2",
                   data: [0,0,0,0,0,0,0]

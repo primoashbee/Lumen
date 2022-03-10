@@ -17,7 +17,7 @@
                             <label for="date" style="color:white" class="lead mr-2"> Disbursed By:</label>
                             <user-list @userSelected="userSelected" :multiple="true"></user-list>
                         </div>
-                        <div class="col-lg-4">
+                        <div class="col-lg-3 text-right mx-auto my-auto">
                             <button class="btn btn-primary" @click="download" v-if="exportable">Export Report</button>
                         </div>
                         
