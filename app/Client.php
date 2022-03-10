@@ -300,7 +300,12 @@ class Client extends Model
     }
     public function ctlpAccount(){
         $ctlp = Deposit::where('product_id','MCBU')->first()->id;
-        return $this->deposits->where('deposit_id',$ctlp)->first();
+        
+        $mcbu = $this->deposits->where('deposit_id',$ctlp)->first();
+
+        $rcbu = $this->restrictedAccount();
+
+        return $mcbu->balance > 0 ? $mcbu : $rcbu;
     }
 
     public function restrictedAccount(){

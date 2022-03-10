@@ -52,9 +52,9 @@
                                 <td><p class="title"> Loan (P)</p> </td>
                                 <td><p class="title"> Loan (I) </p></td>
                                 <td><p class="title"> Total Amount </p></td>
-                                <td><p class="title"> Payment Method </p></td>
+                                <!-- <td><p class="title"> Payment Method </p></td> -->
                                 <td><p class="title"> Repayment Date </p></td>
-                                <td><p class="title">Paid By</p></td>
+                                <!-- <td><p class="title">Paid By</p></td> -->
                                 <td><p class="title">Timestamp</p></td>
                             </tr>
                             </template>
@@ -80,9 +80,9 @@
                                     <td>{{moneyFormat(item.principal_paid)}}</td>
                                     <td>{{moneyFormat(item.interest_paid)}}</td>
                                     <td>{{moneyFormat(item.total_paid)}}</td>
-                                    <td >{{(item.payment_method_name)}}</td>
+                                    <!-- <td >{{(item.payment_method_name)}}</td> -->
                                     <td >{{(item.repayment_date)}}</td>
-                                    <td>{{(item.paid_by)}}</td>
+                                    <!-- <td>{{(item.paid_by)}}</td> -->
                                     <td>{{moment(item.created_at)}}</td>
                                 </tr>
                              </template>
@@ -99,14 +99,14 @@
                             </tr>
                             </template>
                              <template v-if="report_class=='detailed' && hasRecords">
+                                <tr>
+                                    <td colspan="3"><p class="title text-left">Principal : {{moneyFormat(summary.principal_paid)}}</p></td>
+                                    <td colspan="3"><p class="title text-center">Interest : {{moneyFormat(summary.interest_paid)}}</p></td>
+                                    <td colspan="3"><p class="title text-right">Total : {{moneyFormat(summary.total_paid)}}</p></td>
+                                </tr>
                                 <tr style="border-style:none;">
-                                    <td><p class="title"></p></td>
-                                    <td><p class="title"></p></td>
-                                    <td><p class="title text-right"># of Accounts: </p></td>
-                                    <td><p class="title text-center">{{(summary.number_of_accounts)}}</p></td>
-                                    <td><p class="title">{{moneyFormat(summary.principal_paid)}}</p></td>
-                                    <td><p class="title">{{moneyFormat(summary.interest_paid)}}</p></td>
-                                    <td><p class="title">{{moneyFormat(summary.total_paid)}}</p></td>
+                                    <td colspan="9"><p class="title text-left"># of Accounts: </p></td>
+                                    <td><p class="title text-left">{{(summary.number_of_accounts)}}</p></td>
                                 </tr>
                             </template>
                             <template v-if="report_class=='summary' && hasRecords">

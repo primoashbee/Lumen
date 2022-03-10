@@ -132,6 +132,7 @@ class LoanAccountInstallment extends Model
 
                 //update installments
             }else{
+                
                 $amount_paid->interest = $payment;
                 $interest_paid = $payment;
                 $payment-=$interest_paid;
@@ -139,6 +140,7 @@ class LoanAccountInstallment extends Model
                 $amount_paid->total_paid = $interest_paid + $principal_paid;
             }
         }else{
+            
             $amount_paid->principal = $payment;
             $principal_paid = $payment;
             $payment-=$principal_paid;
@@ -160,7 +162,7 @@ class LoanAccountInstallment extends Model
                 
 
             }else{
-                
+
                 $this->update([
                     'interest_due'=>round($interest - $interest_paid,2),
                     'principal_due'=>round($principal - $principal_paid,2),
@@ -172,12 +174,14 @@ class LoanAccountInstallment extends Model
                 $this->update([
                     'interest'=>0,
                     'principal_due'=>0,
+                    'amount_due'=>0,
                     'paid'=>$fully_paid
                 ]);
             }else{
                 $this->update([
                     'interest'=>round($interest - $interest_paid,2),
-                    'principal_due'=>round($principal - $principal_paid,2)
+                    'principal_due'=>round($principal - $principal_paid,2),
+                    'amount_due'=>0,
                 ]);
             }
         }
@@ -277,10 +281,11 @@ class LoanAccountInstallment extends Model
                 $amount_paid->total_paid = $interest_paid + $principal_paid;
             }
         }else{
+            
             $amount_paid->principal = $payment;
             $principal_paid = $payment;
             $payment-=$principal_paid;
-            $amount_paid->total_paid = $principal_paid + $principal_paid;
+            $amount_paid->total_paid = $interest_paid + $principal_paid;
         }
 
         // Payment Allocation I - P
@@ -343,13 +348,14 @@ class LoanAccountInstallment extends Model
                 $this->update([
                     'interest'=>0,
                     'principal_due'=>0,
+                    'amount_due'=>0,
                     'paid'=>$fully_paid
                 ]);
             }else{
                 $this->update([
                     'interest'=>round($interest - $interest_paid,2),
                     'principal_due'=>round($principal - $principal_paid,2),
-
+                    'amount_due'=>0
                 ]);
                 
             }
