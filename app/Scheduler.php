@@ -11,7 +11,9 @@ class Scheduler extends Model
     
     public static function hasHoliday($date,$office_id){
         $date = Carbon::parse($date);
-        $count = Holiday::whereDate('date',$date)->where('implemented', true)->where('office_id',$office_id)->count();
+        $office = Office::getUpperOfficesV2($office_id);
+        
+        $count = Holiday::where('date',$date)->where('implemented', true)->whereIn('office_id',$office)->count();
         if($count > 0){
             return true;
         }
@@ -25,6 +27,7 @@ class Scheduler extends Model
         
         if(self::hasHoliday($date, $office_id)){
             // dd($date);
+            
             return self::getDate($date->copy()->addDays($interval),$office_id,$interval);
         }
         return $date;
