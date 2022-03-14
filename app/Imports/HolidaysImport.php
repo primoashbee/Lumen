@@ -50,7 +50,7 @@ class HolidaysImport implements  ToModel, WithHeadingRow, SkipsEmptyRows,WithChu
         return new Holiday([
             'date' => \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date']),
             'name' => $row['name'],
-            'implemented' => false,
+            'implemented' => $row['implemented'],
             'office_id' => $row['office_id']
         ]);
     }
