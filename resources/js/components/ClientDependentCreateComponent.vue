@@ -26,6 +26,7 @@
 								<select name="" id="packages" class="form-control" v-bind:class="hasError('unit_of_plan') ? 'is-invalid' : ''" v-model="unit_of_plan">
 									<option :value="null"> Please select unit of plan </option>
 									<option value="1">1</option>
+									<option value="2">2</option>
 								</select>
 								<div class="invalid-feedback" v-if="hasError('unit_of_plan')">
 									{{ errors.unit_of_plan[0]}}

@@ -245,20 +245,23 @@ class Fee extends Model
         
         $rate = $rates->where('months',$term)->first();
         
-        $amount = $rate->member;
-        $unit_of_plan =1;
+        $unit_of_plan = $dependent->first()->unit_of_plan;
+
+        $amount = $rate->member * $unit_of_plan;
         
+
         if ($dependent != null) {
             foreach ($dependent as $item) {
                 if (!$item->is_member) {
                     $level = $item->level;
                     $amount += $rate->$level;
+
                     $unit_of_plan = $item->unit_of_plan;
                 }
             }
         }
         
-        $total = round($amount*$unit_of_plan,2);
+        $total = round($amount,2);
         
         return $total;
     }
