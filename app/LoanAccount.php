@@ -1337,7 +1337,7 @@ class LoanAccount extends Model
             // ]);
 
             $deposit_to_loan_repayment->jv()->create([
-                'journal_voucher_number'=>$jv_number,
+                'journal_voucher_number'=>$receipt_number,
                 'transaction_date'=>$repayment_date,
                 'office_id'=>$office_id,
                 'notes'=>$notes
