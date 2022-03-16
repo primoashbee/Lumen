@@ -1342,13 +1342,14 @@ class LoanAccount extends Model
                 'office_id'=>$office_id,
                 'notes'=>$notes
                 ]);
-        
+            $this->updateBalances();
+            $this->fresh()->updateStatus();
             $total_balance = $this->getRawOriginal('total_balance');
             if ($total_balance == 0) {
                 $this->closeAccount($paid_by);
             }
-            $this->fresh()->updateStatus();
-            $this->updateBalances();
+            
+            
 
             return [
                 'interest_paid'=>$repayments->interest,
@@ -1487,9 +1488,11 @@ class LoanAccount extends Model
                     ]);
             
                 $total_balance = $this->getRawOriginal('total_balance');
+                
                 if ($total_balance == 0) {
                     $this->closeAccount($paid_by);
                 }
+                
                 $this->fresh()->updateStatus();
                 $this->updateBalances();
             
