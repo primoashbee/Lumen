@@ -1019,7 +1019,7 @@ class DownloadController extends Controller
     public static function writeOffs($data){
         
         $ts = str_replace('.','',microtime(true));
-        $filename = 'LoanInArrears ('.$ts.').xlsx';
+        $filename = 'Write Offs ('.$ts.').xlsx';
         
         $file = public_path('templates/Reports/Writeoffs.xlsx');
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
