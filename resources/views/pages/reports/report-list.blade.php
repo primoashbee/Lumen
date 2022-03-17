@@ -22,5 +22,8 @@
 	@if($type=='loan-in-arrears')
 		<loan-in-arrears report_class="{{$class}}"></loan-in-arrears>
 	@endif
+	@if($type=='writeoff')
+		<writeoff-report report_class="{{$class}}"></writeoff-report>
+	@endif
 </div>
 @endsection

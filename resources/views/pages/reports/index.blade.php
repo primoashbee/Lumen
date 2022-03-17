@@ -1,7 +1,7 @@
 @extends('layouts.user')
 @section('content')
 	<div class="content content pl-32 pr-2 mt-4" id="content-full">
-		<div class="row setting-wrapper">
+		<div class="row setting-wrapper w-100">
 			
 			<div class="col-lg-9 pr-0 setting-container">
 				<div class="row mt-4">
@@ -92,6 +92,15 @@
 							<p class="title text-center mt-2">Deposit - Detailed</p>
 						</a>
 					</li>
+
+					<li class="settings-item loans reports detailed">
+						<a class="nav-link active" id="home-tab" href="{{route('reports.view',['detailed','writeoff'])}}">
+							<i class="fas fa-3x fa-user-slash"></i>
+							<p class="title text-center mt-2">Write Off Report</p>
+						</a>
+					</li>
+
+					
 					
 			</div>
 		</div>

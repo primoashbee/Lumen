@@ -25,7 +25,7 @@
                 <tbody v-if="hasRecords">
                     <tr v-for="client in lists.data" :key="client.id">
                         <td><a class="text-lg" :href="clientLink(client.client_id)">{{client.client_id}}</a></td>
-                        <td class="text-lg">{{client.firstname + ' ' + client.lastname}}</td>
+                        <td class="text-lg">{{client.firstname + ' ' +client.middlename + ' ' + client.lastname}}</td>
                         <td class="text-lg">{{client.office.name}}</td>
                     </tr>
                 </tbody>

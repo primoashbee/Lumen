@@ -6302,5 +6302,7 @@ li:before.errors {
     color: #1d253b!important;;
 }
 
-
+.text-lg{
+    font-size: 1rem!important;
+}
   

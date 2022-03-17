@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use stdClass;
+use App\Client;
 use App\Office;
 use App\LoanAccount;
 use App\BulkDisbursement;
@@ -14,8 +15,26 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
+
 class DownloadController extends Controller
 {
+
+    // public function generateID($client_id){
+        
+    //     $client = Client::fcid($client_id);
+        
+        
+
+    //     $client->firstname = 'Collection Sheet - ' . ' for ' . $client->lastname.'.pdf';
+ 
+    //     $file = public_path('temp/'). $client->firstname;
+    //     $pdf = App::make('snappy.pdf.wrapper');
+    //     $headers = ['Content-Type'=> 'application/pdf','Content-Disposition'=> 'attachment;','filename'=>$client->firstname];
+    
+    //     $pdf->loadView('exports.generateId',compact('client'))->save($file,true);
+        
+    //     return ['file'=>$file, 'filename' => $client->firstname, 'headers'=>$headers];
+    // }
 
     public function soa($loan_account_id=1){
         $loan_account = LoanAccount::find($loan_account_id);
@@ -997,6 +1016,42 @@ class DownloadController extends Controller
         return ['file'=>$newFile, 'filename' => $filename, 'headers'=>$headers];
     }
 
+    public static function writeOffs($data){
+        
+        $ts = str_replace('.','',microtime(true));
+        $filename = 'LoanInArrears ('.$ts.').xlsx';
+        
+        $file = public_path('templates/Reports/Writeoffs.xlsx');
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+        $sheet =$spreadsheet->getSheet(0);
+        
+        $data['data']->orderBy('la_id','desc')->chunk(2000, function($items) use (&$sheet, &$start_row){
+        $start_row = 3;
+            foreach ($items as $key=>$value) {
+                
+                $sheet->setCellValue('A'.$start_row, $key + 1);
+                $sheet->setCellValue('B'.$start_row, $value->branch);
+                $sheet->setCellValue('C'.$start_row, $value->client_id);
+                $sheet->setCellValue('D'.$start_row, $value->fullname);
+                $sheet->setCellValue('E'.$start_row, $value->code);
+                $sheet->setCellValue('F'.$start_row, $value->principal);
+                $sheet->setCellValue('G'.$start_row, $value->interest);
+                $sheet->setCellValue('H'.$start_row, $value->total_writeoff); 
+                $sheet->setCellValue('I'.$start_row, $value->date); 
+                $start_row++;
+            }
+            
+        });
+        
+        $writer = new Xlsx($spreadsheet);
+        $writer->setPreCalculateFormulas(false);
+        $newFile = public_path('created_reports/').$filename;
+        $writer->save($newFile);
+    
+        
+        $headers = ['Content-Type'=> 'application/vnd.ms-excel','Content-Disposition'=> 'attachment;','filename'=>$filename];
+        return ['file'=>$newFile, 'filename' => $filename, 'headers'=>$headers];
+    }
 
     public static function templateDataImport(){
         return 'hey';

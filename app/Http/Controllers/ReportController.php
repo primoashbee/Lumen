@@ -41,6 +41,7 @@ class ReportController extends Controller
         // }
     }
     public function getReport(Request $request, $type){
+        
         $data = $request->all();
         if($type=='disbursements'){
             $this->reportValidate($data,$type)->validate();
@@ -117,18 +118,36 @@ class ReportController extends Controller
             return response()->json($list,200);
         }
 
-        if ($type = 'loan_in_arrears_principal') {
+        if ($type == 'loan_in_arrears_principal') {
             $for_download = $request->has('export') ? true : false;
+            $list = Report::loanInArrearsPrincipal($data);
+            
+            if ($for_download) {
+                $list = Report::loanInArrearsPrincipal($data,false,true);
+                $file = DownloadController::loanInArrearsPrincipalReport($list);
+                return response()->download($file['file'],$file['filename'],$file['headers'])->deleteFileAfterSend(true);
+            }
+
+            return response()->json($list, 200);
         }
 
-        if ($for_download) {
-            $list = Report::loanInArrearsPrincipal($data,false,true);
-            $file = DownloadController::loanInArrearsPrincipalReport($list);
-            return response()->download($file['file'],$file['filename'],$file['headers'])->deleteFileAfterSend(true);
+        if ($type == 'writeoff') {
+            
+            $for_download = $request->has('export') ? true : false;
+            $list = Report::writeOffAccounts($data);
+            
+            if ($for_download) {
+                $list = Report::writeOffAccounts($data,false,true);
+                $file = DownloadController::writeOffs($list);
+                return response()->download($file['file'],$file['filename'],$file['headers'])->deleteFileAfterSend(true);
+            }
+
+            return response()->json($list, 200);
         }
+
         
-        $list = Report::loanInArrearsPrincipal($data);
-        return response()->json($list, 200);
+        
+        
     }
 
     public function disbursements(array $data,$type){
