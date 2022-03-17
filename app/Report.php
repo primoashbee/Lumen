@@ -934,11 +934,13 @@ class Report extends Model
         ->when($office_id, function($q,$data){
             $office_ids = Office::lowerOffices($data);
             $q->whereExists(function($q2) use ($office_ids){
-                $client_ids = DB::table('clients')->select('client_id')->whereIn('office_id',$office_ids)->pluck('client_id')->toArray();
-                $q2->from('loan_accounts')
-                    ->whereIn('client_id',$client_ids)
-                    ->whereColumn('loan_accounts.id', 'loan_account_installments.loan_account_id');
+                $q2->select('office_id','client_id','firstname','lastname')
+                        ->from('clients')
+                        ->whereIn('office_id',$office_ids)
+                        ->whereColumn('clients.client_id','loan_accounts.client_id');
             });
+
+            
         })
         ->when($products, function($q,$data){
             $q->whereExists(function($q2) use ($data){
@@ -962,6 +964,7 @@ class Report extends Model
         ->groupBy('la_id')
         ->orderBy('la_id','asc')
         ->whereDate('date','<=', $date)
+        ->where('loan_accounts.status','=','In Arrears')
         ->where('principal_due','>',0)
         ->where('paid',false);
         
@@ -972,5 +975,75 @@ class Report extends Model
 
         $data =  $paginated  ? $list->paginate($data['per_page']) : $list;
         return compact('data','summary');
+    }
+
+
+    public static function writeoffAccounts($data, $paginated = true, $for_export = false){
+        $date = $data['date'] ? $data['date'] : now();
+        $products = $data['products'];
+        $office_id = $data['office_id'] ? $data['office_id'] : auth()->user()->office->first()->id;
+        $loan_accounts = DB::table('loan_accounts');
+        $clients = DB::table('clients');
+        $offices = DB::table('offices');
+        $loan = DB::table('loans');
+        $writeoff_accounts = DB::table('loan_account_write_offs');
+        $space = " ";
+        $list = DB::table('loan_account_write_offs as wo')->select(
+            'loan_accounts.id',
+            'wo.loan_account_id as la_id',
+            'offices.name as branch',
+            'clients.client_id',
+            'loan.code as code',
+            DB::raw("concat(clients.firstname, '{$space}',clients.middlename,'{$space}', clients.lastname) as fullname"),
+            'wo.interest_written_off as interest',
+            'wo.principal_written_off as principal',
+            'wo.total_write_off as total_writeoff',
+            'wo.written_off_date as date'
+        )
+        ->leftJoinSub($loan_accounts,'loan_accounts',function($join){
+            $join->on('wo.loan_account_id', 'loan_accounts.id');
+        })
+        ->when($office_id, function($q,$data){
+            $office_ids = Office::lowerOffices($data);
+            $q->whereExists(function($q2) use ($office_ids){
+                $q2->select('office_id','client_id','firstname','lastname')
+                        ->from('clients')
+                        ->whereIn('office_id',$office_ids)
+                        ->whereColumn('clients.client_id','loan_accounts.client_id');
+            });
+        })
+        ->when($products, function($q,$data){
+            $q->whereExists(function($q2) use ($data){
+                
+                $q2->from('loan_accounts')
+                    ->whereIn('loan_id',$data)
+                    ->whereColumn('loan_accounts.client_id', 'clients.client_id');
+            });
+        })
+        ->when($data['date'], function($q) use ($data){
+            $q->whereBetween('wo.written_off_date',[$data['date'], now()]);
+        })
+        ->leftJoinSub($loan,'loan',function($join){
+            $join->on('loan.id','loan_accounts.loan_id');
+        })
+        ->leftJoinSub($clients, 'clients', function($join){
+            $join->on('clients.client_id','loan_accounts.client_id');
+        })
+        ->leftJoinSub($offices, 'offices', function($join){
+            $join->on('offices.id','=','clients.office_id');
+        });
+        
+        
+
+        $summary = [
+            'total_accounts' => $list->count(),
+            'total_principal' => $list->get()->sum('principal'),
+            'total_interest' => $list->get()->sum('interest'),
+            'total_write_off'=>$list->get()->sum('total_writeoff'),
+        ];
+
+        $data =  $paginated  ? $list->paginate($data['per_page']) : $list;
+        return compact('data','summary');
+        
     }
 }

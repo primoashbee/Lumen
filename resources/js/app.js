@@ -136,6 +136,7 @@ Vue.component('report-dst', require('./components/Reports/BulkDSTComponent.vue')
 Vue.component('user-list', require('./components/UserListComponent.vue').default);
 Vue.component('loan-in-arrears', require('./components/Reports/LoanInArrearsComponent.vue').default);
 Vue.component('transaction-method', require('./components/TransactionMethodComponent.vue').default);
+Vue.component('writeoff-report', require('./components/Reports/WriteOffReportComponent.vue').default);
 
 
 Vue.component('change-password', require('./components/ChangePasswordModalComponent.vue').default);

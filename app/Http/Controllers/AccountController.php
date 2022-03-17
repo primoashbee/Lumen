@@ -63,7 +63,7 @@ class AccountController extends Controller
             }else{
                 $file = DownloadController::LoansAndDeposit($accounts);
             }
-            return response()->download($file['file'],$file['filename'],$file['headers']);
+            return response()->download($file['file'],$file['filename'],$file['headers'])->deleteFileAfterSend(true);
 
         }
         // dd($q);
