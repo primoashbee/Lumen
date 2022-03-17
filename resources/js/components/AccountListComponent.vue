@@ -224,6 +224,9 @@ export default {
                 case 'Abandoned':
                     status = '<span class="badge badge-dark">'+value+'</span>';
                     break;    
+                case 'Written Off':
+                status = '<span class="badge badge-dark">'+value+'</span>';
+                break;  
             }
 
             return status;
@@ -235,7 +238,6 @@ export default {
             this.fetch()    
         },
         fetch(page=1){
-            console.log(page);
             this.isLoading =true;
             let request = Object.assign({}, this.request);
             request['type'] = this.type

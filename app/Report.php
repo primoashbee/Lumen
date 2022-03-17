@@ -28,7 +28,7 @@ class Report extends Model
 
         $select = [
             'clients.client_id',
-            DB::raw("CONCAT(clients.firstname,'{$space}',clients.lastname) as fullname"),
+            DB::raw("CONCAT(clients.firstname,'{$space}',clients.middlename,'{$space}',clients.lastname) as fullname"),
             'loans.id',
             'loans.code',
             'loan_accounts.principal',
@@ -183,7 +183,7 @@ class Report extends Model
             $lar_select = [
                 DB::raw('offices.code as office_code'),
                 DB::raw('clients.client_id as client_id'),
-                DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
+                DB::raw("CONCAT(clients.firstname, '{$space}',clients.middlename,'{$space}', clients.lastname) as client_name"),
                 DB::raw('loans.code as loan_code'),
                 DB::raw('loan_account_repayments.loan_account_id as loan_account_id'),
                 DB::raw('loan_account_repayments.principal_paid as principal_paid'),
@@ -197,7 +197,8 @@ class Report extends Model
             $dtlr_select = [
                 DB::raw('offices.code as office_code'),
                 DB::raw('clients.client_id as client_id'),
-                DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
+                DB::raw("CONCAT(clients.firstname, '{$space}',clients.middlename,'{$space}',
+                 clients.lastname) as client_name"),
                 DB::raw('loans.code as loan_code'),
                 DB::raw('deposit_to_loan_repayments.loan_account_id as loan_account_id'),
                 DB::raw('deposit_to_loan_repayments.principal_paid as principal_paid'),
@@ -372,7 +373,7 @@ class Report extends Model
             'clients.client_id as client_id',
             'deposits.product_id as deposit_type',
             \DB::raw("CONCAT(users.firstname, '{$space}', users.lastname) as paid_by"),
-            \DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
+            \DB::raw("CONCAT(clients.firstname, '{$space}',clients.middlename,'{$space}' clients.lastname) as client_name"),
             'deposit_payments.notes as notes',
             'paid_offices_at.name as paid_on',
             'deposit_payments.created_at as timestamp'
@@ -389,7 +390,7 @@ class Report extends Model
             'clients.client_id as client_id',
             'deposits.product_id as deposit_type',
             \DB::raw("CONCAT(users.firstname, '{$space}', users.lastname) as paid_by"),
-            \DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
+            \DB::raw("CONCAT(clients.firstname, '{$space}',clients.middlename,'{$space}', clients.lastname) as client_name"),
             'deposit_withdrawals.notes as notes',
             'paid_offices_at.name as paid_on',
             'deposit_withdrawals.created_at as timestamp'
@@ -406,7 +407,7 @@ class Report extends Model
             'clients.client_id as client_id',
             'deposits.product_id as deposit_type',
             \DB::raw("CONCAT(users.firstname, '{$space}', users.lastname) as paid_by"),
-            \DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
+            \DB::raw("CONCAT(clients.firstname, '{$space}',clients.middlename,'{$space}', clients.lastname) as client_name"),
             'deposit_withdrawals.notes as notes',
             'paid_offices_at.name as paid_on',
             'deposit_withdrawals.created_at as timestamp'
@@ -424,7 +425,7 @@ class Report extends Model
             'clients.client_id as client_id',
             'deposits.product_id as deposit_type',
             \DB::raw("CONCAT(users.firstname, '{$space}', users.lastname) as paid_by"),
-            \DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as client_name"),
+            \DB::raw("CONCAT(clients.firstname, '{$space}',clients.middlename,'{$space}', clients.lastname) as client_name"),
             'deposit_interest_posts.notes as notes',
             'paid_offices_at.name as paid_on',
             'deposit_interest_posts.created_at as timestamp'
@@ -780,21 +781,23 @@ class Report extends Model
                     ->select(
                         'clients.*',
                         'offices.code as level',
-                        DB::raw("CONCAT(clients.firstname, '{$space}', clients.lastname) as fullname"),
+                        DB::raw("CONCAT(clients.firstname, '{$space}',clients.middlename,'{$space}', clients.lastname) as fullname"),
                         DB::raw('TIMESTAMPDIFF(YEAR, clients.birthday, CURDATE()) as age'),
-                        'loan_account.status as status',
-                        DB::raw('IFNULL(household_income.service_type,"") as economic_activity')
+                        'loan_accounts.status as status',
+                        DB::raw('household_income.service_type as economic_activity')
                     )
                     ->when($office_id, function($q,$data){
                         $ids = Office::lowerOffices($data);
                         $q->whereIn('office_id', $ids);
                     })
                     ->when($status, function($q,$data){
+                        // dd($data->toArray());
                         if ($data->count() > 0) {
-                            $q->whereIn('loan_account.status',$data);
+                            $q->whereIn('loan_accounts.status',['Active']);
                         }
                     })
                     ->when($type, function($q,$data) use ($household_income){
+                        // dd($data);
                         if ($data->count() > 0) {
                             $q->whereIn('household_income.service_type',$data);
                         }
@@ -818,8 +821,8 @@ class Report extends Model
                     ->leftJoinSub($household_income,'household_income', function($query){
                         $query->on('clients.client_id','household_income.client_id');
                     })
-                    ->leftJoinSub($loan_accounts, 'loan_account', function($query){
-                        $query->on('clients.client_id', 'loan_account.client_id');
+                    ->leftJoinSub($loan_accounts, 'loan_accounts', function($query){
+                        $query->on('clients.client_id', 'loan_accounts.client_id');
                     })
                     ->leftJoinSub($offices,'offices',function($join){
                         $join->on('offices.id','clients.office_id');
@@ -853,7 +856,7 @@ class Report extends Model
                         'bulk_disbursements.disbursement_date',
                         'offices.code as level',
                         'clients.client_id as client_id',
-                        DB::raw("CONCAT(clients.firstname,'{$space}',clients.lastname) as client_fullname"),
+                        DB::raw("CONCAT(clients.firstname,'{$space}',clients.middlename,'{$space}',clients.lastname) as client_fullname"),
                         'loans.code as type',
                         'loan_accounts.principal as principal',
                         'loan_accounts.interest as interest',
@@ -926,7 +929,7 @@ class Report extends Model
             'clients.client_id',
             'offices.code as level',
             'loan.code as code',
-            DB::raw("concat(clients.firstname, '{$space}', clients.lastname) as fullname"),
+            DB::raw("concat(clients.firstname, '{$space}',clients.middlename,'{$space}', clients.lastname) as fullname"),
         )
         ->when($office_id, function($q,$data){
             $office_ids = Office::lowerOffices($data);

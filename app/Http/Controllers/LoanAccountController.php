@@ -633,11 +633,12 @@ class LoanAccountController extends Controller
     if($request->wantsJson()){
     $account  = LoanAccount::find($loan_id);
     $loan_type = $account->type->name;
+    $loan_account = DB::table('loan_accounts')->select('id','status');
     $account_1 = clone $account;
     $activity = $account_1->transactions()->orderBy('transaction_date','DESC')->get();
     $pre_term_amount = $account_1->preTermAmount();
     $installment_repayments = \DB::table('loan_account_installment_repayments');
-    
+    $status = $account->status;
     $ctlp =  DB::table('loan_account_installments')
             ->where('loan_account_id', $loan_id)
             ->leftJoin('deposit_to_loan_installment_repayments', 'deposit_to_loan_installment_repayments.loan_account_installment_id', '=', 'loan_account_installments.id')
@@ -725,6 +726,9 @@ class LoanAccountController extends Controller
 
     
     public function bulkLoanTransact(Request $request, $type){
+        
+        // $request->office_id = $request->office_id ? $request->office_id : auth()->user()->office->id;
+        
         if($type=='approve'){
             $rules = [
                 'accounts.*' => ['required', 'exists:loan_accounts,id',new LoanAccountCanBeApproved]
@@ -830,6 +834,7 @@ class LoanAccountController extends Controller
         )->validate();
         
         $list = LoanAccount::bulkList($request->type,$request->office_id)->get();
+        
         return response()->json([
             'msg'=>'Success',
             'list'=>$list
@@ -1012,6 +1017,60 @@ class LoanAccountController extends Controller
         }catch(\Exception $e){
             return response()->json(['msg'=>$e->getMessage()],500);
 
+        }
+    }
+
+
+    public function bulkWriteoffList(Request $request){
+        return view('pages.bulk.writeoff-loan-accounts');
+
+    }
+
+    public function writeoffAccount(Request $request){
+        $loan_account = LoanAccount::findOrfail($request->loan_id);
+        
+        $loan_account->writeOffAccount($request->date,$request->office_id);
+        $loan_account->writeoff->jv()->create([
+            'journal_voucher_number'=>$request->journal_voucher,
+            'transaction_date'=>$request->date,
+            'office_id'=>$request->office_id
+        ]);
+        return response()->json(['msg' => 'success!']);
+    }
+
+    public function bulkWriteoffLoans(Request $request){
+        $rules = [
+            'office_id' =>'required|exists:offices,id',
+            'journal_voucher' => 'required',
+            'date'=> 'before:now|required'
+
+        ];
+        Validator::make(
+            $request->all(),
+            $rules,
+        )->validate();
+
+        \DB::beginTransaction();
+        try {
+            foreach($request->accounts as $item){
+                $account = LoanAccount::find($item);
+                $account->writeoffAccount($request->date,$request->office_id);
+                $account->writeoff->jv()->create([
+                    'journal_voucher_number'=>$request->journal_voucher,
+                    'transaction_date'=>$request->date,
+                    'office_id'=>$request->office_id
+                ]);
+            }
+
+            
+            \DB::commit();
+
+            
+            
+            return response()->json(['msg'=>'Loan Accounts successfully written off'],200);
+
+        } catch (\Exception $e) {
+            return response()->json(['msg'=>$e->getMessage()],500);
         }
     }
 

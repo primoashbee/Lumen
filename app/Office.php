@@ -612,7 +612,7 @@ class Office extends Model
                     'clients.client_id as client_id',
                     'loan_accounts.id as id',
                     'loan_accounts.amount as loan_amount',
-                    \DB::raw("CONCAT(clients.firstname,'{$space}',clients.lastname) as fullname"),
+                    \DB::raw("CONCAT(clients.firstname,'{$space}',clients.middlename,'{$space}',clients.lastname) as fullname"),
                     'loans.code as code',
                     'loan_accounts.principal as principal',
                     'loan_accounts.interest as interest',
@@ -632,7 +632,7 @@ class Office extends Model
                     'clients.client_id as client_id',
                     'loan_accounts.id as id',
                     'loan_accounts.amount as loan_amount',
-                    \DB::raw("CONCAT(clients.firstname,'{$space}',clients.lastname) as fullname"),
+                    \DB::raw("CONCAT(clients.firstname,'{$space}',clients.middlename,'{$space}',clients.lastname) as fullname"),
                     'loans.code as code',
                     'loan_accounts.principal as principal',
                     'loan_accounts.interest as interest',
@@ -715,7 +715,7 @@ class Office extends Model
                     'clients.client_id as client_id',
                     'loan_accounts.id as id',
                     'loan_accounts.amount as loan_amount',
-                    \DB::raw("CONCAT(clients.firstname,'{$space}',clients.lastname) as fullname"),
+                    \DB::raw("CONCAT(clients.firstname,'{$space}',clients.middlename,'{$space}',clients.lastname) as fullname"),
                     'loans.code as code',
                     'loan_accounts.principal as principal',
                     'loan_accounts.interest as interest',
@@ -733,7 +733,7 @@ class Office extends Model
                     'clients.client_id as client_id',
                     'loan_accounts.id as id',
                     'loan_accounts.amount as loan_amount',
-                    \DB::raw("CONCAT(clients.firstname,'{$space}',clients.lastname) as fullname"),
+                    \DB::raw("CONCAT(clients.firstname,'{$space}',clients.middlename,'{$space}',clients.lastname) as fullname"),
                     'loans.code as code',
                     'loan_accounts.principal as principal',
                     'loan_accounts.interest as interest',
@@ -767,7 +767,6 @@ class Office extends Model
                     ->when($query['status'], function($q, $data){
                         $q->whereIn('loan_accounts.status',$data);
                     })
-
                     ->leftJoinSub($clients, 'clients', function ($join) {
                         $join->on('clients.client_id', '=', 'loan_accounts.client_id');
                     })
@@ -803,7 +802,7 @@ class Office extends Model
                         'offices.name as office',
                         'clients.client_id as client_id',
                         'deposit_accounts.id as id',
-                        \DB::raw("CONCAT(clients.firstname,'{$space}',clients.lastname) as fullname"),
+                        \DB::raw("CONCAT(clients.firstname,'{$space}',clients.middlename,'{$space}',clients.lastname) as fullname"),
                         'deposits.product_id as code',
                         \DB::raw("CONCAT(users.firstname,'{$space}',users.lastname) as loan_officer"),
                         'deposit_accounts.accrued_interest as accrued_interest',

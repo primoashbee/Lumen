@@ -40,7 +40,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/user/changepass/{user}', 'UserController@changepass')->name('changepass');
 
     Route::post('/search','SearchController@search');
-
+    Route::get('/generate/client/{client_id}', 'DownloadController@generateId');
     Route::get('/api/get/loans','LoanController@loanProducts')->name('settings.loan-list');
     Route::get('/logout','Auth\LoginController@logout')->name('logout');
 
@@ -224,7 +224,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/payment/methods','PaymentMethodController@fetchPaymentMethods');
 
         Route::get('/loan/products','LoanController@loanProducts')->name('loan.products');
-
+        
         //bulk create loan
         // Route::post('/bulk/create/loans', 'LoanAccountController@bulkCreateLoan')->name('bulk.create.loans.post');
         Route::post('/bulk/predisbursement/loans/list','LoanAccountController@preDisbursementList');
@@ -239,12 +239,14 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/reports/{type}','ReportController@getReport');
 
         
+        
 
     });
     Route::get('/bulk/approve/loans','LoanAccountController@bulkApproveForm')->name('bulk.approve.loans');
     Route::get('/bulk/disburse/loans','LoanAccountController@bulkDisburseForm')->name('bulk.disburse.loans');
-    
-    
+    Route::get('/bulk/writeoff/loans', 'LoanAccountController@bulkWriteoffList')->name('bulk.writeoff.loans');
+    Route::post('/writeoff/loans', 'LoanAccountController@bulkWriteoffLoans');
+    Route::post('/writeoff/loan/{loan_id}', 'LoanAccountController@writeoffAccount');
 
     
     
@@ -360,8 +362,9 @@ Route::group(['middleware' => ['auth']], function () {
     
     
    Route::get('/xx', function(){
-        return view('test');
+    
    });
- 
+   
+   
 
 });
