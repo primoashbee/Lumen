@@ -52,7 +52,7 @@
 						<td><label :for="item.id">{{item.type.name}}</label></td>
 						<td><a :href="clientLink(item.client.client_id)">{{item.client.client_id}}</a></td>
 						
-						<td>{{item.client.firstname +' '+ item.client.middlename + ' ' + item.client.lastname}}</td>
+						<td>{{item.client.firstname + ' ' + item.client.lastname}}</td>
 						<td>{{moneyFormat(item.balance)}} </td>
 						<!-- <td> Account ID : {{item.id}} </td> -->
 						
@@ -69,7 +69,7 @@
 						<td><label :for="item.id">{{item.type.name}}</label></td>
 						<td><a :href="clientLink(item.client.client_id)">{{item.client.client_id}}</a></td>
 						
-						<td>{{item.client.firstname +' '+ item.client.middlename + ' ' + item.client.lastname}}</td>
+						<td>{{item.client.firstname + ' ' + item.client.lastname}}</td>
 						<td>{{moneyFormat(item.balance)}} </td>
 						<!-- <td> Account ID : {{item.id}} </td> -->
 						
@@ -149,7 +149,7 @@
 						<tr v-for="account in form.accounts"  :key="account.id">
 							<td>{{account.type.name}}</td>
 							<td>{{account.client.client_id }}</td>
-							<td>{{item.client.firstname +' '+ item.client.middlename + ' ' + item.client.lastname}}</td>
+							<td>{{account.client.firstname + ' ' + account.client.lastname}}</td>
 							<td>{{format(account.accrued_interest)}}</td>							
 						</tr>
 						<tr style="border:none">
@@ -163,7 +163,7 @@
 						<tr v-for="account in form.accounts"  :key="account.id">
 							<td>{{account.type.name}}</td>
 							<td>{{account.client.client_id }}</td>
-							<td>{{item.client.firstname +' '+ item.client.middlename + ' ' + item.client.lastname}}</td>
+							<td>{{account.client.firstname + ' ' + account.client.lastname}}</td>
 							<td>{{format(account.amount)}}</td>							
 						</tr>
 						<tr style="border:none">
