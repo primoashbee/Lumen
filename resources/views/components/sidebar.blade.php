@@ -144,6 +144,14 @@
 											</a>
 										</li>
 										@endcan
+										@can('writeoff_loan_account')
+										<li class="second-sub-list">
+											<a class="second-sub-nav" href="{{route('bulk.writeoff.loans')}}">
+												<i>WO</i>
+												<p>Write Off Loans</p>
+											</a>
+										</li>
+										@endcan
 									</ul>
 								</div>
 							</li>
