@@ -89,6 +89,7 @@ Vue.component('bulk-deposit-transaction', require('./components/BulkDepositTrans
 Vue.component('bulk-create-loan-account', require('./components/BulkCreateLoanAccountComponent.vue').default);
 Vue.component('bulk-transaction-loan-accounts', require('./components/BulkTransactionLoanAccountComponent.vue').default);
 
+Vue.component('bulk-writeoff-loan-accounts', require('./components/BulkWriteoffComponent.vue').default);
 Vue.component('bulk-repayment-v2', require('./components/BulkRepaymentComponentV2.vue').default);
 Vue.component('bulk-repayment', require('./components/BulkRepaymentComponent.vue').default);
 
@@ -116,7 +117,7 @@ Vue.component('client-dependents-list', require('./components/ClientDependentLis
 
 Vue.component('client-create-loan-account', require('./components/ClientCreateLoanAccountComponent.vue').default);
 Vue.component('client-edit-loan-account', require('./components/ClientEditLoanAccountComponent.vue').default);
-
+// Vue.component('client-profile', require('./components/ClientProfileComponent.vue').default);
 
 Vue.component('loan-profile', require('./components/LoanAccountDashboardComponent.vue').default);
 Vue.component('status', require('./components/AccountStatusComponent.vue').default);

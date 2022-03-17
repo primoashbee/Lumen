@@ -105,6 +105,9 @@ class LoanAccount extends Model
         return $this->belongsTo(Client::class, 'client_id', 'client_id');
     }
 
+    public function writeoff(){
+        return $this->hasOne(LoanAccountWriteOff::class);
+    }
     
     public function schedules()
     {
@@ -2300,6 +2303,37 @@ class LoanAccount extends Model
 
     public function lastTransaction($succesful_transactions=false){
         return $this->transactions(true, $succesful_transactions)->orderBy('transaction_date','desc')->first();
+    }
+
+    public function writeOffAccount($date,$office_id){
+        $clone_loan_account = clone $this;
+        
+        $this->update(
+            [
+                'status' => 'Written Off',
+                'principal_balance' => 0,
+                'interest_balance' => 0,
+                'total_balance' => 0,
+                'penalty' => 0,
+                'closed_at' => $date,
+                'closed_by' => auth()->user()->id,
+            ]
+        );
+        $transaction_number = $transaction_number = 'W'.str_replace('.','',microtime(true));
+
+        $this->writeoff()->create([
+            'transaction_number' => $transaction_number,
+            'loan_account_id' => $clone_loan_account->id,
+            'interest_written_off' => $clone_loan_account->interest_balance,
+            'principal_written_off' => $clone_loan_account->principal_balance,
+            'penalty_written_off' => $clone_loan_account->penalty,
+            'total_write_off'=> $clone_loan_account->total_balance,
+            'writtenoff_by' => auth()->user()->id,
+            'office_id' => $office_id,
+            'written_off_date' => $date
+
+        ]);
+
     }
 
 }

@@ -44,6 +44,9 @@
                                 <button v-if="can('enter_repayment') || is('Super Admin')"   type="button" class="btn btn-primary" data-toggle="modal" @click="preTerm">
                                     Pre-Terminate
                                 </button>
+                                <button v-if="can('writeoff_loan_account') || is('Super Admin') && account.status != 'Written Off'"   type="button" class="btn btn-primary" @click="openWriteoffModal">
+                                    Write Off
+                                </button>
                                 <button type="button" class="btn btn-primary" data-toggle="modal" @click="exportDST">
                                     <i class="fas fa-file-invoice"></i> 
                                 </button>
@@ -62,6 +65,7 @@
                             <span v-if="account.status=='In Arrears'" class="badge badge-danger"> In Arrears</span>
                             <span v-if="account.status=='Active'" class="badge badge-success">Active</span>
                             <span v-if="account.status=='Closed'" class="badge badge-dark">Closed</span>
+                            <span v-if="account.status=='Written Off'" class="badge badge-dark">Written Off</span>
                             <span v-if="account.status=='Pre-terminated'" class="badge badge-dark">Pre-terminated</span>
                         </p>
                     </div>
@@ -173,15 +177,15 @@
                                         <td>{{money(item.interest_paid)}}</td>
                                         <td>{{money(item.total_paid)}}</td>                                        
                                         <td>{{money(item.amount_due)}}</td>
-                                        <td>
-                                                
-                                                <span v-if="item.status=='In Arrears'" class="badge badge-danger"> In Arrears</span>
-                                                
-                                                <span v-else-if="item.status=='Paid'" class="badge badge-success">Paid</span>
-                                                <span v-else-if="item.status=='Due'" class="badge badge-warning">Due</span>
-                                                <span v-else-if="item.status=='Not Due'" class="badge badge-light">Not Due</span>
-                                                    
-                                                    
+                                        <td v-if="account.status != 'Written Off'">
+                                            <span v-if="item.status=='In Arrears'" class="badge badge-danger"> In Arrears</span>
+                                            <span v-else-if="item.status=='Paid'" class="badge badge-success">Paid</span>
+                                            <span v-else-if="item.status=='Due'" class="badge badge-warning">Due</span>
+                                            <span v-else-if="item.status=='Not Due'" class="badge badge-light">Not Due</span>        
+                                        </td>
+                                        <td v-else>
+                                            <span v-if="item.status!='Paid'" class="badge badge-danger"> Written Off</span>
+                                            <span v-else class="badge badge-success">Paid</span>
                                         </td>
                                         
                                         
@@ -218,7 +222,7 @@
 
                                         <td>{{item.paid_by}}</td>
                                        
-                                        <td>
+                                        <td v-if="account.status !='Written Off'">
                                             <div v-if="item.transaction_number.charAt(0) !== 'F'">
                                                 <span v-if="item.reverted=='0'">
                                                     <button v-if="can('revert_transactions') || is('Super Admin')" @click="revert(item.transaction_number)" class="btn btn-danger"><i class="fa fa-undo" aria-hidden="true"></i></button>
@@ -355,6 +359,42 @@
         </div>
     </div>
 </b-modal>
+
+<b-modal id="writeoff-modal" v-model="writeoffModalState" size="lg" hide-footer :title="'Write Off Account'" :header-bg-variant="background" :body-bg-variant="background">
+    <div v-if="account">
+        <h1 class="text-lg"> Total Loan Amount to be write off: {{account.total_balance}} </h1>
+    </div>
+    <div class="row">
+        <div class="col-lg-12 px-4 py-2">
+            <form @submit.prevent="writeoff">
+                <div class="form-group mt-4">
+                    <label class="text-lg">Branch</label>
+                    <v2-select @officeSelected="wo_assignOfficeForm" list_level="branch" v-bind:class="hasError('office_id') ? 'is-invalid' : ''"></v2-select>
+                    <div class="invalid-feedback" v-if="hasError('office_id')">
+                        {{ errors.office_id[0]}}
+                    </div>
+                </div>
+                <div class="form-group mt-4">
+                    <label class="text-lg">Write Off Date</label>
+                    <input type="date" v-model="writeoffForm.date"  class="form-control" v-bind:class="hasError('disbursement_date') ? 'is-invalid' : ''">
+                    <div class="invalid-feedback" v-if="hasError('disbursement_date')">
+                        {{ errors.date[0]}}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="text-lg">CV #:</label>
+                    <input type="text" class="form-control" v-model="writeoffForm.journal_voucher" v-bind:class="hasError('check_voucher') ? 'is-invalid' : ''">
+                    <div class="invalid-feedback" v-if="hasError('journal_voucher')">
+                        {{ errors.journal_voucher[0]}}
+                    </div>
+                </div>
+
+                
+                <button class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+</b-modal>
 </div>
 </template>
 
@@ -391,6 +431,7 @@ export default {
             errors: null,
             office_id:null,
             disburseModalState:false,
+            writeoffModalState:false,
             fees:null,
             form : {
                 loan_account_id: null,
@@ -406,10 +447,14 @@ export default {
             formDisbursement :{
                 office_id :null,
                 paymentSelected : null,
-                
                 disbursement_date : null,
                 first_repayment_date : null,
                 cv_number: null,
+            },
+            writeoffForm:{
+                journal_voucher :null,
+                date:null,
+                office_id:null
             },
             total_paid: null,
             pre_term_amount: null,
@@ -419,11 +464,41 @@ export default {
         }
     },
     methods:{
+        writeoff(){
+
+            Swal.fire({
+                title: 'Are you sure?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Write Off Account'
+                }).then((result) => {
+                if (result.isConfirmed) {
+                    axios.post('/writeoff/loan/'+this.loan_account_id, this.writeoffForm).
+                    then(res => {
+                        Swal.fire(
+                        'Account Written Off!',
+                        res.msg,
+                        'success'
+                        ).then(res =>{
+                            location.reload()
+                        })
+                    })
+
+                    
+                }
+            })
+            // axios.post('/writeoff/loan/'+this.loan_account_id, this.loan_account_id).
+            // then(res => {
+                
+            // })
+        },
         money(item){
             return moneyFormat(item);
         },
-        disburseModalStateMethod(){
-            console.log("bobo");
+        openWriteoffModal(){
+            return this.writeoffModalState = true
         },
         openDisburseModal(){
             return this.disburseModalState = true;
@@ -595,6 +670,9 @@ export default {
         },
         assignOfficeForm(value){
             this.formDisbursement.office_id = value['id']
+        },
+        wo_assignOfficeForm(value){
+            this.writeoffForm.office_id = value['id']
         },
         disbursePaymentSelected(value){
             this.formDisbursement.paymentSelected = value['id']
