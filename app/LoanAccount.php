@@ -1857,7 +1857,7 @@ class LoanAccount extends Model
         $office_ids = Office::find($office_id)->getLowerOfficeIDS();
         $space = " ";
         $clients = \DB::table('clients')
-                        ->select('client_id as c_id',\DB::raw("concat(firstname, '{$space}', lastname) as fullname"));
+                        ->select('client_id as c_id',\DB::raw("concat(firstname, '{$space}',middlename,'{$space}', lastname) as fullname"));
         $accounts = \DB::table('loan_accounts')
                 ->select('loan_accounts.*','loan_accounts.client_id','amount','total_deductions','disbursed_amount','clients.fullname')
                 ->whereExists(function($q) use($office_ids){

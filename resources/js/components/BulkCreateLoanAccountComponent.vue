@@ -64,7 +64,8 @@
                         <td><input type="checkbox" class="checkbox" :id="client.client_id" @change="checked(client,$event)"></td>
                         <td><label :for="client.client_id">{{client.client_id}}</label></td>
                         <td class="text-lg">
-                            <a class="text-lg" :href="clientLink(client.client_id)">{{client.firstname + ' ' + client.lastname}}</a>
+                            
+                            <a class="text-lg" :href="clientLink(client.client_id)">{{client.firstname + ' ' + client.middlename + ' ' + client.lastname}}</a>
                             <div class="text-danger" v-if="hasInputError('accounts',client.id,'client_id')">    
                                 {{inputErrorMsg('accounts',client.id,'client_id')}}
                             </div>
@@ -86,7 +87,7 @@
             <paginator :dataset="lists" @updated="fetch"></paginator>
         </div>
 
-            <button class="btn btn-primary" @click.prevent="review">Create</button>
+            <button class="btn btn-primary mt-2" @click.prevent="review">Create</button>
             <loading :is-full-page="true" :active.sync="isLoading" ></loading>
         <b-modal id="loan-modal" v-model="modal.modalState" size="lg" hide-footer :title="modal.modal_title" :header-bg-variant="background" :body-bg-variant="background"  v-if="form.accounts.length > 0">
             <form>
@@ -101,7 +102,7 @@
                     <tbody style="color:white">
                         <tr v-for="(item, key) in form.accounts" :key="key">
                             <td><p class="title">{{item.client_id}}</p></td>
-                            <td><p class="title">{{item.full_name}}</p></td>
+                            <td><p class="title">{{item.firstname + ' ' + item.middlename + ' ' + item.lastname}}</p></td>
                             <td><p class="title">{{moneyFormat(item.amount)}}</p></td>
                         </tr>
                         <tr>

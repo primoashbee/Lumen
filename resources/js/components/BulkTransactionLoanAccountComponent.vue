@@ -335,7 +335,7 @@ export default {
                 this.selected_list.push(account)
             }else{
                 this.form.accounts = this.form.accounts.filter(x=>{
-                    return x.id != account.id
+                    return x != account.id
                 })
                 this.selected_list = this.selected_list.filter(x=>{
                     return x.id != account.id
@@ -361,6 +361,7 @@ export default {
             
         },
         fetch(){
+            
             this.isLoading = true
             this.form.accounts = []
             var data = Object.assign({}, this.request);
@@ -369,6 +370,19 @@ export default {
             .then(res=>{
                 this.lists = res.data.list
                 this.isLoading=false
+                this.errors=[]
+            }).catch(err => {
+                this.isLoading = false
+                this.errors = err.response.data.errors || []
+                var html =""
+                $.each(this.errors, function(k, v){ 
+                        html += '<p class="text-center">'+ v +'</p>'
+	                    })
+                Swal.fire({
+                    title: 'Error!',
+                    html: html+'</ul>',
+                    icon: 'warning',
+                })
             })
         }
         
