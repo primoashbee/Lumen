@@ -12,7 +12,7 @@
                 <!-- <button type="button" class="btn btn-primary" @click="filter">Add New</button> -->
             </div>
             <div class="col-lg-2 mt-8">
-                <button type="button" class="btn btn-primary" @click="submit">Search</button>
+                <button type="button" class="btn btn-primary" @click="submit">Submit</button>
             </div>
             <div class="col-lg-6 float-right d-flex"  v-if="false">
                 <label for="" style="color:white" class="lead mr-2">Search:</label>
@@ -52,7 +52,7 @@
 						<td><label :for="item.id">{{item.type.name}}</label></td>
 						<td><a :href="clientLink(item.client.client_id)">{{item.client.client_id}}</a></td>
 						
-						<td>{{item.client.firstname + ' ' + item.client.lastname}}</td>
+						<td>{{item.client.firstname + ' ' + item.client.middlename  + ' ' + item.client.lastname}}</td>
 						<td>{{moneyFormat(item.balance)}} </td>
 						<!-- <td> Account ID : {{item.id}} </td> -->
 						
@@ -69,7 +69,7 @@
 						<td><label :for="item.id">{{item.type.name}}</label></td>
 						<td><a :href="clientLink(item.client.client_id)">{{item.client.client_id}}</a></td>
 						
-						<td>{{item.client.firstname + ' ' + item.client.lastname}}</td>
+						<td>{{item.client.firstname + ' ' + item.client.middlename  + ' ' + item.client.lastname}}</td>
 						<td>{{moneyFormat(item.balance)}} </td>
 						<!-- <td> Account ID : {{item.id}} </td> -->
 						
@@ -90,9 +90,9 @@
 			</table>
 			<p class="lead float-left text-right" style="color:white">Showing Records {{lists.from}} - {{lists.to}} of {{totalRecords}} </p>
 			<p class="lead float-right text-right" style="color:white">Total Records: {{totalRecords}} </p>
-			<button type="button" class="btn btn-primary" @click="showModal()" v-if="form.accounts.length > 0"> {{transactionTypeDisplay}} </button>
 			<div class="clearfix"></div>
 			<paginator :dataset="lists" @updated="fetch"></paginator>
+			<button type="button" class="btn btn-primary mt-2" @click="showModal()" v-if="form.accounts.length > 0"> {{transactionTypeDisplay}} </button>
 		</div>
 		
         </div>
