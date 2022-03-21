@@ -373,7 +373,7 @@ class Report extends Model
             'clients.client_id as client_id',
             'deposits.product_id as deposit_type',
             \DB::raw("CONCAT(users.firstname, '{$space}', users.lastname) as paid_by"),
-            \DB::raw("CONCAT(clients.firstname, '{$space}',clients.middlename,'{$space}' clients.lastname) as client_name"),
+            \DB::raw("CONCAT(clients.firstname,'{$space}',clients.middlename,'{$space}', clients.lastname) as client_name"),
             'deposit_payments.notes as notes',
             'paid_offices_at.name as paid_on',
             'deposit_payments.created_at as timestamp'
