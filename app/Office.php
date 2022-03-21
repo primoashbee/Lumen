@@ -813,6 +813,10 @@ class Office extends Model
                     ->when($query['products'], function($q, $data){
                         $q->whereIn('deposits.id',$data);
                     })
+                    ->when($query['office_id'], function($q, $data){
+                        $ids = Office::lowerOffices($data,true,true);
+                        $q->whereIn('clients.office_id',$ids);
+                    })
                     ->when($query['status'], function($q, $data){
                         $q->whereIn('deposit_accounts.status',$data);
                     })
