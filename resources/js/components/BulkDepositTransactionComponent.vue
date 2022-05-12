@@ -64,7 +64,7 @@
 				<tbody v-else>
 					<tr  v-for="(item, key) in lists.data" :key="item.id">
 
-						<td><input type="checkbox" class="00"  :id="item.id" @change="checked(item,$event)" :checked="accountOnList(item.id)"></td>
+						<td><input type="checkbox" class="item_checkbox" :id="item.id" @change="checked(item,$event)" :checked="accountOnList(item.id)"></td>
 						
 						<td><label :for="item.id">{{item.type.name}}</label></td>
 						<td><a :href="clientLink(item.client.client_id)">{{item.client.client_id}}</a></td>
@@ -514,13 +514,16 @@ export default {
 			return false;
 		},
 		checkAll($event){
+			console.log("eto");
 			if($event.target.checked){
+				console.log("eto1");
 				$('.item_checkbox').each(function(){
 					if(!$(this).prop('checked')){
 						$(this).click()
 					}
 				})
 			}else{
+				console.log("eto2");
 				$('.item_checkbox').each(function(){
 					if($(this).prop('checked')){
 						$(this).click()
