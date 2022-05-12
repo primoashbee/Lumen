@@ -2,7 +2,7 @@
     <div>
         <div class="row">
             <div class="col-lg-4">
-                <label for="" style="color:white" class="lead mr-2">Filter mo :</label>
+                <label for="" style="color:white" class="lead mr-2">Filter:</label>
                 <product-component product_type="deposit" @productSelected="productSelected" class="d-inline-block" style="width:100%" v-model="office_id"></product-component>
                 <!-- <button type="button" class="btn btn-primary" @click="filter">Add New</button> -->
             </div>
@@ -514,16 +514,16 @@ export default {
 			return false;
 		},
 		checkAll($event){
-			console.log("eto");
+			
 			if($event.target.checked){
-				console.log("eto1");
+				
 				$('.item_checkbox').each(function(){
 					if(!$(this).prop('checked')){
 						$(this).click()
 					}
 				})
 			}else{
-				console.log("eto2");
+				
 				$('.item_checkbox').each(function(){
 					if($(this).prop('checked')){
 						$(this).click()
