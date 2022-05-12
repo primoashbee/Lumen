@@ -91,7 +91,7 @@
 			<p class="lead float-left text-right" style="color:white">Showing Records {{lists.from}} - {{lists.to}} of {{totalRecords}} </p>
 			<p class="lead float-right text-right" style="color:white">Total Records: {{totalRecords}} </p>
 			<div class="clearfix"></div>
-			<paginator :dataset="lists" @pageSelected="fetch"></paginator>
+			<paginator :dataset="lists" @updated="fetch"></paginator>
 			<button type="button" class="btn btn-primary mt-2" @click="showModal()" v-if="form.accounts.length > 0"> {{transactionTypeDisplay}} </button>
 		</div>
 		
