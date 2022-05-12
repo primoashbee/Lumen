@@ -2,7 +2,7 @@
     <div>
         <div class="row">
             <div class="col-lg-6">
-                <label for="" style="color:white" class="lead mr-2">Filter ka jan:</label>
+                <label for="" style="color:white" class="lead mr-2">Filter:</label>
                 <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px;" v-model="office_id"></v2-select>
                 <!-- <button type="button" class="btn btn-primary" @click="filter">Add New</button> -->
             </div>
