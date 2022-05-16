@@ -109,7 +109,7 @@ class DepositAccountController extends Controller
         if($request->product_id=="ALL"){
             $request->product_id = null;
         }
-        $accounts = Office::depositAccounts($request->office_id,$request->product_id)->paginate(50);
+        $accounts = Office::depositAccounts($request->office_id,$request->product_id)->paginate(2);
         return response()->json(['accounts' => $accounts], 200);
 
     }

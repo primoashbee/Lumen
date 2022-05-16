@@ -168,6 +168,7 @@ class Report extends Model
                 DB::raw('payment_methods.name as payment_method_name'),
                 DB::raw('SUM(loan_account_repayments.principal_paid) as principal_paid'),
                 DB::raw('SUM(loan_account_repayments.interest_paid) as interest_paid'),
+                DB::raw('SUM(loan_account_repayments.penalty_paid) as penalty_paid'),
                 DB::raw('SUM(loan_account_repayments.total_paid) as total_paid'),
             ];
             $dtlr_select = [
@@ -187,6 +188,7 @@ class Report extends Model
                 DB::raw('loans.code as loan_code'),
                 DB::raw('loan_account_repayments.loan_account_id as loan_account_id'),
                 DB::raw('loan_account_repayments.principal_paid as principal_paid'),
+                DB::raw('SUM(loan_account_repayments.penalty_paid) as penalty_paid'),
                 DB::raw('loan_account_repayments.interest_paid as interest_paid'),
                 DB::raw('loan_account_repayments.total_paid as total_paid'),
                 DB::raw('loan_account_repayments.repayment_date as repayment_date'),

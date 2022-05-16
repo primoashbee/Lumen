@@ -124,6 +124,11 @@ class LoanAccount extends Model
         }
     }
 
+    public function loan_topup()
+    {
+        return $this->hasMany(LoanAccountTopup::class);
+    }
+
     // public static function calculate($principal,$annual_rate,$interest_rate,$interest_interval,$term,$term_length,$start_date=null,$office_id){
     public static function calculate(array $data,$ir = 0)
     {
@@ -182,10 +187,11 @@ class LoanAccount extends Model
                             $date = $start_date;
                         }else{
                             $previous_installment_date  = Carbon::parse($installments[$x-1]->date);
-                            $date = Scheduler::getDateForDailyInstallment($previous_installment_date->addWeek(), $office_id);
+                            $date = Scheduler::getDateForDailyInstallment($previous_installment_date->addMonth(), $office_id);
                             // dd($date);
                         }
                         $days_diff = $current_date->diffInDays($date, false);
+                        
                         $late = $days_diff <= 0; //is due
                     }
                     //first row
@@ -225,11 +231,11 @@ class LoanAccount extends Model
                         $diff_in_days = $date->diffInDays(now()->startOfDay(), false);
                         
                         $interest_days_incurred =  0;
-                        if ($diff_in_days >= -6) {
-                            $interest_days_incurred =   $diff_in_days > 0 ? 7 : $diff_in_days + 7;
+                        if ($diff_in_days >= -30) {
+                            $interest_days_incurred =   $diff_in_days > 0 ? 30 : $diff_in_days + 30;
                         }
                         
-                        $per_day_interest = round($interest / 7, 2);
+                        $per_day_interest = round($interest / 30, 2);
                         
                         $interest_due = round($per_day_interest * ($interest_days_incurred), 2);
     
@@ -277,12 +283,13 @@ class LoanAccount extends Model
                         $amortization = round($interest, 2);
     
                         $diff_in_days = $start_date->diffInDays(now()->startOfDay(), false);
+                        
                         $interest_days_incurred =  0;
                         if ($diff_in_days >= -30) {
                             $interest_days_incurred =   $diff_in_days > 0 ? 30 : $diff_in_days + 30;
                         }
                         
-                        $per_day_interest = round($interest / 7, 2);
+                        $per_day_interest = round($interest / 30, 2);
                         $interest_due = round($per_day_interest * ($interest_days_incurred), 2);
                         
                         $principal_due = 0;
@@ -1099,8 +1106,9 @@ class LoanAccount extends Model
         $installments = $this->successfulRepayments(true,true);
         $interest = round($installments->sum('interest_paid'),2);
         $principal = round($installments->sum('principal_paid'),2);
+        $penalty = round($installments->sum('penalty_paid'),2);
        
-        $total = $principal + $interest;
+        $total = $principal + $interest + $penalty;
         return (object) ['principal'=>$principal,'interest'=>$interest,'total'=>$total];
     }
 
@@ -1565,7 +1573,7 @@ class LoanAccount extends Model
         $interest_paid = $total_paid->interest;
         $principal_paid = $total_paid->principal;
         $total_paid = $total_paid->total;
-
+        
         return $this->update([
             'interest_balance'=>round($this->interest  - $interest_paid, 2),
             'principal_balance'=>round($this->principal  - $principal_paid, 2),
@@ -1854,17 +1862,14 @@ class LoanAccount extends Model
 
 
     public static function bulkList($type,$office_id){
+        
         $office_ids = Office::find($office_id)->getLowerOfficeIDS();
+        
         $space = " ";
         $clients = \DB::table('clients')
-                        ->select('client_id as c_id',\DB::raw("concat(firstname, '{$space}',middlename,'{$space}', lastname) as fullname"));
+                        ->select('client_id as c_id','office_id',\DB::raw("concat(firstname, '{$space}',middlename,'{$space}', lastname) as fullname"));
         $accounts = \DB::table('loan_accounts')
-                ->select('loan_accounts.*','loan_accounts.client_id','amount','total_deductions','disbursed_amount','clients.fullname')
-                ->whereExists(function($q) use($office_ids){
-                    $q->select('office_id')
-                        ->from('clients')
-                        ->whereIn('office_id', $office_ids);
-                })
+                ->select('loan_accounts.*','loan_accounts.client_id','amount','total_deductions','disbursed_amount','clients.fullname','clients.office_id')
                 ->leftJoinSub($clients,'clients',function($join){
                     $join->on('clients.c_id','=','client_id');
                 })
@@ -1881,7 +1886,8 @@ class LoanAccount extends Model
                         $q->where('disbursed',false);
                         $q->where('approved',true);
                     }
-                });
+                })
+                ->whereIn('clients.office_id',$office_ids);
                 
         return $accounts;
     }
@@ -2159,6 +2165,7 @@ class LoanAccount extends Model
                             'loan_account_repayments.repayment_date',
                             DB::raw("IF(1=1,'Repayment',NULL) as particulars"),
                             DB::raw('loan_account_repayments.interest_paid as interest_paid'),
+                            DB::raw('loan_account_repayments.penalty_paid as penalty_paid'),
                             DB::raw('loan_account_repayments.principal_paid as principal_paid'),
                             DB::raw('loan_account_repayments.total_paid as amount'),
                             'payment_methods.name as payment_method_name',
@@ -2190,6 +2197,7 @@ class LoanAccount extends Model
                             'loan_account_disbursements.transaction_id',
                             'loan_account_disbursements.created_at as repayment_date',
                             DB::raw("IF(1=1,'Disbursement',NULL) as particulars"),
+                            DB::raw('IF(1=1,0,NULL) as penalty_paid'),
                             DB::raw('loan_accounts.interest as interest_paid'),
                             DB::raw('loan_accounts.principal as principal_paid'),
                             DB::raw('loan_account_disbursements.disbursed_amount as amount'),
@@ -2220,6 +2228,7 @@ class LoanAccount extends Model
                             'loan_account_fee_payments.transaction_number',
                             'loan_account_fee_payments.repayment_date',
                             'fees.name as particulars',
+                            DB::raw('IF(1=1,0,NULL) as penalty_paid'),
                             DB::raw('IF(1=1,0,NULL) as interest_paid'),
                             DB::raw('IF(1=1,0,NULL) as principal_paid'),
                             DB::raw('loan_account_fee_payments.amount as amount'),
@@ -2255,6 +2264,7 @@ class LoanAccount extends Model
                             'deposit_to_loan_repayments.transaction_number',
                             'deposit_to_loan_repayments.repayment_date',
                             DB::raw("IF(1=1,'CTLP',NULL) as particulars"),
+                            DB::raw('IF(1=1,0,NULL) as penalty_paid'),
                             DB::raw('deposit_to_loan_repayments.interest_paid as interest_paid'),
                             DB::raw('deposit_to_loan_repayments.principal_paid as principal_paid'),
                             DB::raw('deposit_to_loan_repayments.total_paid as amount'),
@@ -2280,17 +2290,50 @@ class LoanAccount extends Model
                         ->leftJoinSub($users,'users',function($join){
                             $join->on('users.id','deposit_to_loan_repayments.paid_by');
                         })
-
                         ->where('deposit_to_loan_repayments.loan_account_id',$this->id);
-
+        
+        $topups = DB::table("loan_account_topups")
+                        ->select(
+                            'loan_account_topups.transaction_number',
+                            'loan_account_topups.topup_date as repayment_date',
+                            DB::raw("IF(1=1,'Topup',NULL) as particulars"),
+                            DB::raw('IF(1=1,0,NULL) as interest_paid'),
+                            DB::raw('IF(1=1,0,NULL) as penalty_paid'),
+                            DB::raw('IF(1=1,0,NULL) as principal_paid'),
+                            DB::raw('loan_account_topups.principal_topup as amount'),
+                            'payment_methods.name as payment_method_name',
+                            'loan_account_topups.reverted',
+                            DB::raw("CONCAT(users.firstname,'{$space}',users.lastname) as paid_by"),
+                            'loan_account_topups.created_at as transaction_date'
+                        )
+                        ->when($succesful_transactions, function ($q,$data){
+                            if($data){
+                                $q->where('loan_account_topups.reverted', false);
+                            }
+                        })
+                        ->leftJoinSub($loan_accounts,'loan_accounts',function($join){
+                            $join->on('loan_accounts.id','loan_account_topups.loan_account_id');
+                        })
+                        ->leftJoinSub($payment_methods,'payment_methods',function($join){
+                            $join->on('payment_methods.id','loan_account_topups.payment_method_id');
+                        })
+                        ->leftJoinSub($offices,'offices',function($join){
+                            $join->on('offices.id','loan_account_topups.office_id');
+                        })
+                        ->leftJoinSub($users,'users',function($join){
+                            $join->on('users.id','loan_account_topups.disbursed_by');
+                        })
+                        ->where('loan_account_topups.loan_account_id',$this->id);                
+        
 
         if($loan_payment_only){
-            return $repayments->unionAll($ctlp);
- 
-    
+            return $repayments->unionAll($ctlp)
+                                ->unionAll($topups);
         }
+        
         $list = $repayments
             ->unionAll($ctlp)
+            ->unionAll($topups)
             ->unionAll($disbursement)
             ->unionAll($fee_payments)
             ->when($succesful_transactions, function($q,$data){
@@ -2302,7 +2345,7 @@ class LoanAccount extends Model
     }
 
     public function lastTransaction($succesful_transactions=false){
-        return $this->transactions(true, $succesful_transactions)->orderBy('transaction_date','desc')->first();
+        return $this->transactions(false, $succesful_transactions)->orderBy('transaction_date','desc')->first();
     }
 
     public function writeOffAccount($date,$office_id){
@@ -2333,6 +2376,268 @@ class LoanAccount extends Model
             'written_off_date' => $date
 
         ]);
+
+    }
+
+    public function topup(array $data){
+        $topup_interest = 0;
+        if ($data['term']=='months') {
+                
+            $interval = 4;
+            $number_of_weeks = 52;
+            $term_length = $data['term_length'];
+            
+            $office_id = $data['office_id'];
+            
+            $principal = $data['principal'];
+
+            $exponent = $number_of_weeks * ($term_length/$number_of_weeks);
+            
+            $base = 1+((double) $data['annual_rate']/$number_of_weeks);
+            
+            $total_amount = $principal * pow($base, $exponent);
+            
+            $monthly_rate = $data['interest_rate']/100;
+            // dd($monthly_rate);
+            // $total_interest = round($total_amount - $principal, 2);
+            
+            $total_interest = round(($principal * $monthly_rate)*$term_length, 2);
+            
+            // $amortization = $total_amount / $term_length;
+
+            $principal_balance = 0;
+            $installments = array();
+
+            $interest_rate = $data['interest_rate'];
+            // $interest_rate = 0;
+
+
+            
+            $topup_interest_balance = round($total_interest, 2);
+            
+            $new_interest_balance = 0;
+
+            // $sched = new Scheduler($start_date,$office_id);
+            $office_id = $data['office_id'];
+            $start_date = Scheduler::getDateForDailyInstallment($data['start_date'], $office_id);
+            
+            $current_date = now()->startOfDay();
+            // $end_date;
+            $late = false;
+            $date = 'now';
+            for ($x=0;$x<=$term_length;$x++){
+                if ($x>0){
+                    if ($x==1) {
+                        $date = $start_date;
+                    }else{
+                        
+                        $previous_installment_date  = Carbon::parse($installments[$x-1]->date);
+                        $date = Scheduler::getDateForDailyInstallment($previous_installment_date->addMonth(), $office_id);
+                        
+                        // dd($date);
+                    }
+                    $days_diff = $current_date->diffInDays($date, false);
+                    
+                    $late = $days_diff <= 0; //is due
+                }
+                //first row
+                
+                if ($x == 0) {
+                    $interest = 0;
+                    $principal = $principal;
+                    $installments[] = (object)array(
+                        'installment'=>$x,
+                        'date'=>"----",
+                        'principal_balance'=>$principal_balance,
+                        'interest'=>0,
+                        'interest_balance'=>0,
+                        'principal'=>$principal,
+                        'amortization'=>0,
+                    );
+                    // $principal_balance = round($principal_balance - $principal, 2);
+                    // $interest_balance = round($interest_balance - $interest, 2);
+
+                //last row
+                } 
+                elseif ($x==$term_length) {
+                    $loan_account_installment = $this->installments->where('installment',$x)->first();
+                    $interest = round($principal * $monthly_rate, 2);
+                    
+                    $principal_balance = $principal;
+                    
+                    $amortization = $interest + $principal;
+
+                    $diff_in_days = $date->diffInDays(now()->startOfDay(), false);
+                    
+                    $interest_days_incurred =  0;
+                    if ($diff_in_days >= -30) {
+                        $interest_days_incurred =   $diff_in_days > 0 ? 30 : $diff_in_days + 30;
+                    }
+                    
+                    $per_day_interest = round($interest / 30, 2);
+                    
+                    $interest_due = round($per_day_interest * ($interest_days_incurred), 2);
+                    
+                    $topup_disbursement_date = Carbon::parse($data['disbursement_date']);
+                    $calculated_interest = 0;
+                    if ($topup_disbursement_date >= $date) {
+                        $interest = 0;
+                        $new_interest_balance = $loan_account_installment->interest_balance;
+                    }else{
+                        $calculated_interest = $date->diffInDays($topup_disbursement_date) > 30 ? $interest : round($per_day_interest * $start_date->diffInDays($topup_disbursement_date), 2);
+                        $new_interest_balance = $loan_account_installment->interest_balance + $topup_interest_balance;
+                    }
+                    
+                    
+                    $principal_due = 0;
+                    $amount_due = 0;
+                    
+                    $topup_interest_balance = $topup_interest_balance - $interest;
+                    $topup_interest += $interest;
+                    $installments[] = (object)array(
+                        'installment'=>$x,
+                        'date'=>$loan_account_installment->date,
+                        'principal_balance'=>$principal + $loan_account_installment->principal_balance,
+                        'interest'=>$interest + $loan_account_installment->interest,
+                        'principal'=>$principal + $loan_account_installment->principal,
+                        'interest_balance'=>$topup_interest_balance,
+                        'amortization'=>$principal + $loan_account_installment->principal + $interest + $loan_account_installment->interest,
+                        
+                        'interest_due'=>$interest_due,
+                        'principal_due'=>$principal_due + $principal,
+                        'amount_due'=>$amount_due,
+                        'interest_days_incurred'=>$interest_days_incurred,
+                        'add_on_interest' => $calculated_interest,
+                        'add_on_principal' => $principal,
+                    );
+                    
+                    $principal_balance = $principal;
+                    $end_date = $date;
+                //first payment
+                } 
+                elseif ($x==1) {
+                    $loan_account_installment = $this->installments->where('installment',$x)->first();
+                    $interest = round($principal * $monthly_rate, 2);
+
+                    $per_day_interest = round($interest / 30, 2);
+
+                    $topup_interest_balance = $topup_interest_balance - $interest;
+                    
+                    $topup_disbursement_date = Carbon::parse($data['disbursement_date']);
+                    $diff_in_days = 0;
+                    $calculated_interest = 0;
+                    if ($topup_disbursement_date >= $start_date) {
+                        $interest = $loan_account_installment->interest;
+                        $new_interest_balance = $loan_account_installment->interest_balance;
+                        $amortization = $loan_account_installment->interest;
+                        $loan_account_installment->interest = $loan_account_installment->original_interest;
+                        $interest_due = $loan_account_installment->paid ? $loan_account_installment->original_interest : $loan_account_installment->interest_due;
+                    }else{
+                        $calculated_interest = $start_date->diffInDays($topup_disbursement_date) > 30 ? $interest : round($per_day_interest * $start_date->diffInDays($topup_disbursement_date), 2);
+                        $new_interest_balance = $loan_account_installment->interest_balance + $topup_interest_balance;
+                        $amortization = $calculated_interest + $loan_account_installment->original_interest;
+                    }
+                    
+                    $principal_due = 0;
+                    $amount_due = 0;
+                    
+                    $topup_interest += $calculated_interest;
+                    
+                    $installments[] = (object)array(
+                            'installment'=>$x,
+                            'date'=>$loan_account_installment->date,
+                            'principal_balance'=>$principal_balance,
+                            
+                            'interest'=>$calculated_interest + $loan_account_installment->interest,
+                            'principal'=>0,
+                            
+                            'interest_due'=>$interest_due,
+                            'principal_due'=>$principal_balance,
+                            'amount_due'=>$amount_due,
+
+                            'interest_balance'=> $new_interest_balance,
+                            'amortization'=>$amortization,
+                            'add_on_interest' => $calculated_interest,
+                            'add_on_principal' => 0,
+                        );
+                        
+                } 
+                else {
+                    $loan_account_installment = $this->installments->where('installment',$x)->first();
+                    $interest = round($principal * $monthly_rate, 2);
+                    
+                    // $principal_balance = round($principal_balance, 2);
+                    
+                    $topup_disbursement_date = Carbon::parse($data['disbursement_date']);
+                    $per_day_interest = round($interest / 30, 2);
+                    $calculated_interest = 0;
+                    $topup_interest_balance = $topup_interest_balance - $interest;
+                
+                    if ($topup_disbursement_date >= $date) {
+                        $interest = 0;
+                        $new_interest_balance = $loan_account_installment->interest_balance;
+                        $amortization = $loan_account_installment->interest;
+                        $loan_account_installment->interest = $loan_account_installment->interest_due;
+                    }else{
+                        $calculated_interest = $date->diffInDays($topup_disbursement_date) < 30 ? $per_day_interest * $date->diffInDays($topup_disbursement_date) : $interest;    
+                        $new_interest_balance = $loan_account_installment->interest_balance + $topup_interest_balance;   
+                        $amortization = $calculated_interest + $loan_account_installment->interest;
+                    }
+
+                    $principal_due = 0;
+                    $amount_due = 0;
+                    
+                    
+                    $topup_interest += $calculated_interest;
+                    
+                    $interest_due = $calculated_interest + $loan_account_installment->interest_due;
+                    
+                    $interest = $calculated_interest + $loan_account_installment->interest;
+                    
+                    $installments[] = (object)array(
+                            'installment'=>$x,
+                            'date'=>$loan_account_installment->date,
+                            'principal_balance'=>$principal_balance,
+                            'interest'=>$interest,
+                            'principal'=> 0,
+                            'interest_balance'=>$new_interest_balance,
+                            'amortization'=>$amortization,
+                            'interest_due'=>$interest_due,
+                            'principal_due'=>$principal_balance,
+                            'amount_due'=>$amount_due,
+                            'add_on_interest' => $calculated_interest,
+                            'add_on_principal' => 0,
+                        );
+                        
+                }
+            }
+            
+            $disbursement_date = $data['disbursement_date'];
+            $data = new stdClass;
+            
+            $data->amount = $principal;
+            $data->installments = collect($installments);
+
+            
+            $total_interest = $data->installments->sum('interest');
+            $total_loan_amount =  round($principal + $total_interest + $this->principal, 2);
+            
+            $data->total_interest = $total_interest;
+            $data->total_interest_balance = $topup_interest;
+            $data->total_loan_amount = $total_loan_amount;
+            $data->topup_interest = $topup_interest;
+            
+            $data->disbursement_date = $disbursement_date;
+            $data->start_date = $start_date;
+            $data->end_date = $end_date;
+            $data->office_id = $office_id;
+            
+            
+            return $data;
+
+
+        }   
+       
 
     }
 

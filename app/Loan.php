@@ -780,6 +780,12 @@ class Loan extends Model
                         'rates' => collect([
                             (object)[
                                 'code'=>'AGL',
+                                'installments'=>5,
+                                'rate'=>2.5,
+                                'number_of_months'=>5
+                            ],
+                            (object)[
+                                'code'=>'AGL',
                                 'installments'=>6,
                                 'rate'=>2.5,
                                 'number_of_months'=>6
@@ -815,6 +821,38 @@ class Loan extends Model
                             ],
                         ])
                     ],
+                    (object) [
+                        'code'=>'T1',
+                        'rates'=>
+                            collect([
+                                (object) [
+                                    'code'=>'T1',
+                                    'installments'=>12,
+                                    'rate'=>5.40545,
+                                    'number_of_months'=>3,
+    
+                                ],
+                                (object) [
+                                    'code'=>'T1',
+                                    'installments'=>22,
+                                    'rate'=>5.953621,
+                                    'number_of_months'=>6
+                                ],
+                                (object) [
+                                    'code'=>'T1',
+                                    'installments'=>24,
+                                    'rate'=>5.475500,
+                                    'number_of_months'=>6
+                                ],
+                                (object) [
+                                    'code'=>'T1',
+                                    'installments'=>48,
+                                    'rate'=> 5.328390,
+                                    'number_of_months'=>12
+                                ],
+                            ])
+                                                    
+                    ]
                 ];
 
         if($id!=null){

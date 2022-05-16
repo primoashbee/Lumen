@@ -99,7 +99,7 @@ class LoanAccountRepayment extends Model
         //update balances
         $this->receipt->delete();
         $this->loanAccount->updateBalances();
-        
+         
         $this->loanAccount->update([
             'closed_by'=>null,
             'closed_at'=>null
