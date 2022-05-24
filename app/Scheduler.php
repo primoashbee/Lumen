@@ -38,13 +38,10 @@ class Scheduler extends Model
         $date = Carbon::parse($date);
         
         if(self::hasHoliday($date, $office_id)){
-            return self::getDateForDailyInstallment($date->copy()->addDays($interval),$office_id, $interval)->isWeekend() 
-                    ?
-                    self::getDateForDailyInstallment($date->copy()->addWeekday(),$office_id, $interval) 
-                    :
+            return self::getDateForDailyInstallment($date->copy()->addDays($interval),$office_id, $interval)->isWeekend() ?
+                    self::getDateForDailyInstallment($date->copy()->addWeekday(),$office_id, $interval) :
                     self::getDateForDailyInstallment($date->copy()->addDays($interval),$office_id, $interval);
         }
-        
         return $date;
     }
 }

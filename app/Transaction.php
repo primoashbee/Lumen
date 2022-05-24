@@ -62,15 +62,11 @@ class Transaction
         if($value==='X'){
             return ['deposit_to_loan_repayaments','deposit_withdrawal'];
         }
-        if($value==='T'){
-            return 'loan_account_topups';
-        }
     }
 
     public static function getAccount($transaction_number){
         
         $type = Transaction::type(substr($transaction_number,0,1));
-        
         if($type==='deposit_interest_posts'){
             return DepositInterestPost::where('transaction_number',$transaction_number)->first()->account;
         }
@@ -82,9 +78,6 @@ class Transaction
         }
         if($type==='loan_account_repayments'){
             return LoanAccountRepayment::where('transaction_number',$transaction_number)->first()->loanAccount;
-        }
-        if($type==='loan_account_topups'){
-            return LoanAccountTopup::where('transaction_number',$transaction_number)->first()->loanAccount;
         }
         if($type==='loan_disbursements'){
             return LoanAccountDisbursement::where('transaction_id',$transaction_number)->first()->loanAccount;
@@ -110,9 +103,6 @@ class Transaction
         }
         if($type==='loan_account_repayments'){
             return LoanAccountRepayment::where('transaction_number',$transaction_number)->first();
-        }
-        if($type==='loan_account_topups'){
-            return LoanAccountTopup::where('transaction_number',$transaction_number)->first();
         }
         if($type==='loan_disbursements'){
             return LoanAccountDisbursement::where('transaction_id',$transaction_number)->first();

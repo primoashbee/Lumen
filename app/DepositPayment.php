@@ -38,7 +38,6 @@ class DepositPayment extends Model
 
     public function revert($user_id){
         $data = $this->revertData($user_id);
-        
         $this->update([
             'reverted'=>true,
             'reverted_by'=>$user_id
@@ -47,7 +46,6 @@ class DepositPayment extends Model
     }
 
     public function revertData($user_id){
-        
         
         $data['amount'] = (double) $this->amount;
         $data['transaction_number'] = 'RD'.str_replace('.','',microtime(true));

@@ -69,6 +69,7 @@ class LatestTransaction implements Rule
                 $this->recent_transaction = $transaction->transaction_number;
                 return $transaction->transaction_number  == $value ? true : false;    
             }else{
+                
                 return true;
             }
         }

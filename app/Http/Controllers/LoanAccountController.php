@@ -8,12 +8,10 @@ use App\Office;
 use Carbon\Carbon;
 use App\LoanAccount;
 use App\PaymentMethod;
-use App\Rules\CreditLimit;
 use Illuminate\Http\Request;
 use App\Events\LoanDisbursed;
 use App\Rules\DateIsWorkingDay;
 use App\Rules\LoanAmountModulo;
-use App\Rules\ClientHasBusiness;
 use App\Rules\MaxLoanableAmount;
 use App\Rules\PaymentMethodList;
 use App\Events\BulkLoanDisbursed;
@@ -26,8 +24,7 @@ use App\Rules\LoanAccountCanBeApproved;
 use App\Rules\LoanAccountCanBeDisbursed;
 use Illuminate\Support\Facades\Validator;
 use App\Rules\ClientHasAvailableDependent;
-use App\Rules\PreventTopupFromLastTransaction;
-use Illuminate\Validation\ValidationException;
+use App\Rules\CreditLimit;
 
 class LoanAccountController extends Controller
 {
@@ -53,13 +50,11 @@ class LoanAccountController extends Controller
     }
 
     public function calculate(Request $request){
-        
         if($request->has('account')){
             $this->validator($request->all(),true)->validate();    
         }else{
             $this->validator($request->all())->validate();
         }
-        
         
         
         $client = Client::where('client_id',$request->client_id)->first();
@@ -103,14 +98,13 @@ class LoanAccountController extends Controller
             'interest_rate'=>$loan_interest_rate,
             'monthly_rate'=>(double) $loan->monthly_rate,
             'interest_interval'=>$loan->interest_interval,
-            'disbursement_date'=>$request->disbursement_date,
+            'disbursement_date'=>$loan->disbursement_date,
             'term'=>$loan->installment_method,
             'term_length'=>$number_of_installments,
             'start_date'=>$start_date,
-            'office_id'=>$client->office->id,
-            'client_id' => $request->client_id
+            'office_id'=>$client->office->id
         );
-        
+
         // $data = [
         //     'principal'=>10000,
         // ]
@@ -153,7 +147,6 @@ class LoanAccountController extends Controller
     public function validator(array $data,$for_update=false){
         
         if($for_update){
-            
             $rules = 
             [
                 'credit_limit' => new CreditLimit($data['credit_limit'],$data['amount']),
@@ -161,7 +154,6 @@ class LoanAccountController extends Controller
                 'client_id'=>['required','exists:clients,client_id'],
                 'amount'=>['required',new LoanAmountModulo($data['loan_id']), new MaxLoanableAmount($data['loan_id'])],
                 // 'disbursement_date'=>['required','date', new DateIsWorkingDay],
-                
                 
                 'first_payment'=>['required','date','after_or_equal:disbursement_date', new DateIsWorkingDay],
                 'number_of_installments'=>'required|gt:0|integer',
@@ -173,14 +165,13 @@ class LoanAccountController extends Controller
                 $rules,
             );
         }   
-        
-        
+
+
         $rules = [
-            
             'credit_limit' => new CreditLimit($data['credit_limit'],$data['amount']),
             'loan_id'=>'required|exists:loans,id',
             'client_id'=>['required','exists:clients,client_id',new HasNoUnusedDependent,new HasNoPendingLoanAccount],
-            'amount'=>['required',new LoanAmountModulo($data['loan_id']), new MaxLoanableAmount($data['loan_id']),new ClientHasBusiness($data['client_id'])],
+            'amount'=>['required',new LoanAmountModulo($data['loan_id']), new MaxLoanableAmount($data['loan_id'])],
             // 'disbursement_date'=>['required','date', new DateIsWorkingDay],
             
             'first_payment'=>['required','date','after_or_equal:disbursement_date', new DateIsWorkingDay],
@@ -197,7 +188,6 @@ class LoanAccountController extends Controller
 
     
     public function createLoan(Request $request){
-        
         $this->validator($request->all())->validate();
         $client = Client::where('client_id',$request->client_id)->first();
         $loan =  Loan::find($request->loan_id);
@@ -266,7 +256,7 @@ class LoanAccountController extends Controller
                 
                 'total_balance'=>$loan_amount + $calculator->total_interest,
                 'principal_balance'=>$loan_amount,
-                'interest_balance'=>$calculator->total_interest,
+                'interest_balance'=>0,
 
                 'disbursement_date'=>$calculator->disbursement_date,
                 'first_payment_date'=>$calculator->start_date,
@@ -503,9 +493,8 @@ class LoanAccountController extends Controller
         }
         $account = LoanAccount::findOrFail($id);
         $fee_payments = $account->feePayments;
-        
+
         $feePayments =[
-            'fees' => $fee_payments,
             'payment_method_id' => $request->paymentSelected,
             'disbursed_by' => auth()->user()->id,
             'repayment_date' => $request->disbursement_date,
@@ -529,7 +518,7 @@ class LoanAccountController extends Controller
 
             $original_start_date_date = $account->installments()->first()->date;
             $diff = $original_start_date_date->diffInDays($start_date, false);
-            
+
             if ($diff != 0) {
                 //create new installments
                 $account->installments()->delete();
@@ -551,27 +540,23 @@ class LoanAccountController extends Controller
                     'term_length'=>$account->number_of_installments,
                     'disbursement_date'=>$disbursement_date,
                     'start_date'=>$start_date,
-                    'office_id'=>$request->office_id,
-                    'client_id' => $request->client_id
+                    'office_id'=>$request->office_id
                 );
-                  
-                $calculator = LoanAccount::calculate($data);
                 
+                $calculator = LoanAccount::calculate($data);
                 $account->createInstallments($account, $calculator->installments);
                 
             }
 
-
-
-            $account->payFeePayments($feePayments);
+            
+            $this->payFeePayments($fee_payments,$feePayments);
 
             
 
             $account->update([
                 'disbursed_at'=>Carbon::now(),
                 'status' => $account->overdue()->total == 0 ? 'Active' : 'In Arrears',
-                'disbursed'=>true,
-                'disbursed_by'=>auth()->user()->id,
+                'disbursed'=>true
             ]);
             
             $account->disbursement()->create([
@@ -672,7 +657,6 @@ class LoanAccountController extends Controller
         ->groupBy('loan_account_installments.id')
         ->select(
             'installment',
-            'penalty',
             'original_principal',
             'original_interest',
             'date','amortization',
@@ -687,7 +671,6 @@ class LoanAccountController extends Controller
                             WHEN `date` < DATE(CURRENT_TIMESTAMP) THEN 'In Arrears'
                             END),'Paid') as status"),
             DB::raw('SUM(loan_account_installment_repayments.interest_paid) AS interest_paid'),
-            DB::raw('SUM(loan_account_installment_repayments.penalty_paid) AS penalty_paid'),
             DB::raw('SUM(loan_account_installment_repayments.principal_paid) AS principal_paid')
         )
         ->orderBy('installment','asc')
@@ -697,7 +680,7 @@ class LoanAccountController extends Controller
     for($x = 0;$x < $installments->count();$x++){
         $installments[$x]->interest_paid += $ctlp[$x]->interest_paid;
         $installments[$x]->principal_paid += $ctlp[$x]->principal_paid;
-        $installments[$x]->total_paid = $installments[$x]->principal_paid + $installments[$x]->interest_paid + $installments[$x]->penalty_paid;
+        $installments[$x]->total_paid = $installments[$x]->principal_paid + $installments[$x]->interest_paid;
     }
             $fees = $account_1->feePayments;
             $total_paid = $account_1->totalPaid();
@@ -849,7 +832,6 @@ class LoanAccountController extends Controller
             $request->all(),
             $rules,
         )->validate();
-        
         
         $list = LoanAccount::bulkList($request->type,$request->office_id)->get();
         
@@ -1045,18 +1027,6 @@ class LoanAccountController extends Controller
     }
 
     public function writeoffAccount(Request $request){
-
-        $rules = [
-            'office_id' =>'required|exists:offices,id',
-            'journal_voucher' => 'required',
-            'date'=> 'before:now|required'
-
-        ];
-
-        $request->validate($rules);
-
-        try {
-            
         $loan_account = LoanAccount::findOrfail($request->loan_id);
         
         $loan_account->writeOffAccount($request->date,$request->office_id);
@@ -1066,10 +1036,6 @@ class LoanAccountController extends Controller
             'office_id'=>$request->office_id
         ]);
         return response()->json(['msg' => 'success!']);
-        } catch (\Exception $e) {
-            return response()->json(['msg'=>$e->getMessage()],500);
-        }
-
     }
 
     public function bulkWriteoffLoans(Request $request){
@@ -1108,123 +1074,5 @@ class LoanAccountController extends Controller
         }
     }
 
-    public function topUpCalculation(Request $request){
-        
-        
-        $rules = [
-            'office_id' =>'required|exists:offices,id',
-            'disbursement_date'=> ['required', new PreventTopupFromLastTransaction($request->loan_id)],
-            'amount' => 'required'
-        ];
-        $request->validate($rules);
-        $loan_account = LoanAccount::findOrfail($request->loan_id);
-        
-        
-        try {
-            
-            $data = array(
-                'interest_balance' => $loan_account->interest_balance,
-                'product' => $request->code,
-                'principal'=>$request->amount,
-                'monthly_rate'=>$request->interest_rate,
-                'annual_rate'=>$request->annual_rate,
-                'interest_rate'=>$request->interest_rate,
-                'interest_interval'=>$request->interest_interval,
-                'term'=>$request->term,
-                'term_length'=>$request->number_of_installment,
-                'disbursement_date'=>$request->disbursement_date,
-                'start_date'=>$request->first_repayment_date,
-                'office_id'=>$request->office_id,
-            );
     
-            
-        
-            $loan_account = LoanAccount::find($request->loan_id);
-            
-            $topup_data = $loan_account->topup($data);
-
-            
-        } catch (\Exception $e) {
-            return response()->json(['msg'=>$e->getMessage()],500);
-        }
-
-        return response()->json($topup_data,200);
-
-    }
-    
-    public function topUp(Request $request,$loan_id){
-        
-        $loan_account = LoanAccount::findOrfail($request->loan_id);
-        
-        $user = auth()->user()->id;
-        
-
-        
-            $loan_account->update(
-                [
-                    'amount' => $loan_account->principal + $request->amount,
-                    'principal' => $loan_account->principal + $request->amount,
-                    'interest' => $loan_account->interest + $request->topup_interest,
-                    'total_loan_amount' => $request->total_loan_amount,
-                    'interest_balance' => $loan_account->interest_balance + $request->total_interest_balance,
-                    'principal_balance' => $loan_account->principal + $request->amount,
-                    'disbursed_amount' => $request->amount + $loan_account->disburse_amount
-                ]
-            );
-    
-            $loan_installments = $loan_account->installments;
-            $ctr=0;
-            
-            $transaction_number = 'T'.str_replace('.','',microtime(true));
-
-            $topup = $loan_account->loan_topup()->create([
-                'payment_method_id' => 1,
-                'transaction_number' => $transaction_number,
-                'loan_account_id' => $loan_account->id,
-                'interest_topup' =>  $request->topup_interest, 
-                'principal_topup' => $request->amount,
-                'total_topup' => $request->total_loan_amount - $loan_account->total_loan_amount,
-                'disbursed_by' => $user,
-                'office_id' => $request->office_id,
-                'topup_date' => $request->disbursement_date
-            ]);
-            
-            
-            foreach ($loan_installments as $installment) {
-               
-                $ctr++;
-                $topup_installment = $request->installments[$ctr];
-                
-                $topup_installment['loan_account_installment_id'] = $installment->id;
-                
-                $original_interest = $topup_installment['add_on_interest'] + $installment->original_interest;
-                
-                $installment->update([
-                    'original_interest' =>  $original_interest,
-                    'interest' => $topup_installment['interest'],
-                    'principal' => $topup_installment['principal'],
-                    'original_principal' => $topup_installment['principal'],
-                    'amount_due' => $topup_installment['amount_due'],
-                    'amortization'=> $topup_installment['amortization'],
-                    'principal_balance' => $topup_installment['principal_balance'],
-                    'interest_balance' => $topup_installment['interest_balance']
-                ]);
-
-                $installment->topup_installment()->create(
-                    [
-                        'loan_account_installment_id' => $installment->id,
-                        'loan_account_topup_id' => $topup->id,
-                        'interest_topup' => $topup_installment['add_on_interest'],
-                        'principal_topup' => $topup_installment['add_on_principal'],
-                        'total_topup' => $topup_installment['add_on_interest'] + $topup_installment['principal'],
-                        'topup_by' => $user,
-                    ]
-                );
-            }
-       
-            return response()->json(['msg' => 'Success'],200);
-        
-
-    }
-
 }
