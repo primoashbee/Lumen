@@ -188,10 +188,6 @@ export default {
     mounted(){
 		this.form.client_id = this.client_id
 		this.fetchLoanProducts()
-		
-		
-
-
 	},
 	methods:{
 		money(item){
@@ -324,7 +320,7 @@ export default {
 			$.each(businesses, function(k,v){
 				total_business_income += v.monthly_net_income;
 			})
-			// total_business_income/=4;
+			total_business_income/=4;
 			
 			var household_income = JSON.parse(this.household_income)
 			var twndi = total_business_income + household_income.total_household_income / 4;

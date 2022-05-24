@@ -67,6 +67,7 @@ class LoanAccountInstallment extends Model
         $amount_paid = new stdClass;
         $amount_paid->interest = 0;
         $amount_paid->principal = 0;
+        $amount_paid->penalty = 0;
         $amount_paid->total_paid = 0;
 
         $fully_paid  = false;
@@ -74,8 +75,10 @@ class LoanAccountInstallment extends Model
         
         $interest = (float) $this->interest;
         $principal = (float)  $this->principal_due;
+        $penalty = (float)  $this->penalty;
         $amount_due = (float)  $this->amount_due;
         $interest_paid = 0;
+        $penalty_paid = 0;
         $principal_paid = 0;
         if($isDue){
             $interest = (float)  $this->interest_due;
@@ -126,9 +129,20 @@ class LoanAccountInstallment extends Model
                 $payment-=$interest;
                 $interest_paid = $interest;
                 $amount_paid->interest = $interest;
-                $amount_paid->total_paid = $interest_paid + $principal_paid;
+                
+                
 
-                $fully_paid = true; // fully paid
+                if ($this->penalty > 0 && $payment >= $this->penalty) {
+                    $payment =- $this->penalty;
+                    $penalty_paid = $penalty;
+                    $amount_paid->total_paid = $interest_paid + $principal_paid + $penalty_paid;
+                    $fully_paid = true; // fully paid
+                }
+                else{
+                    $penalty_paid = $payment;
+                    $payment-=$penalty_paid;
+                    $amount_paid->total_paid = $interest_paid + $principal_paid + $penalty_paid;
+                }
 
                 //update installments
             }else{
@@ -157,6 +171,7 @@ class LoanAccountInstallment extends Model
                     'interest_due'=>0,
                     'principal_due'=>0,
                     'amount_due'=>0,
+                    'penalty'=> 0,
                     'paid'=>$fully_paid
                 ]);
                 
@@ -166,6 +181,7 @@ class LoanAccountInstallment extends Model
                 $this->update([
                     'interest_due'=>round($interest - $interest_paid,2),
                     'principal_due'=>round($principal - $principal_paid,2),
+                    'penalty' => round($this->penalty - $penalty_paid),
                     'amount_due'=>round($amount_due - ($interest_paid + $principal_paid),2)
                 ]);
             }
@@ -189,6 +205,7 @@ class LoanAccountInstallment extends Model
         $this->repayments()->create([
             'principal_paid'=>$principal_paid,
             'interest_paid'=>$interest_paid,
+            'penalty_paid' => $penalty_paid,
             'total_paid'=>round($principal_paid + $interest_paid, 2),
             'paid_by'=>$paid_by,    
             'loan_account_repayment_id'=>$loan_account_repayment_id
@@ -226,6 +243,7 @@ class LoanAccountInstallment extends Model
         $is_due = $this->isDue();
         $interest_paid = 0;
         $principal_paid = 0;
+        $penalty = 0;
         $amount_due = 0;
         $principal = $this->principal_due;
 
@@ -269,6 +287,18 @@ class LoanAccountInstallment extends Model
                 $interest_paid = $interest;
                 $amount_paid->interest = $interest;
                 $amount_paid->total_paid = $interest_paid + $principal_paid;
+
+                if ($this->penalty > 0 && $payment >= $this->penalty) {
+                    $payment =- $this->penalty;
+                    $penalty_paid = $penalty;
+                    $amount_paid->total_paid += $penalty_paid;
+                    $fully_paid = true; // fully paid
+                }
+                else{
+                    $penalty_paid = $payment;
+                    $payment-=$penalty_paid;
+                    $amount_paid->total_paid += $penalty_paid;
+                }
 
                 $fully_paid = true; // fully paid
 
@@ -639,8 +669,7 @@ class LoanAccountInstallment extends Model
         }
     }
 
-    public function status(){
-        $date = $this->date;
-        
+    public function topup_installment(){
+        return $this->hasMany(LoanAccountTopupInstallment::class);
     }
 }

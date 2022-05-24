@@ -50,6 +50,9 @@
                                 <button type="button" class="btn btn-primary" data-toggle="modal" @click="exportDST">
                                     <i class="fas fa-file-invoice"></i> 
                                 </button>
+                                <button type="button" class="btn btn-primary" @click="topupModalState = true">
+                                    Top Up
+                                </button>
                             </div>
                             <div v-if="account.status == 'Pending Approval' && can('edit_loan_account')" class="text-right col-lg-12">
                                 <a :href="editLoan" class="btn btn-primary float-right">Edit Loan</a>
@@ -153,6 +156,7 @@
                                         <td ><p class="title">Interest Due</p></td>
                                         <td ><p class="title">Principal Paid</p></td>
                                         <td ><p class="title">Interest Paid</p></td>
+                                        <td ><p class="title">Penalty</p></td>
                                         <td ><p class="title">Total Paid</p></td>
 
                                         <td><p class="title">Amount Due</p></td>
@@ -175,6 +179,7 @@
 
                                         <td>{{money(item.principal_paid)}}</td>
                                         <td>{{money(item.interest_paid)}}</td>
+                                        <td>{{money(item.penalty)}}</td>
                                         <td>{{money(item.total_paid)}}</td>                                        
                                         <td>{{money(item.amount_due)}}</td>
                                         <td v-if="account.status != 'Written Off'">
@@ -376,14 +381,14 @@
                 </div>
                 <div class="form-group mt-4">
                     <label class="text-lg">Write Off Date</label>
-                    <input type="date" v-model="writeoffForm.date"  class="form-control" v-bind:class="hasError('disbursement_date') ? 'is-invalid' : ''">
-                    <div class="invalid-feedback" v-if="hasError('disbursement_date')">
+                    <input type="date" v-model="writeoffForm.date"  class="form-control" v-bind:class="hasError('date') ? 'is-invalid' : ''">
+                    <div class="invalid-feedback" v-if="hasError('date')">
                         {{ errors.date[0]}}
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="text-lg">CV #:</label>
-                    <input type="text" class="form-control" v-model="writeoffForm.journal_voucher" v-bind:class="hasError('check_voucher') ? 'is-invalid' : ''">
+                    <input type="text" class="form-control" v-model="writeoffForm.journal_voucher" v-bind:class="hasError('journal_voucher') ? 'is-invalid' : ''">
                     <div class="invalid-feedback" v-if="hasError('journal_voucher')">
                         {{ errors.journal_voucher[0]}}
                     </div>
@@ -395,8 +400,83 @@
         </div>
     </div>
 </b-modal>
+
+<b-modal id="topup-modal" v-model="topupModalState" size="lg" hide-footer :title="'Top up Account'" :header-bg-variant="background" :body-bg-variant="background">
+
+    <div class="row">
+        <div class="col-lg-12 px-4 py-2">
+            <form @submit.prevent="calculate_topup">
+                <div class="form-group mt-4">
+                    <label class="text-lg">Branch</label>
+                    <v2-select @officeSelected="topupForm_assignOfficeForm" list_level="branch" v-bind:class="hasError('office_id') ? 'is-invalid' : ''"></v2-select>
+                    <div class="invalid-feedback" v-if="hasError('office_id')">
+                        {{ errors.office_id[0]}}
+                    </div>
+                </div>
+                <div class="form-group mt-4">
+                    <label class="text-lg">Disbursement Date</label>
+                    <input type="date" v-model="topupForm.disbursement_date"  class="form-control" v-bind:class="hasError('disbursement_date') ? 'is-invalid' : ''">
+                    <div class="invalid-feedback" v-if="hasError('disbursement_date')">
+                        {{ errors.disbursement_date[0]}}
+                    </div>
+                </div>
+                <div class="form-group mt-4">
+                    <label class="text-lg">Amount</label>
+                    <input type="number" v-model="topupForm.amount"  class="form-control" v-bind:class="hasError('amount') ? 'is-invalid' : ''">
+                    <div class="invalid-feedback" v-if="hasError('amount')">
+                        {{ errors.amount[0]}}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="text-lg">CV #:</label>
+                    <input type="text" class="form-control" v-model="topupForm.journal_voucher" v-bind:class="hasError('check_voucher') ? 'is-invalid' : ''">
+                    <div class="invalid-feedback" v-if="hasError('journal_voucher')">
+                        {{ errors.journal_voucher[0]}}
+                    </div>
+                </div>
+                <button class="btn btn-primary">Calculate</button>
+            </form>
+
+            
+            <table class="table">
+                <thead>
+                    <tr>
+                        <td> <p class="title"> #</p></td>
+                        <td> <p class="title"> Date</p></td>
+                        <td> <p class="title"> Principal</p></td>
+                        <td> <p class="title"> Interest</p></td>
+                        <td> <p class="title"> Amortization</p></td>
+                        <td> <p class="title"> Interest Balance</p></td>
+                    </tr>
+                </thead>
+                <tbody v-if="topup_installments">
+                    <tr v-for="item in topup_installments.installments" :key="item.id">
+                        <td><p class="title">{{item.installment}}</p></td>
+                        <td><p class="title">{{moment(item.date)}}</p></td>
+                        <td><p class="title">{{money(item.principal)}}</p></td>
+                        <td><p class="title">{{money(item.interest)}}</p></td>
+                        <td><p class="title">{{money(item.amortization)}}</p></td>
+                        <td><p class="title">{{money(item.interest_balance)}}</p></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <button v-if="topup_installments" class="btn btn-primary" @click="submit_topup">
+                Submit
+            </button>
+        </div>
+    </div>
+</b-modal>
+
+
 </div>
 </template>
+
+<style scoped>
+#topup-modal .modal-dialog{
+    max-width: 1140px!important;
+}
+</style>
 
 <script>
 
@@ -432,6 +512,7 @@ export default {
             office_id:null,
             disburseModalState:false,
             writeoffModalState:false,
+            topupModalState:false,
             fees:null,
             form : {
                 loan_account_id: null,
@@ -456,6 +537,21 @@ export default {
                 date:null,
                 office_id:null
             },
+            topupForm:{
+                journal_voucher:null,
+                disbursement_date:null,
+                office_id:null,
+                amount:null,
+                first_repayment_date: null,
+                number_of_installment: null,
+                interest_rate: null,
+                code:null,
+                annual_rate:null,
+                term:null,
+                interest_interval:null,
+                start_date:null
+            },
+            topup_installments:null,
             total_paid: null,
             pre_term_amount: null,
             payment_type : null,
@@ -484,6 +580,8 @@ export default {
                         ).then(res =>{
                             location.reload()
                         })
+                    }).catch(error => {
+                        this.errors = error.response.data.errors || {}
                     })
 
                     
@@ -650,7 +748,6 @@ export default {
                 })
                 .catch(error=>{
                     this.is_loading =false
-                    console.log(error.response.data.errors)
                     this.errors = error.response.data.errors || {}
                 })
         },
@@ -670,6 +767,9 @@ export default {
         },
         assignOfficeForm(value){
             this.formDisbursement.office_id = value['id']
+        },
+        topupForm_assignOfficeForm(value){
+            this.topupForm.office_id = value['id']
         },
         wo_assignOfficeForm(value){
             this.writeoffForm.office_id = value['id']
@@ -725,7 +825,7 @@ export default {
                 
 
             }).catch(error=>{
-                console.log(error);
+                
                 this.is_loading = false;
             });
         
@@ -749,7 +849,7 @@ export default {
                             'Success!',
                             'Loan Successfully Abandoned',
                             'success'
-                            
+
                         )
                     })
 
@@ -769,7 +869,68 @@ export default {
                     link.click();
                     this.isLoading =false;
                 })
+        },
+
+        calculate_topup(){
+            
+            this.populateTopupForm();
+            this.is_loading = true;
+            axios.post(this.topupLoan,this.topupForm).
+            then(res => {
+                this.is_loading = false;
+                this.topup_installments = res.data
+            }).catch(error => {
+                this.is_loading = false;
+                this.errors = error.response.data.errors
+            })
+        },
+        populateTopupForm(){
+            
+            this.topupForm.first_repayment_date = this.account.first_payment_date
+            this.topupForm.number_of_installment = this.account.number_of_installments
+            this.topupForm.interest_rate = this.account.interest_rate
+            this.topupForm.code = this.account.type.code
+            this.topupForm.annual_rate = this.account.type.annual_rate
+            this.topupForm.term = this.account.type.installment_method
+            this.topupForm.interest_interval = this.account.type.interest_interval
+            this.topupForm.start_date = this.account.first_payment_date
+            
+            return;                    
+        },
+        submit_topup(){
+                Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+                }).then((result) => {
+                if (result.isConfirmed) {
+
+                    axios.put(this.topupLoan, this.topup_installments)
+                    .then(res =>{
+                        Swal.fire(
+                            'Success!',
+                            'Top up successfully.',
+                            'success'
+                        )
+                    })
+                    .catch(error =>{
+                        this.errors = error.response.data.errors
+                        Swal.fire(
+                            'Alert',
+                            error.response.data.errors,
+                            'error'
+                        )
+                    })
+
+                    
+                }
+            })
         }
+
     },
     computed:{
         disburseLoan(){
@@ -783,6 +944,9 @@ export default {
         },
         client_loans(){
             return '/client/'+this.client_id+'/loans'
+        },
+        topupLoan(){
+            return '/client/'+this.client_id+'/topup/loans/'+this.loan_account_id
         },
         post_url(){
             if(this.form.for_pre_term){
