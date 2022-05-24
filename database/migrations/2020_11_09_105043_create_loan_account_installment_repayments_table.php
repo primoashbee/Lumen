@@ -19,7 +19,6 @@ class CreateLoanAccountInstallmentRepaymentsTable extends Migration
             $table->unsignedInteger('loan_account_repayment_id');
             $table->unsignedDouble('principal_paid');
             $table->unsignedDouble('interest_paid');
-            $table->unsignedDouble('penalty_paid')->default(0);
             $table->unsignedDouble('total_paid');
             $table->unsignedDouble('paid_by');
             // $table->string('transaction_id');

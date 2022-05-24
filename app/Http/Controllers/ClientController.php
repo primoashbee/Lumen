@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Loan;
 use Exception;
 use App\Client;
 use App\Office;
@@ -245,26 +244,6 @@ class ClientController extends Controller
 
     
     public function view($client_id){
-        $client = Client::fcid($client_id);
-        if($client===null){
-            abort(503);
-            return response()->route('client.list');
-        }
-        $client->load('household_income','businesses','deposits','dependents');
-        // $product = $client->activeLoans()->first()->type->code;
-        $client->loans = $client->activeLoans();
-        $client->loans->product = count($client->activeLoans()) ? $client->activeLoans()->first()->type->code : "";
-        
-        foreach ($client->deposits as $deposit) {
-            $deposit->type = $deposit->type->name;
-        }
-
-        return view('pages.client-profile',compact('client'));
-    }
-
-    public function viewClient($client_id){
-        
-
         $client = Client::fcid($client_id);
         if($client===null){
             abort(503);

@@ -11,7 +11,6 @@ class DepositToLoanInstallmentRepayment extends Model
         'deposit_to_loan_repayment_id',
         'principal_paid',
         'interest_paid',
-        'penalty_paid',
         'total_paid',
         'paid_by',
         'deposit_account_id',
@@ -37,20 +36,18 @@ class DepositToLoanInstallmentRepayment extends Model
 
         $new_interest = round($installment->interest + $returned_interest,2);
         $new_principal = round($installment->principal_due + $returned_principal,2);
-        $new_penalty = round($installment->penalty + $this->penalty,2);
 
         $date_is_due = $installment->dateIsDue();
         if($date_is_due){
             $new_interest = round($installment->interest_due + $returned_interest,2);
         }
 
-        $new_amount_due = round($new_interest + $new_principal + $new_penalty, 2);
+        $new_amount_due = round($new_interest + $new_principal, 2);
 
         if($date_is_due){
             return $installment->update([
                 'interest_due'=>$new_interest,
                 'principal_due'=>$new_principal,
-                'penalty'=>$this->penalty_paid,
                 'amount_due'=>$new_amount_due,
                 'paid'=>false,
             ]);

@@ -17,7 +17,6 @@ class DepositToLoanRepayment extends Model
         'payment_method_id',
         'repayment_date',
         'for_pretermination',
-        'penalty_paid',
         'office_id',
         'reverted',
         'reverted_by',

@@ -19,7 +19,7 @@ class CreateDepositToLoanPaymentsTable extends Migration
             $table->unsignedInteger('loan_account_id');
             $table->unsignedDouble('interest_paid');
             $table->unsignedDouble('principal_paid');
-            $table->unsignedDouble('penalty_paid');
+            
             $table->unsignedDouble('total_paid');
             $table->unsignedInteger('paid_by');
             $table->unsignedInteger('payment_method_id');

@@ -32,7 +32,6 @@ class RevertController extends Controller
             if(is_array($transaction)){
                 collect($transaction)->each->revert($user_id);
             }else{
-                
                 $transaction->revert($user_id);
             }
             \DB::commit();

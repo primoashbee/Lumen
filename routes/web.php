@@ -187,8 +187,6 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/create/loan', 'LoanAccountController@createLoan')->name('client.loan.create.post');
         Route::get('/{client_id}/loans', 'LoanAccountController@clientLoanList')->name('client.loan.list');
         Route::get('/{client_id}/loans/{loan_id}','LoanAccountController@account')->name('loan.account');
-        Route::post('/{client_id}/topup/loans/{loan_id}','LoanAccountController@topUpCalculation')->name('topup.loan.account');
-        Route::put('/{client_id}/topup/loans/{loan_id}','LoanAccountController@topUp')->name('topup.loan.account');
         Route::get('/{client_id}','ClientController@view')->name('client.profile');
         Route::get('/{clients:client_id}','ClientController@view')->name('client.profile');
         Route::get('/{client_id}/edit','ClientController@editClient')->name('edit.client');
@@ -363,108 +361,8 @@ Route::group(['middleware' => ['auth']], function () {
     });
     
     
-    Route::get('/sample', function(){
-        $loan_account = DB::table('loan_accounts');
-        $loan_account_installments = DB::table('loan_account_installments');
-        $penalty_per_day = .01/7;
-        $now = now();
-
-        $lai = \DB::table('loan_account_installments')
-            ->select(
-                'installment',
-                'amount_due',
-                'date','amortization',
-                DB::raw('loan_accounts.principal as la_principal'),
-                DB::raw('loan_accounts.interest as la_interest'),
-                'principal_due',
-                'interest_due',
-                'original_interest',
-                'original_principal',
-                DB::raw("DATEDIFF(loan_account_installments.date,'{$now}') AS days_of_penalty"),
-                DB::raw("SUM(days_of_penalty * days_of_penalty) AS amount")
-            )
-            ->leftJoinSub($loan_account, 'loan_accounts', function($join){
-                $join->on('loan_accounts.id','loan_account_installments.loan_account_id');
-            })
-            ->whereDate('date','<=', now())
-            ->where('paid',false);
-        
-        $instalment_date = Carbon::parse($lai->first()->date);
-        $diff = $instalment_date->diffInDays(now()->startOfDay());
-        
-        $penalty_to_apply = $penalty_per_day * $diff;
-        
-        
-        dd($lai->first());
-        // dd(round($penalty_to_apply * $lai->first()->amount_due,2));
-        return $lai->get();
-   });
-
-
    Route::get('/xx', function(){
-        $date = Carbon::now();
-        
-        $products = 9;
-        $office_id = [1];
-        $loan_accounts = DB::table('loan_accounts');
-        $clients = DB::table('clients');
-        $offices = DB::table('offices');
-        $loan = DB::table('loans');
-        $space = " ";
-        $list = DB::table('loan_account_installments')
-        ->select(
-            DB::raw('loan_account_installments.id AS installment_id'),
-            DB::raw('SUM(principal_due + interest_due) as total_due'),
-            DB::raw('datediff(CURRENT_TIMESTAMP,date) as penalty_days'),
-            DB::raw("datediff(CURRENT_TIMESTAMP,date) * 0.000142 as per"),
-            'date',
-            'loan_account_installments.penalty',
-            'clients.client_id',
-            'loan_accounts.id as la_id',
-            'offices.code as level',
-            'loan.code as code',
-            DB::raw("concat(clients.firstname, '{$space}',clients.middlename,'{$space}', clients.lastname) as fullname"),
-        )
-        ->when($office_id, function($q,$data){
-            $office_ids = Office::lowerOffices($data);
-            $q->whereExists(function($q2) use ($office_ids){
-                $q2->select('office_id','client_id','firstname','lastname')
-                        ->from('clients')
-                        ->whereIn('office_id',$office_ids)
-                        ->whereColumn('clients.client_id','loan_accounts.client_id');
-            });
-        })
-        ->when($products, function($q,$data){
-            $q->whereExists(function($q2) use ($data){
-                $q2->from('loan_accounts')
-                    ->where('loan_id',$data)
-                    ->whereColumn('loan_accounts.id', 'loan_account_installments.loan_account_id');
-            });
-        })
-        ->leftJoinSub($loan_accounts,'loan_accounts', function($join){
-            $join->on('loan_accounts.id', 'loan_account_installments.loan_account_id');
-        })
-        ->leftJoinSub($loan,'loan',function($join){
-            $join->on('loan.id','loan_accounts.loan_id');
-        })
-        ->leftJoinSub($clients, 'clients', function($join){
-            $join->on('clients.client_id','loan_accounts.client_id');
-        })
-        ->leftJoinSub($offices, 'offices', function($join){
-            $join->on('offices.id','=','clients.office_id');
-        })
-        ->groupBy('installment_id')
-        ->where('paid',false)
-        ->whereRaw('datediff(CURRENT_TIMESTAMP,date) > 0')
-        ->update(
-            [
-                'loan_account_installments.penalty' => DB::raw("round(datediff(CURRENT_TIMESTAMP,date) * 0.00142 * loan_account_installments.amount_due,2)")
-            ]
-        );
-        
-
-       return $list;
-       
+    
    });
    
    
