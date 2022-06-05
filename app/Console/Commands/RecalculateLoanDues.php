@@ -61,14 +61,16 @@ class RecalculateLoanDues extends Command
             $lai = \DB::table('loan_account_installments');
     
             $loan_accounts_installments_repayments = DB::table('loan_account_installment_repayments')
-            ->select('principal_paid','interest_paid','total_paid','penalty_paid','loan_account_installment_id')
+            // ->select('principal_paid','interest_paid','total_paid','penalty_paid','loan_account_installment_id')
+            ->select('principal_paid','interest_paid','total_paid','loan_account_installment_id')
             ->leftJoinSub($lai,'loan_account_installment', function($join){
                 $join->on('loan_account_installment.id','loan_account_installment_repayments.loan_account_installment_id');
             });
             
 
             $deposit_accounts_installments_repayments = \DB::table('deposit_to_loan_installment_repayments')
-            ->select('principal_paid','interest_paid','total_paid','penalty_paid','loan_account_installment_id')
+            // ->select('principal_paid','interest_paid','total_paid','penalty_paid','loan_account_installment_id')
+            ->select('principal_paid','interest_paid','total_paid','loan_account_installment_id')
             ->leftJoinSub($lai,'loan_account_installment', function($join){
                 $join->on('loan_account_installment.id','deposit_to_loan_installment_repayments.loan_account_installment_id');
             });
@@ -77,7 +79,7 @@ class RecalculateLoanDues extends Command
                 ->select(
                 DB::raw('SUM(principal_paid) as principal_paid'),
                 DB::raw('SUM(interest_paid) as interest_paid'),
-                DB::raw('SUM(penalty_paid) as penalty_paid'),
+                // DB::raw('SUM(penalty_paid) as penalty_paid'),
                 DB::raw('SUM(total_paid) as total_paid'),
                 'loan_account_installment_id')
                 ->groupBy('loan_account_installment_id');
