@@ -43,7 +43,7 @@ class DepositWithdrawal extends Model
 
     public function revertData($user_id){
         
-        $data['amount'] = (int) $this->amount;
+        $data['amount'] = (double) $this->amount;
         $data['transaction_number'] = 'D'. str_replace('.','',microtime(true));
         $data['payment_method_id'] = (int) $this->payment_method_id;
         $data['notes'] = 'Revertion for ' . $this->transaction_number;
