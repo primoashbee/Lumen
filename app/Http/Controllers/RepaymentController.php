@@ -169,6 +169,7 @@ class RepaymentController extends Controller
     }   
 
     public function scheduledListV2(Request $request){
+        
         $this->scheduledListValidator($request->all());
         $data = [
             'office_id'=>$request->office_id,
@@ -306,8 +307,9 @@ class RepaymentController extends Controller
     }
 
     public function bulkRepaymentV2(Request $request){
-
+        
         $this->validateBulk($request->all())->validate();
+        
         $repayment_date = Carbon::parse($request->repayment_date);
         $user = auth()->user()->id;
         $payment_method_id = $request->payment_method_id;
@@ -329,15 +331,19 @@ class RepaymentController extends Controller
                 'principal_paid'=>0,
                 'total_paid'=>0,
             ];
+            
             foreach($request->accounts as $item){
+                
                 $payment_info = $payment_info_template;
                 $payment_info['amount'] = (float) $item['loan']['amount'];
                 $total_loan_payment += $payment_info['amount'];
                 $account_payment = LoanAccount::find( (int) $item['loan']['loan_account_id'])->payV2($payment_info);
+                
                 $payment_summary['interest_paid'] += $account_payment['interest_paid'];
                 $payment_summary['principal_paid'] += $account_payment['principal_paid'];
                 $payment_summary['total_paid'] += $account_payment['total_paid'];
                 if (array_key_exists('deposits', $item)) {
+                    
                     $dep_accounts = Client::fcid($item['client_id'])->deposits;
                     foreach ($item['deposits'] as $deps) {
                         $payment_info = $payment_info_template;
@@ -348,8 +354,12 @@ class RepaymentController extends Controller
                         $deposit_account->deposit($payment_info);
                     }
                 }
+                
+                
             }
-
+            
+            
+            
             $loanPayload = ['date'=>$repayment_date->format('d-F'),'amount'=>$total_loan_payment,'summary'=>$payment_summary];
             event(new LoanAccountPayment($loanPayload, $request->cluster_office_id, $user , $payment_method_id));
             $has_deposit = $total_deposit_payment > 0;
@@ -368,6 +378,7 @@ class RepaymentController extends Controller
     }
 
     public function validateBulk(array $array){
+
         $hasDeposit = count($array['accounts'][0]['deposits']) > 0;
         $rules = [
             'office_id' => ['required','exists:offices,id'],

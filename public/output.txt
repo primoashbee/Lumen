@@ -31,3 +31,13 @@ Memory Usage: 18.18 MB
 Memory Usage: 1.7MB for this certain command
 Time taken :0.011650085449219 seconds
 Email Sent
+Starting....
+Date is 2022-06-03
+Updating 4 accounts. for RECALCULATING LOAN DUES
+Done
+penalized
+Starting....
+Date is 2022-06-03
+Updating 2 accounts. for RECALCULATING LOAN DUES
+Done
+penalized

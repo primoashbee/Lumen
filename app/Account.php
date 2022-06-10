@@ -166,6 +166,7 @@ class Account extends Model
     }
 
     public static function ccrFromDate(array $array){
+        
         $loan_product_id = $array['loan_product_id'];
         $office = Office::find($array['office_id']);
         $ids = $office->getLowerOfficeIDS();

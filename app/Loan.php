@@ -89,7 +89,13 @@ class Loan extends Model
                                 'rate'=>5.475500,
                                 'number_of_months'=>6
                             ],
-                            
+                            // (object) [
+                            //     'code'=>'MPL',
+                            //     'installments'=>44,
+                            //     'rate'=>5.10480,
+                            //     'number_of_months'=>10,
+
+                            // ],
                             // (object) [
                             //     'code'=>'MPL',
                             //     'installments'=>48,
@@ -167,7 +173,7 @@ class Loan extends Model
                             (object) [
                                 'code'=>'MPL',
                                 'installments'=>40,
-                                'rate'=> 3.68350,
+                                'rate'=> 3.69358,
                                 'number_of_months'=>10
                             ],
                             (object) [
@@ -412,7 +418,6 @@ class Loan extends Model
                             'rate'=> 3.48550 ,
                             'number_of_months'=>24,
                         ],
-                        
                     ]),
                     ],
                     (object) [
@@ -815,8 +820,67 @@ class Loan extends Model
                             ],
                         ])
                     ],
-                ];
+                    (object) [
+                        'code'=>'T1',
+                        'rates'=>
+                            collect([
+                                (object) [
+                                    'code'=>'T1',
+                                    'installments'=>12,
+                                    'rate'=>5.40545,
+                                    'number_of_months'=>3,
+    
+                                ],
+                                (object) [
+                                    'code'=>'T1',
+                                    'installments'=>22,
+                                    'rate'=>5.953621,
+                                    'number_of_months'=>6
+                                ],
+                                (object) [
+                                    'code'=>'T1',
+                                    'installments'=>24,
+                                    'rate'=>5.475100,
+                                    'number_of_months'=>6
+                                ],
+                                (object) [
+                                    'code'=>'T1',
+                                    'installments'=>48,
+                                    'rate'=> 5.328910,
+                                    'number_of_months'=>12
+                                ],
+                            ])
+                                                    
+                        ],
+                    (object) [
+                        'code'=>'T2',
+                        'rates'=>
+                            collect([
+                                (object) [
+                                    'code'=>'T2',
+                                    'installments'=>6,
+                                    'rate'=>4.62616,
+                                    'number_of_months'=>3
+                                ],
+                                (object) [
+                                    'code'=>'T2',
+                                    'installments'=>12,
+                                    'rate'=>4.86304,
+                                    'number_of_months'=>6
+                                ],
+                                (object) [
+                                    'code'=>'T2',
+                                    'installments'=>24,
+                                    'rate'=> 4.83896,
+                                    'number_of_months'=>12
+                                ],
+                            ]) 
+                    ],
+        ];
 
+        
+        
+        
         if($id!=null){
             $code = Loan::select('code')->find($id)->code;
             return collect($data)->where('code',$code)->first()->rates;

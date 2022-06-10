@@ -39,6 +39,7 @@
         <th>Loan</th>
         <th>Interest</th>
         <th>Principal</th>
+        <th>Penalty</th>
         <th>Payment</th>
         @if($summary->has_deposit)
             @foreach ($summary->deposit_list as $item)
@@ -56,6 +57,7 @@
         <td>{{$value->product->code}}</td>
         <td>{{$value->repayment_info->_interest}}</td>
         <td>{{$value->repayment_info->_principal}}</td>
+        <td>{{$value->repayment_info->_penalty}}</td>
         <td>{{$value->repayment_info->_amount_due}}</td>
         @if($summary->has_deposit)
             @foreach ($value->client->deposits as $deposit)

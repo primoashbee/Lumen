@@ -19,22 +19,26 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 class DownloadController extends Controller
 {
 
-    // public function generateID($client_id){
-        
-    //     $client = Client::fcid($client_id);
+    public static function generateID($client_ids,$bulk=false){
         
         
+        $clients = $bulk ? Client::whereIn('client_id',$client_ids)->get() :  Client::where('client_id',$client_ids)->get();
+        // dd($clients);
+        $transaction_number = 'ID'.str_replace('.','',microtime(true));
 
-    //     $client->firstname = 'Collection Sheet - ' . ' for ' . $client->lastname.'.pdf';
- 
-    //     $file = public_path('temp/'). $client->firstname;
-    //     $pdf = App::make('snappy.pdf.wrapper');
-    //     $headers = ['Content-Type'=> 'application/pdf','Content-Disposition'=> 'attachment;','filename'=>$client->firstname];
-    
-    //     $pdf->loadView('exports.generateId',compact('client'))->save($file,true);
+        $filename = 'Export ID - ' . ' for ' . $transaction_number.'.pdf';
         
-    //     return ['file'=>$file, 'filename' => $client->firstname, 'headers'=>$headers];
-    // }
+        $file = public_path('temp/'). $transaction_number;
+        
+        $pdf = App::make('snappy.pdf.wrapper');
+
+        $headers = ['Content-Type'=> 'application/pdf','Content-Disposition'=> 'attachment;','filename'=>$filename];
+    
+        $pdf->loadView('exports.generateId',compact('clients'))->save($file,true);
+        
+        return response()->download($file,$filename,$headers)->deleteFileAfterSend(true);
+        
+    }
 
     public function soa($loan_account_id=1){
         $loan_account = LoanAccount::find($loan_account_id);
@@ -526,6 +530,7 @@ class DownloadController extends Controller
     }
 
     public static function ccr($request, $data){
+        
         $office = Office::find($request['office_id']);
         $repayment_date = Carbon::parse($request['date']);
         $printed_by = auth()->user()->fullname;

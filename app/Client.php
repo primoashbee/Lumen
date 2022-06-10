@@ -325,5 +325,11 @@ class Client extends Model
         return $this->loanAccounts->whereIn('status',['Closed','Pre-terminated'])->count();
     }
 
+    public function branch_manager(){
+      $users = $this->branch()->user;
+      foreach($users as $user){
+          return $user->role('Branch Manager')->first();
+      }
+    }
     
 }

@@ -43,6 +43,7 @@ class ClientController extends Controller
 
     //get branches of logged in user upon creating client
     public function index(){
+        
         $branches = auth()->user()->scopesBranch();
         return view('pages.create-client',compact('branches'));
 
@@ -339,7 +340,6 @@ class ClientController extends Controller
                 'total_household_income'
                 ]
             ));
-            // dd($profile_picture_path);
             
             
             $client->businesses()->delete();
@@ -467,6 +467,18 @@ class ClientController extends Controller
 
     }
 
+    public function bulkGenerateId(Request $request){
+        
+        
+        try {
+            return DownloadController::generateID($request->clients_id,true);
+
+        } catch (ValidationException $e) {
+            return response()->json(['errors'=> 'Select atleast one client to generate id'],422);
+        }
+
+
+    }
 }
 
 

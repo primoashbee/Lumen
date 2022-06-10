@@ -241,7 +241,6 @@ export default {
     },
     methods : {
         checkall(e){
-            console.log(e)
             $('.checkbox').each(function(k,v){
                 if(e.target.checked){
                     if(!$(v).prop('checked')){
@@ -252,11 +251,10 @@ export default {
                         $(v).click()
                     }
                 }
-                
-                
             })
         },
         download(){
+            console.log("eto");
             this.isLoading = true;
             axios.get('/download/ccr',{responseType:'blob'})
                 .then(res=>{

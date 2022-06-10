@@ -60,7 +60,10 @@ class Transaction
             return 'loan_account_fee_payments';
         }
         if($value==='X'){
-            return ['deposit_to_loan_repayaments','deposit_withdrawal'];
+            return ['deposit_to_loan_repayments','deposit_withdrawal'];
+        }
+        if($value==='T'){
+            return 'loan_account_topups';
         }
     }
 
@@ -81,6 +84,9 @@ class Transaction
         }
         if($type==='loan_disbursements'){
             return LoanAccountDisbursement::where('transaction_id',$transaction_number)->first()->loanAccount;
+        }
+        if($type==='loan_account_topups'){
+            return LoanAccountTopup::where('transaction_number',$transaction_number)->first()->loanAccount;
         }
         if(is_array($type)){
             return [
@@ -106,6 +112,9 @@ class Transaction
         }
         if($type==='loan_disbursements'){
             return LoanAccountDisbursement::where('transaction_id',$transaction_number)->first();
+        }
+        if($type==='loan_account_topups'){
+            return LoanAccountTopup::where('transaction_number',$transaction_number)->first();
         }
         if(is_array($type)){
             return [

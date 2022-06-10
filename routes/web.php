@@ -28,7 +28,7 @@ use Illuminate\Validation\ValidationException;
 // Route::post('/download/dst/{id}','DownloadController@dst');
 
 
-Route::get('/', function(){
+Route::get('/', function(){ 
     return view('auth.login');
 })->middleware('guest');
 
@@ -193,7 +193,8 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/{client_id}/edit','ClientController@update');
         Route::get('/{client_id}/deposit/{deposit_account_id}', 'ClientController@depositAccount')->name('client.deposit'); 
         Route::get('/dependents/{client_id}', 'ClientController@listDependents')->name('client.dependents.list');
-
+        Route::post('/{client_id}/topup/loans/{loan_id}','LoanAccountController@topUpCalculation')->name('topup.loan.account');
+        Route::put('/{client_id}/topup/loans/{loan_id}','LoanAccountController@topUp')->name('topup.loan.account');
         Route::get('/{client_id}/create/deposit', 'DepositAccountController@createClientDepositAccount')->name('client.deposit.create');
         Route::post('/{client_id}/create/deposit', 'DepositAccountController@storeClientDepositAccount')->name('client.deposit.create');
 
@@ -307,6 +308,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/withdraw', 'DepositAccountController@showBulkView')->name('bulk.deposit.withdraw');
         Route::get('/post_interest', 'DepositAccountController@showBulkView')->name('bulk.deposit.post_interest');
         Route::get('/create/loans', 'LoanAccountController@bulkCreateForm')->name('bulk.create.loans');
+        Route::post('/generate/id', 'ClientController@bulkGenerateId')->name('bulk.generate.id');
         // Route::post('/loans/pending/list', 'LoanAccountController@pendingLoans');
         
         
@@ -359,12 +361,66 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/create/office/cluster', 'ClusterController@create');
         Route::post('/create/office/', 'OfficeController@createOffice');
     });
-    
-    
-   Route::get('/xx', function(){
-    
-   });
-   
-   
 
+    Route::get('/xx',function(){
+        $lai = \DB::table('loan_account_installments');
+        $loan_accounts_installments_repayments = DB::table('loan_account_installment_repayments')
+                // ->select('principal_paid','interest_paid','total_paid','penalty_paid','loan_account_installment_id')
+                ->select('principal_paid','interest_paid','total_paid','loan_account_installment_id')
+                ->leftJoinSub($lai,'loan_account_installment', function($join){
+                    $join->on('loan_account_installment.id','loan_account_installment_repayments.loan_account_installment_id');
+                });
+                
+    
+                $deposit_accounts_installments_repayments = \DB::table('deposit_to_loan_installment_repayments')
+                // ->select('principal_paid','interest_paid','total_paid','penalty_paid','loan_account_installment_id')
+                ->select('principal_paid','interest_paid','total_paid','loan_account_installment_id')
+                ->leftJoinSub($lai,'loan_account_installment', function($join){
+                    $join->on('loan_account_installment.id','deposit_to_loan_installment_repayments.loan_account_installment_id');
+                });
+    
+                $payments =  $loan_accounts_installments_repayments->union($deposit_accounts_installments_repayments)
+                    ->select(
+                    DB::raw('SUM(principal_paid) as principal_paid'),
+                    DB::raw('SUM(interest_paid) as interest_paid'),
+                    // DB::raw('SUM(penalty_paid) as penalty_paid'),
+                    DB::raw('SUM(total_paid) as total_paid'),
+                    'loan_account_installment_id')
+                    ->groupBy('loan_account_installment_id');
+                
+                    
+    
+                    $lai = \DB::table('loan_account_installments')
+                    ->select(
+                        'loan_account_installments.loan_account_id',
+                        'installment',
+                        'amount_due',
+                        'date','amortization',
+                        'principal','interest',
+                        'principal_due',
+                        'interest_due',
+                        'original_interest',
+                        'original_principal',
+                        DB::raw('loan_account_installments.id AS installment_id')
+                        // DB::raw('payments.principal_paid AS i_d'),
+                    )
+                    ->leftJoinSub($payments, 'payments', function($join){
+                        $join->on('loan_account_installments.id','payments.loan_account_installment_id');
+                    })
+                    ->orderBy('installment','asc')
+                    ->whereDate('date','<=', now())
+                    ->where('paid',false)
+                    ->whereRaw('payments.principal_paid > original_principal')
+                    ->groupBy('loan_account_installments.id');
+                    // ->update(
+                    //         [
+                    //             'interest_due' => DB::raw('round(original_interest - IFNULL(payments.interest_paid,0),2)'),
+                    //             'principal_due' => DB::raw('round(original_principal - IFNULL(payments.principal_paid,0),2)'),
+                    //             'amount_due' => DB::raw('round(round(original_principal - IFNULL(payments.principal_paid,0),2) + 
+                    //             round(original_interest - IFNULL(payments.interest_paid,0),2),2)')
+                    //         ]
+                    //     );
+    
+                    return $lai->get();
+    });
 });

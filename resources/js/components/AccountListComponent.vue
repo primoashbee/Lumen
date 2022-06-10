@@ -140,7 +140,7 @@
                             <td class="text-lg"> {{this.summary.total_accounts}}</td>
                             <td class="text-lg text-right" colspan="4"> {{moneyFormat(this.summary.total_principal)}}</td>
                             <td class="text-lg"> {{moneyFormat(this.summary.total_interest)}}</td>
-                            <td class="text-lg"> {{moneyFormat(this.summary.total_write_off)}}</td>
+                            <td class="text-lg"> {{moneyFormat(this.summary.total_balance)}}</td>
                             
                         </tr>
                     </template>

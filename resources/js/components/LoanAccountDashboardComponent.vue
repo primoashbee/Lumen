@@ -1,400 +1,470 @@
 <template>
 <div>
-<div class="content pl-32 pr-8 mt-4" id="content-full">
-    <loading :is-full-page="true" :active.sync="is_loading" ></loading>
-	<div class="row" v-if="account!=null">
-		<div class="col-lg-12">
-			<div class="card">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="/clients">Client</a></li>
-                        <li class="breadcrumb-item"><a :href="client_profile">{{client_id}}</a></li>
-                        <li class="breadcrumb-item"><a :href="client_loans">Loans</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Account</li>
-                    </ol>
-                  </nav>
-				<div class="card-header">
-                    <div class="row px-4">
-                        <div class="w-100 col-lg-6 px-0">
-                            <h3 class="h2">{{client.full_name}}</h3>
-                            <p class="text-xl text-white">{{loan_type}}</p>
-                        </div>  
-                        <div class="col-lg-6 row">
-                            <div v-if="account.status == 'Approved'" class="col-lg-12 text-right">
-                                <button v-if="can('disburse_loan') || is('Super Admin')" 
-                                type="button" 
-                                class="btn btn-primary"
-                                @click="openDisburseModal">
-                                    Disburse
-                                </button>
-                                <button v-if="can('change_status_loan_account') || is('Super Admin')" 
-                                type="button" 
-                                class="btn btn-primary ml-2"
-                                @click="abandonedConfirmation">
-                                    Abandoned
-                                </button>
+    <div class="content pl-32 pr-8 mt-4" id="content-full">
+        <loading :is-full-page="true" :active.sync="is_loading" ></loading>
+        <div class="row" v-if="account!=null">
+            <div class="col-lg-12">
+                <div class="card">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/clients">Client</a></li>
+                            <li class="breadcrumb-item"><a :href="client_profile">{{client_id}}</a></li>
+                            <li class="breadcrumb-item"><a :href="client_loans">Loans</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Account</li>
+                        </ol>
+                    </nav>
+                    <div class="card-header">
+                        <div class="row px-4">
+                            <div class="w-100 col-lg-6 px-0">
+                                <h3 class="h2">{{client.full_name}}</h3>
+                                <p class="text-xl text-white">{{loan_type}}</p>
+                            </div>  
+                            <div class="col-lg-6 row">
+                                <div v-if="account.status == 'Approved'" class="col-lg-12 text-right">
+                                    <button v-if="can('disburse_loan') || is('Super Admin')" 
+                                    type="button" 
+                                    class="btn btn-primary"
+                                    @click="openDisburseModal">
+                                        Disburse
+                                    </button>
+                                    <button v-if="can('change_status_loan_account') || is('Super Admin')" 
+                                    type="button" 
+                                    class="btn btn-primary ml-2"
+                                    @click="abandonedConfirmation">
+                                        Abandoned
+                                    </button>
+                                </div>
+                                <div class="text-right col-lg-12" v-if="account.disbursed!=0 && account.closed_at==null">
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" @click="exportSOA">
+                                        SOA
+                                    </button>
+                                    <button v-if="can('enter_repayment') || is('Super Admin')" type="button" class="btn btn-primary" data-toggle="modal" @click="modal.modalState=true">
+                                        Pay
+                                    </button>
+                                    <button type="button" class="btn btn-primary" @click="topupModalState = true">
+                                        Top Up
+                                    </button>
+                                    <button v-if="can('enter_repayment') || is('Super Admin')"   type="button" class="btn btn-primary" data-toggle="modal" @click="preTerm">
+                                        Pre-Terminate
+                                    </button>
+                                    <button v-if="can('writeoff_loan_account') || is('Super Admin') && account.status != 'Written Off'"   type="button" class="btn btn-primary" @click="openWriteoffModal">
+                                        Write Off
+                                    </button>
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" @click="exportDST">
+                                        <i class="fas fa-file-invoice"></i> 
+                                    </button>
+                                </div>
+                                <div v-if="account.status == 'Pending Approval' && can('edit_loan_account')" class="text-right col-lg-12">
+                                    <a :href="editLoan" class="btn btn-primary float-right">Edit Loan</a>
+                                </div>
                             </div>
-                            <div class="text-right col-lg-12" v-if="account.disbursed!=0 && account.closed_at==null">
-                                <button type="button" class="btn btn-primary" data-toggle="modal" @click="exportSOA">
-                                    SOA
-                                </button>
-                                <button v-if="can('enter_repayment') || is('Super Admin')" type="button" class="btn btn-primary" data-toggle="modal" @click="modal.modalState=true">
-                                    Pay
-                                </button>
-                                <button v-if="can('enter_repayment') || is('Super Admin')"   type="button" class="btn btn-primary" data-toggle="modal" @click="preTerm">
-                                    Pre-Terminate
-                                </button>
-                                <button v-if="can('writeoff_loan_account') || is('Super Admin') && account.status != 'Written Off'"   type="button" class="btn btn-primary" @click="openWriteoffModal">
-                                    Write Off
-                                </button>
-                                <button type="button" class="btn btn-primary" data-toggle="modal" @click="exportDST">
-                                    <i class="fas fa-file-invoice"></i> 
-                                </button>
+                            
+                            
+                        </div>
+                        <div class="row px-4">
+                            <p class="title text-xl mt-4 pb-4">Status: 
+                                <span v-if="account.status=='Pending Approval'" class="badge badge-info"> Pending Approval </span>
+                                <span v-if="account.status=='Approved'" class="badge badge-light"> Approved</span>
+                                <span v-if="account.status=='In Arrears'" class="badge badge-danger"> In Arrears</span>
+                                <span v-if="account.status=='Active'" class="badge badge-success">Active</span>
+                                <span v-if="account.status=='Closed'" class="badge badge-dark">Closed</span>
+                                <span v-if="account.status=='Written Off'" class="badge badge-dark">Written Off</span>
+                                <span v-if="account.status=='Pre-terminated'" class="badge badge-dark">Pre-terminated</span>
+                            </p>
+                        </div>
+                        <div class="row px-4">
+                            <div class="content-wrapper d-block mb-12 w-100">
+                                <div class="d-inline-block mr-16">
+                                    <p class="title text-lg">{{money(account.amount,2)}}</p>
+                                    <p class="text-muted text-lg">Loan Amount</p>
+                                </div>
+                                <div class="d-inline-block mr-16">
+                                    <p class="title text-lg">{{money(account.principal)}}</p>
+                                    <p class="text-muted text-lg">Principal</p>
+                                </div>
+                                <div class="d-inline-block mr-16">
+                                    <p class="title text-lg">{{money(account.interest)}}</p>
+                                    <p class="text-muted text-lg">Interest</p>
+                                </div>
+                                <div class="d-inline-block mr-16">
+                                    <p class="title text-lg">{{money(account.total_loan_amount)}}</p>
+                                    <p class="text-muted text-lg">Total Loan Amount</p>
+                                </div>
+                            </div>    
+
+                            <div class="content-wrapper d-block mb-12 w-100">
+                                <div class="d-inline-block mr-16">
+                                    <p class="title text-lg">{{money(account.principal_balance)}}</p>
+                                    <p class="text-muted text-lg">Principal Balance</p>
+                                </div>
+                                <div class="d-inline-block mr-16">
+                                    <p class="title text-lg">{{money(account.interest_balance)}}</p>
+                                    <p class="text-muted text-lg">Interest Balance</p>
+                                </div>
+                                <div class="d-inline-block mr-16">
+                                    <p class="title text-lg">{{money(account.total_balance)}}</p>
+                                    <p class="text-muted text-lg">Total Balance</p>
+                                </div>
                             </div>
-                            <div v-if="account.status == 'Pending Approval' && can('edit_loan_account')" class="text-right col-lg-12">
-                                <a :href="editLoan" class="btn btn-primary float-right">Edit Loan</a>
+
+                            <div class="content-wrapper d-block mb-12 w-100">
+                                <div class="d-inline-block mr-16">
+                                    <p class="title text-lg">{{money(total_paid.principal)}}</p>
+                                    <p class="text-muted text-lg">Principal Paid</p>
+                                </div>
+                                <div class="d-inline-block mr-16">
+                                    <p class="title text-lg">{{money(total_paid.interest)}}</p>
+                                    <p class="text-muted text-lg">Interest Paid</p>
+                                </div>
+                                <div class="d-inline-block mr-16">
+                                    <p class="title text-lg">{{money(total_paid.total)}}</p>
+                                    <p class="text-muted text-lg">Total Paid</p>
+                                </div>
+                                <div class="d-inline-block mr-16">
+                                    <p class="title text-lg">{{money(pre_term_amount.total)}}</p>
+                                    <p class="text-muted text-lg">Pre Termination Amount</p>
+                                </div>
                             </div>
                         </div>
-                        
-                        
                     </div>
-                    <div class="row px-4">
-                        <p class="title text-xl mt-4 pb-4">Status: 
-                            <span v-if="account.status=='Pending Approval'" class="badge badge-info"> Pending Approval </span>
-                            <span v-if="account.status=='Approved'" class="badge badge-light"> Approved</span>
-                            <span v-if="account.status=='In Arrears'" class="badge badge-danger"> In Arrears</span>
-                            <span v-if="account.status=='Active'" class="badge badge-success">Active</span>
-                            <span v-if="account.status=='Closed'" class="badge badge-dark">Closed</span>
-                            <span v-if="account.status=='Written Off'" class="badge badge-dark">Written Off</span>
-                            <span v-if="account.status=='Pre-terminated'" class="badge badge-dark">Pre-terminated</span>
-                        </p>
-                    </div>
-                    <div class="row px-4">
-                        <div class="content-wrapper d-block mb-12 w-100">
-                            <div class="d-inline-block mr-16">
-                                <p class="title text-lg">{{money(account.amount,2)}}</p>
-                                <p class="text-muted text-lg">Loan Amount</p>
-                            </div>
-                            <div class="d-inline-block mr-16">
-                                <p class="title text-lg">{{money(account.principal)}}</p>
-                                <p class="text-muted text-lg">Principal</p>
-                            </div>
-                            <div class="d-inline-block mr-16">
-                                <p class="title text-lg">{{money(account.interest)}}</p>
-                                <p class="text-muted text-lg">Interest</p>
-                            </div>
-                            <div class="d-inline-block mr-16">
-                                <p class="title text-lg">{{money(account.total_loan_amount)}}</p>
-                                <p class="text-muted text-lg">Total Loan Amount</p>
-                            </div>
-                        </div>    
+                    
+                    <div class="card-body profile-menu-tabs">
 
-                        <div class="content-wrapper d-block mb-12 w-100">
-                            <div class="d-inline-block mr-16">
-                                <p class="title text-lg">{{money(account.principal_balance)}}</p>
-                                <p class="text-muted text-lg">Principal Balance</p>
-                            </div>
-                            <div class="d-inline-block mr-16">
-                                <p class="title text-lg">{{money(account.interest_balance)}}</p>
-                                <p class="text-muted text-lg">Interest Balance</p>
-                            </div>
-                            <div class="d-inline-block mr-16">
-                                <p class="title text-lg">{{money(account.total_balance)}}</p>
-                                <p class="text-muted text-lg">Total Balance</p>
-                            </div>
-                        </div>
+                        <ul class="nav nav-tabs mb-3" id="pills-tab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="account-installments-tab" data-toggle="pill" href="#account-installment" role="tab" aria-controls="account-installment" aria-selected="true">Installments</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-profile" role="tab" aria-controls="pills-profile" aria-selected="false">Activity</a>
+                            </li>
 
-                        <div class="content-wrapper d-block mb-12 w-100">
-                            <div class="d-inline-block mr-16">
-                                <p class="title text-lg">{{money(total_paid.principal)}}</p>
-                                <p class="text-muted text-lg">Principal Paid</p>
-                            </div>
-                            <div class="d-inline-block mr-16">
-                                <p class="title text-lg">{{money(total_paid.interest)}}</p>
-                                <p class="text-muted text-lg">Interest Paid</p>
-                            </div>
-                            <div class="d-inline-block mr-16">
-                                <p class="title text-lg">{{money(total_paid.total)}}</p>
-                                <p class="text-muted text-lg">Total Paid</p>
-                            </div>
-                            <div class="d-inline-block mr-16">
-                                <p class="title text-lg">{{money(pre_term_amount.total)}}</p>
-                                <p class="text-muted text-lg">Pre Termination Amount</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-				<div class="card-body profile-menu-tabs">
+                        </ul>
+                        <div class="tab-content" id="pills-tabContent">
+                            <div class="tab-pane fade show active" id="account-installment" role="tabpanel" aria-labelledby="account-installments-tab">
+                                <h3 class="h3"> Amortization Schedule </h3>
+                                <table class="table table-condensed">
+                                    <thead>
+                                        <tr>
+                                            <td><p class="title">Installment</p></td>
+                                            <td><p class="title">Date</p></td>
+                                            <td><p class="title">Amortization</p></td>
 
-                    <ul class="nav nav-tabs mb-3" id="pills-tab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="account-installments-tab" data-toggle="pill" href="#account-installment" role="tab" aria-controls="account-installment" aria-selected="true">Installments</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-profile" role="tab" aria-controls="pills-profile" aria-selected="false">Activity</a>
-                        </li>
+                                            <td><p class="title">Principal</p></td>
+                                            <td><p class="title">Interest</p></td>
 
-                    </ul>
-                    <div class="tab-content" id="pills-tabContent">
-                        <div class="tab-pane fade show active" id="account-installment" role="tabpanel" aria-labelledby="account-installments-tab">
-                            <h3 class="h3"> Amortization Schedule </h3>
-                            <table class="table table-condensed">
-                                <thead>
-                                    <tr>
-                                        <td><p class="title">Installment</p></td>
-                                        <td><p class="title">Date</p></td>
-                                        <td><p class="title">Amortization</p></td>
+                                            <td ><p class="title">Principal Due</p></td>
+                                            <td ><p class="title">Interest Due</p></td>
+                                            <td ><p class="title">Principal Paid</p></td>
+                                            <td ><p class="title">Interest Paid</p></td>
+                                            <td ><p class="title">Total Paid</p></td>
+                                            <td><p class="title">Penalty</p></td>
+                                            <td><p class="title">Amount Due</p></td>
+                                            <td><p class="title">Status</p></td>
 
-                                        <td><p class="title">Principal</p></td>
-                                        <td><p class="title">Interest</p></td>
+                                        </tr>
+                                    </thead>
+                                    <tbody v-if="loaded"> 
+                                        <tr v-for="item in installments" :key="item.transaction_id">
+                                            <td>{{item.installment}}</td>
+                                            <td>{{moment(item.date)}}</td>
+                                            <td>{{money(item.amortization)}}</td>
 
-                                        <td ><p class="title">Principal Due</p></td>
-                                        <td ><p class="title">Interest Due</p></td>
-                                        <td ><p class="title">Principal Paid</p></td>
-                                        <td ><p class="title">Interest Paid</p></td>
-                                        <td ><p class="title">Total Paid</p></td>
+                                            <td>{{money(item.original_principal)}}</td>
+                                            <td>{{money(item.original_interest)}}</td>
 
-                                        <td><p class="title">Amount Due</p></td>
-                                        <td><p class="title">Status</p></td>
-
-                                    </tr>
-                                </thead>
-                                <tbody v-if="loaded"> 
-                                    <tr v-for="item in installments" :key="item.transaction_id">
-                                        <td>{{item.installment}}</td>
-                                        <td>{{moment(item.date)}}</td>
-                                        <td>{{money(item.amortization)}}</td>
-
-                                        <td>{{money(item.original_principal)}}</td>
-                                        <td>{{money(item.original_interest)}}</td>
-
-                                        <td>{{money(item.principal_due)}}</td>
-                                        <td>{{money(item.interest_due)}}</td>
-                                        
-
-                                        <td>{{money(item.principal_paid)}}</td>
-                                        <td>{{money(item.interest_paid)}}</td>
-                                        <td>{{money(item.total_paid)}}</td>                                        
-                                        <td>{{money(item.amount_due)}}</td>
-                                        <td v-if="account.status != 'Written Off'">
-                                            <span v-if="item.status=='In Arrears'" class="badge badge-danger"> In Arrears</span>
-                                            <span v-else-if="item.status=='Paid'" class="badge badge-success">Paid</span>
-                                            <span v-else-if="item.status=='Due'" class="badge badge-warning">Due</span>
-                                            <span v-else-if="item.status=='Not Due'" class="badge badge-light">Not Due</span>        
-                                        </td>
-                                        <td v-else>
-                                            <span v-if="item.status!='Paid'" class="badge badge-danger"> Written Off</span>
-                                            <span v-else class="badge badge-success">Paid</span>
-                                        </td>
-                                        
-                                        
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
-                            <table class="table table-condensed">
-                                <thead>
-                                    <tr>
-                                        <td><p class="title"></p></td>
-                                        <td><p class="title">Transaction ID</p></td>
-                                        <td><p class="title">Repayment Date</p></td>
-                                        <td><p class="title">Transaction Date</p></td>
-                                        <td><p class="title">Particulars</p></td>
-                                        <td><p class="title">Amount</p></td>
-                                        
-                                        <td ><p class="title">Payment Method</p></td>
-                                        <td ><p class="title">User</p></td>
-                                        <td ><p class="title">Action</p></td>
-                                    </tr>
-                                </thead>
-                                <tbody v-if="loaded && account.disbursed !=0"> 
-                                    <tr v-for="(item,key) in activity"  :key="key">
-                                        <td>{{key + 1}}</td>
-                                        <td>{{item.transaction_number }}</td>
-                                        <td>{{moment(item.repayment_date) }}</td>
-                                        <td>{{moment(item.transaction_date) }}</td>
-                                        <td>{{item.particulars}}</td>
-                                        
-                                        <td>{{money(item.amount)}}</td>
-                                        <td>{{(item.payment_method_name)}}</td>
-
-                                        <td>{{item.paid_by}}</td>
-                                       
-                                        <td v-if="account.status !='Written Off'">
-                                            <div v-if="item.transaction_number.charAt(0) !== 'F'">
-                                                <span v-if="item.reverted=='0'">
-                                                    <button v-if="can('revert_transactions') || is('Super Admin')" @click="revert(item.transaction_number)" class="btn btn-danger"><i class="fa fa-undo" aria-hidden="true"></i></button>
-                                                </span>
-                                                <span v-else>
-                                                    Reverted
-                                                </span>
-                                            </div>
+                                            <td>{{money(item.principal_due)}}</td>
+                                            <td>{{money(item.interest_due)}}</td>
                                             
-                                        </td>
-                                    </tr>
-                                   
-                                </tbody>
-                            </table>
+
+                                            <td>{{money(item.principal_paid)}}</td>
+                                            <td>{{money(item.interest_paid)}}</td>
+                                            <td>{{money(item.total_paid)}}</td>                                        
+                                            <td>{{money(item.penalty)}}</td>
+                                            <td>{{money(item.amount_due)}}</td>
+                                            <td v-if="account.status != 'Written Off'">
+                                                <span v-if="item.status=='In Arrears'" class="badge badge-danger"> In Arrears</span>
+                                                <span v-else-if="item.status=='Paid'" class="badge badge-success">Paid</span>
+                                                <span v-else-if="item.status=='Due'" class="badge badge-warning">Due</span>
+                                                <span v-else-if="item.status=='Not Due'" class="badge badge-light">Not Due</span>        
+                                            </td>
+                                            <td v-else>
+                                                <span v-if="item.status!='Paid'" class="badge badge-danger"> Written Off</span>
+                                                <span v-else class="badge badge-success">Paid</span>
+                                            </td>
+                                            
+                                            
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+                                <table class="table table-condensed">
+                                    <thead>
+                                        <tr>
+                                            <td><p class="title"></p></td>
+                                            <td><p class="title">Transaction ID</p></td>
+                                            <td><p class="title">Repayment Date</p></td>
+                                            <td><p class="title">Transaction Date</p></td>
+                                            <td><p class="title">Particulars</p></td>
+                                            <td><p class="title">Amount</p></td>
+                                            
+                                            <td ><p class="title">Payment Method</p></td>
+                                            <td ><p class="title">User</p></td>
+                                            <td ><p class="title">Action</p></td>
+                                        </tr>
+                                    </thead>
+                                    <tbody v-if="loaded && account.disbursed !=0"> 
+                                        <tr v-for="(item,key) in activity"  :key="key">
+                                            <td>{{key + 1}}</td>
+                                            <td>{{item.transaction_number }}</td>
+                                            <td>{{moment(item.repayment_date) }}</td>
+                                            <td>{{moment(item.transaction_date) }}</td>
+                                            <td>{{item.particulars}}</td>
+                                            
+                                            <td>{{money(item.amount)}}</td>
+                                            <td>{{(item.payment_method_name)}}</td>
+
+                                            <td>{{item.paid_by}}</td>
+                                        
+                                            <td v-if="account.status !='Written Off'">
+                                                <div v-if="item.transaction_number.charAt(0) !== 'F'">
+                                                    <span v-if="item.reverted=='0'">
+                                                        <button v-if="can('revert_transactions') || is('Super Admin')" @click="revert(item.transaction_number)" class="btn btn-danger"><i class="fa fa-undo" aria-hidden="true"></i></button>
+                                                    </span>
+                                                    <span v-else>
+                                                        Reverted
+                                                    </span>
+                                                </div>
+                                                
+                                            </td>
+                                        </tr>
+                                    
+                                    </tbody>
+                                </table>
+                            </div>
+
                         </div>
 
                     </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <b-modal id="deposit-modal" v-model="modal.modalState" size="lg" hide-footer :title="modal.modal_title" :header-bg-variant="background" :body-bg-variant="background" >
+        <form>
+            <div class="form-group mt-4">
+                <label class="text-lg">Branch</label>
+                <v2-select @officeSelected="assignOffice" list_level="branch" :default_value="this.office_id" v-bind:class="hasError('office_id') ? 'is-invalid' : ''"></v2-select>
+                <div class="invalid-feedback" v-if="hasError('office_id')">
+                    {{ errors.office_id[0]}}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="text-lg">Payment Method</label>
+                <payment-methods payment_type="for_repayment" @paymentSelected="paymentSelected" v-bind:class="hasError('payment_method_id') ? 'is-invalid' : ''" ></payment-methods>
+                <div class="invalid-feedback" v-if="hasError('payment_method_id')">
+                    {{ errors.payment_method_id[0]}}
+                </div>
+            </div>
 
-				</div>
+            <div class="form-group">
+                <label class="text-lg">Amount</label>
+                <input type="number" class="form-control" v-model="form.amount" v-bind:class="hasError('amount') ? 'is-invalid' : ''" :readonly="form.for_pre_term">
+                <p class="" style="color:white" v-if="loaded"> <span v-show="!form.for_pre_term"> Amount Due: {{amount_due.formatted_total}} </span> </p>
+                <div class="invalid-feedback" v-if="hasError('amount')">
+                    {{ errors.amount[0]}}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="text-lg">Repayment Date</label>
+                <input type="date" class="form-control" v-model="form.repayment_date" v-bind:class="hasError('repayment_date')  ? 'is-invalid' : ''">
+                <div class="invalid-feedback" v-if="hasError('repayment_date') ">
+                    {{ errors.repayment_date[0]}}
+                </div>
+            </div>
+            <div class="form-group" v-if="this.payment_type=='CASH'">
+                <label class="text-lg">OR #</label>
+                <input type="text" class="form-control" v-model="form.receipt_number" v-bind:class="hasError('receipt_number')  ? 'is-invalid' : ''">
+                <div class="invalid-feedback" v-if="hasError('receipt_number') ">
+                    {{ errors.receipt_number[0]}}
+                </div>
+            </div>
+            <div class="form-group" v-if="this.payment_type=='NON-CASH'">
+                <label class="text-lg">JV #</label>
+                <input type="text" class="form-control" v-model="form.jv_number" v-bind:class="hasError('jv_number')  ? 'is-invalid' : ''">
+                <div class="invalid-feedback" v-if="hasError('receipt_number') ">
+                    {{ errors.jv_number[0]}}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="text-lg">Notes</label>
+                <textarea cols="30" rows="10" class="form-control" v-model="form.notes" v-bind:class="hasError('notes')  ? 'is-invalid' : ''"></textarea>
+                <div class="invalid-feedback" v-if="hasError('notes') ">
+                    {{ errors.notes[0]}}
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary float-right"  @click="submit">Submit</button>
+            <button type="button" class="btn btn-warning float-right mr-2" @click="cancelModal">Cancel</button>
+
+        </form>
+    </b-modal>
+
+
+    <b-modal id="disbursement-modal" v-model="disburseModalState" size="lg" hide-footer :title="modal.modal_title" :header-bg-variant="background" :body-bg-variant="background">
+        <div v-if="account">
+            <h1> Total Fees: {{account.total_deductions}} </h1>
+            <h1> Total Loan Amount (P + I): {{account.total_loan_amount}} </h1>
+            <h1> Total Disburse Amount: {{ account.disbursed_amount}}</h1>
+        </div>
+        <div class="row">
+            <div class="col-lg-12 px-4 py-2">
+                <form @submit.prevent="disburse">
+                    <div class="form-group mt-4">
+                        <label class="text-lg">Branch</label>
+                        <v2-select @officeSelected="assignOfficeForm" list_level="branch" v-bind:class="hasError('office_id') ? 'is-invalid' : ''"></v2-select>
+                        <div class="invalid-feedback" v-if="hasError('office_id')">
+                            {{ errors.office_id[0]}}
+                        </div>
+                    </div>
+                    <div class="form-group mt-4">
+                        <label class="text-lg">Disbursement Date</label>
+                        <input type="date" v-model="formDisbursement.disbursement_date"  class="form-control" v-bind:class="hasError('disbursement_date') ? 'is-invalid' : ''">
+                        <div class="invalid-feedback" v-if="hasError('disbursement_date')">
+                            {{ errors.disbursement_date[0]}}
+                        </div>
+                    </div>
+                    <div class="form-group mt-4">
+                        <label class="text-lg">First Repayment Date</label>
+                        <input type="date" v-model="formDisbursement.first_repayment_date"  class="form-control" v-bind:class="hasError('first_repayment_date') ? 'is-invalid' : ''">
+                        <div class="invalid-feedback" v-if="hasError('first_repayment_date')">
+                            {{ errors.first_repayment_date[0]}}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="text-lg">Payment Method</label>
+                        <payment-methods payment_type="for_repayment" @paymentSelected="disbursePaymentSelected" v-bind:class="hasError('payment_method_id') ? 'is-invalid' : ''" ></payment-methods>
+                        <div class="invalid-feedback" v-if="hasError('payment_method_id')">
+                            {{ errors.payment_method_id[0]}}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="text-lg">CV #:</label>
+                        <input type="text" class="form-control" v-model="formDisbursement.cv_number" v-bind:class="hasError('check_voucher') ? 'is-invalid' : ''">
+                        <div class="invalid-feedback" v-if="hasError('check_voucher')">
+                            {{ errors.check_voucher[0]}}
+                        </div>
+                    </div>
+
+                    
+                    <button class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    </b-modal>
+
+    <b-modal id="writeoff-modal" v-model="writeoffModalState" size="lg" hide-footer :title="'Write Off Account'" :header-bg-variant="background" :body-bg-variant="background">
+        <div v-if="account">
+            <h1 class="text-lg"> Total Loan Amount to be write off: {{account.total_balance}} </h1>
+        </div>
+        <div class="row">
+            <div class="col-lg-12 px-4 py-2">
+                <form @submit.prevent="writeoff">
+                    <div class="form-group mt-4">
+                        <label class="text-lg">Branch</label>
+                        <v2-select @officeSelected="wo_assignOfficeForm" list_level="branch" v-bind:class="hasError('office_id') ? 'is-invalid' : ''"></v2-select>
+                        <div class="invalid-feedback" v-if="hasError('office_id')">
+                            {{ errors.office_id[0]}}
+                        </div>
+                    </div>
+                    <div class="form-group mt-4">
+                        <label class="text-lg">Write Off Date</label>
+                        <input type="date" v-model="writeoffForm.date"  class="form-control" v-bind:class="hasError('disbursement_date') ? 'is-invalid' : ''">
+                        <div class="invalid-feedback" v-if="hasError('disbursement_date')">
+                            {{ errors.date[0]}}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="text-lg">CV #:</label>
+                        <input type="text" class="form-control" v-model="writeoffForm.journal_voucher" v-bind:class="hasError('check_voucher') ? 'is-invalid' : ''">
+                        <div class="invalid-feedback" v-if="hasError('journal_voucher')">
+                            {{ errors.journal_voucher[0]}}
+                        </div>
+                    </div>
+
+                    
+                    <button class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    </b-modal>
+    <b-modal id="topup-modal" v-model="topupModalState" size="lg" hide-footer :title="'Top up Account'" :header-bg-variant="background" :body-bg-variant="background">
+
+        <div class="row">
+            <div class="col-lg-12 px-4 py-2">
+                <form @submit.prevent="calculate_topup">
+                    <div class="form-group mt-4">
+                        <label class="text-lg">Branch</label>
+                        <v2-select @officeSelected="topupForm_assignOfficeForm" list_level="branch" v-bind:class="hasError('office_id') ? 'is-invalid' : ''"></v2-select>
+                        <div class="invalid-feedback" v-if="hasError('office_id')">
+                            {{ errors.office_id[0]}}
+                        </div>
+                    </div>
+                    <div class="form-group mt-4">
+                        <label class="text-lg">Disbursement Date</label>
+                        <input type="date" v-model="topupForm.disbursement_date"  class="form-control" v-bind:class="hasError('disbursement_date') ? 'is-invalid' : ''">
+                        <div class="invalid-feedback" v-if="hasError('disbursement_date')">
+                            {{ errors.disbursement_date[0]}}
+                        </div>
+                    </div>
+                    <div class="form-group mt-4">
+                        <label class="text-lg">Amount</label>
+                        <input type="number" v-model="topupForm.amount"  class="form-control" v-bind:class="hasError('amount') ? 'is-invalid' : ''">
+                        <div class="invalid-feedback" v-if="hasError('amount')">
+                            {{ errors.amount[0]}}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="text-lg">CV #:</label>
+                        <input type="text" class="form-control" v-model="topupForm.journal_voucher" v-bind:class="hasError('check_voucher') ? 'is-invalid' : ''">
+                        <div class="invalid-feedback" v-if="hasError('journal_voucher')">
+                            {{ errors.journal_voucher[0]}}
+                        </div>
+                    </div>
+                    <button class="btn btn-primary">Calculate</button>
+                </form>
+
                 
-			</div>
-		</div>
-	</div>
-</div>
-<b-modal id="deposit-modal" v-model="modal.modalState" size="lg" hide-footer :title="modal.modal_title" :header-bg-variant="background" :body-bg-variant="background" >
-    <form>
-        <div class="form-group mt-4">
-            <label class="text-lg">Branch</label>
-            <v2-select @officeSelected="assignOffice" list_level="branch" :default_value="this.office_id" v-bind:class="hasError('office_id') ? 'is-invalid' : ''"></v2-select>
-            <div class="invalid-feedback" v-if="hasError('office_id')">
-                {{ errors.office_id[0]}}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <td> <p class="title"> #</p></td>
+                            <td> <p class="title"> Date</p></td>
+                            <td> <p class="title"> Principal</p></td>
+                            <td> <p class="title"> Interest</p></td>
+                            <td> <p class="title"> Amortization</p></td>
+                            <td> <p class="title"> Interest Balance</p></td>
+                        </tr>
+                    </thead>
+                    <tbody v-if="topup_installments">
+                        <tr v-for="item in topup_installments.installments" :key="item.id">
+                            <td><p class="title">{{item.installment}}</p></td>
+                            <td><p class="title">{{moment(item.date)}}</p></td>
+                            <td><p class="title">{{money(item.principal)}}</p></td>
+                            <td><p class="title">{{money(item.interest)}}</p></td>
+                            <td><p class="title">{{money(item.amortization)}}</p></td>
+                            <td><p class="title">{{money(item.interest_balance)}}</p></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <button v-if="topup_installments" class="btn btn-primary" @click="submit_topup">
+                    Submit
+                </button>
             </div>
         </div>
-        <div class="form-group">
-            <label class="text-lg">Payment Method</label>
-            <payment-methods payment_type="for_repayment" @paymentSelected="paymentSelected" v-bind:class="hasError('payment_method_id') ? 'is-invalid' : ''" ></payment-methods>
-            <div class="invalid-feedback" v-if="hasError('payment_method_id')">
-                {{ errors.payment_method_id[0]}}
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="text-lg">Amount</label>
-            <input type="number" class="form-control" v-model="form.amount" v-bind:class="hasError('amount') ? 'is-invalid' : ''" :readonly="form.for_pre_term">
-            <p class="" style="color:white" v-if="loaded"> <span v-show="!form.for_pre_term"> Amount Due: {{amount_due.formatted_total}} </span> </p>
-            <div class="invalid-feedback" v-if="hasError('amount')">
-                {{ errors.amount[0]}}
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="text-lg">Repayment Date</label>
-            <input type="date" class="form-control" v-model="form.repayment_date" v-bind:class="hasError('repayment_date')  ? 'is-invalid' : ''">
-            <div class="invalid-feedback" v-if="hasError('repayment_date') ">
-                {{ errors.repayment_date[0]}}
-            </div>
-        </div>
-        <div class="form-group" v-if="this.payment_type=='CASH'">
-            <label class="text-lg">OR #</label>
-            <input type="text" class="form-control" v-model="form.receipt_number" v-bind:class="hasError('receipt_number')  ? 'is-invalid' : ''">
-            <div class="invalid-feedback" v-if="hasError('receipt_number') ">
-                {{ errors.receipt_number[0]}}
-            </div>
-        </div>
-        <div class="form-group" v-if="this.payment_type=='NON-CASH'">
-            <label class="text-lg">JV #</label>
-            <input type="text" class="form-control" v-model="form.jv_number" v-bind:class="hasError('jv_number')  ? 'is-invalid' : ''">
-            <div class="invalid-feedback" v-if="hasError('receipt_number') ">
-                {{ errors.jv_number[0]}}
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="text-lg">Notes</label>
-            <textarea cols="30" rows="10" class="form-control" v-model="form.notes" v-bind:class="hasError('notes')  ? 'is-invalid' : ''"></textarea>
-            <div class="invalid-feedback" v-if="hasError('notes') ">
-                {{ errors.notes[0]}}
-            </div>
-        </div>
-        <button type="button" class="btn btn-primary float-right"  @click="submit">Submit</button>
-        <button type="button" class="btn btn-warning float-right mr-2" @click="cancelModal">Cancel</button>
-
-    </form>
-</b-modal>
-
-
-<b-modal id="disbursement-modal" v-model="disburseModalState" size="lg" hide-footer :title="modal.modal_title" :header-bg-variant="background" :body-bg-variant="background">
-    <div v-if="account">
-        <h1> Total Fees: {{account.total_deductions}} </h1>
-        <h1> Total Loan Amount (P + I): {{account.total_loan_amount}} </h1>
-        <h1> Total Disburse Amount: {{ account.disbursed_amount}}</h1>
-    </div>
-    <div class="row">
-        <div class="col-lg-12 px-4 py-2">
-            <form @submit.prevent="disburse">
-                <div class="form-group mt-4">
-                    <label class="text-lg">Branch</label>
-                    <v2-select @officeSelected="assignOfficeForm" list_level="branch" v-bind:class="hasError('office_id') ? 'is-invalid' : ''"></v2-select>
-                    <div class="invalid-feedback" v-if="hasError('office_id')">
-                        {{ errors.office_id[0]}}
-                    </div>
-                </div>
-                <div class="form-group mt-4">
-                    <label class="text-lg">Disbursement Date</label>
-                    <input type="date" v-model="formDisbursement.disbursement_date"  class="form-control" v-bind:class="hasError('disbursement_date') ? 'is-invalid' : ''">
-                    <div class="invalid-feedback" v-if="hasError('disbursement_date')">
-                        {{ errors.disbursement_date[0]}}
-                    </div>
-                </div>
-                <div class="form-group mt-4">
-                    <label class="text-lg">First Repayment Date</label>
-                    <input type="date" v-model="formDisbursement.first_repayment_date"  class="form-control" v-bind:class="hasError('first_repayment_date') ? 'is-invalid' : ''">
-                    <div class="invalid-feedback" v-if="hasError('first_repayment_date')">
-                        {{ errors.first_repayment_date[0]}}
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="text-lg">Payment Method</label>
-                    <payment-methods payment_type="for_repayment" @paymentSelected="disbursePaymentSelected" v-bind:class="hasError('payment_method_id') ? 'is-invalid' : ''" ></payment-methods>
-                    <div class="invalid-feedback" v-if="hasError('payment_method_id')">
-                        {{ errors.payment_method_id[0]}}
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="text-lg">CV #:</label>
-                    <input type="text" class="form-control" v-model="formDisbursement.cv_number" v-bind:class="hasError('check_voucher') ? 'is-invalid' : ''">
-                    <div class="invalid-feedback" v-if="hasError('check_voucher')">
-                        {{ errors.check_voucher[0]}}
-                    </div>
-                </div>
-
-                
-                <button class="btn btn-primary">Submit</button>
-            </form>
-        </div>
-    </div>
-</b-modal>
-
-<b-modal id="writeoff-modal" v-model="writeoffModalState" size="lg" hide-footer :title="'Write Off Account'" :header-bg-variant="background" :body-bg-variant="background">
-    <div v-if="account">
-        <h1 class="text-lg"> Total Loan Amount to be write off: {{account.total_balance}} </h1>
-    </div>
-    <div class="row">
-        <div class="col-lg-12 px-4 py-2">
-            <form @submit.prevent="writeoff">
-                <div class="form-group mt-4">
-                    <label class="text-lg">Branch</label>
-                    <v2-select @officeSelected="wo_assignOfficeForm" list_level="branch" v-bind:class="hasError('office_id') ? 'is-invalid' : ''"></v2-select>
-                    <div class="invalid-feedback" v-if="hasError('office_id')">
-                        {{ errors.office_id[0]}}
-                    </div>
-                </div>
-                <div class="form-group mt-4">
-                    <label class="text-lg">Write Off Date</label>
-                    <input type="date" v-model="writeoffForm.date"  class="form-control" v-bind:class="hasError('disbursement_date') ? 'is-invalid' : ''">
-                    <div class="invalid-feedback" v-if="hasError('disbursement_date')">
-                        {{ errors.date[0]}}
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="text-lg">CV #:</label>
-                    <input type="text" class="form-control" v-model="writeoffForm.journal_voucher" v-bind:class="hasError('check_voucher') ? 'is-invalid' : ''">
-                    <div class="invalid-feedback" v-if="hasError('journal_voucher')">
-                        {{ errors.journal_voucher[0]}}
-                    </div>
-                </div>
-
-                
-                <button class="btn btn-primary">Submit</button>
-            </form>
-        </div>
-    </div>
-</b-modal>
+    </b-modal>
 </div>
 </template>
 
@@ -432,7 +502,23 @@ export default {
             office_id:null,
             disburseModalState:false,
             writeoffModalState:false,
+            topupModalState:false,
             fees:null,
+            topupForm:{
+                journal_voucher:null,
+                disbursement_date:null,
+                office_id:null,
+                amount:null,
+                first_repayment_date: null,
+                number_of_installment: null,
+                interest_rate: null,
+                code:null,
+                annual_rate:null,
+                term:null,
+                interest_interval:null,
+                start_date:null
+            },
+            topup_installments:null,
             form : {
                 loan_account_id: null,
                 office_id: null,
@@ -644,7 +730,7 @@ export default {
                         confirmButtonText: 'OK'
                     })
                     .then(res=>{
-                        location.reload()
+                        // location.reload()
                     })
                     this.is_loading = false;
                 })
@@ -769,6 +855,68 @@ export default {
                     link.click();
                     this.isLoading =false;
                 })
+        },
+        topupForm_assignOfficeForm(value){
+            this.topupForm.office_id = value['id']
+        },
+        calculate_topup(){
+            
+            this.populateTopupForm();
+            this.is_loading = true;
+            axios.post(this.topupLoan,this.topupForm).
+            then(res => {
+                this.is_loading = false;
+                this.topup_installments = res.data
+            }).catch(error => {
+                this.is_loading = false;
+                this.errors = error.response.data.errors
+            })
+        },
+        populateTopupForm(){
+            
+            this.topupForm.first_repayment_date = this.account.first_payment_date
+            this.topupForm.number_of_installment = this.account.number_of_installments
+            this.topupForm.interest_rate = this.account.interest_rate
+            this.topupForm.code = this.account.type.code
+            this.topupForm.annual_rate = this.account.type.annual_rate
+            this.topupForm.term = this.account.type.installment_method
+            this.topupForm.interest_interval = this.account.type.interest_interval
+            this.topupForm.start_date = this.account.first_payment_date
+            
+            return;                    
+        },
+        submit_topup(){
+                Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+                }).then((result) => {
+                if (result.isConfirmed) {
+
+                    axios.put(this.topupLoan, this.topup_installments)
+                    .then(res =>{
+                        Swal.fire(
+                            'Success!',
+                            'Top up successfully.',
+                            'success'
+                        )
+                    })
+                    .catch(error =>{
+                        this.errors = error.response.data.errors
+                        Swal.fire(
+                            'Alert',
+                            error.response.data.errors,
+                            'error'
+                        )
+                    })
+
+                    
+                }
+            })
         }
     },
     computed:{
@@ -799,7 +947,9 @@ export default {
             }
             return null;
         },
-        
+        topupLoan(){
+            return '/client/'+this.client_id+'/topup/loans/'+this.loan_account_id
+        },
 
     },
 

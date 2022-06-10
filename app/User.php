@@ -78,8 +78,6 @@ class User extends Authenticatable
             }
             
             return $scopes;
-        
-        
     }
 
     public function scopesBranch($level = null){
@@ -327,4 +325,6 @@ class User extends Authenticatable
                 'permissions' => $this->getAllPermissions()->pluck('name'),
             ]);
     }
+
+    
 }

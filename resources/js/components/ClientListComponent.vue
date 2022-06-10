@@ -5,6 +5,7 @@
                 <label for="" style="color:white" class="lead mr-2">Filter:</label>
                 <v2-select @officeSelected="assignOffice" class="d-inline-block" style="width:500px;" v-model="office_id"></v2-select>
                 <!-- <button type="button" class="btn btn-primary" @click="filter">Add New</button> -->
+                
             </div>
             <div class="col-lg-6 float-right d-flex">
                 <label for="" style="color:white" class="lead mr-2">Search:</label>
@@ -12,11 +13,14 @@
                 <div>
             </div>  
         </div>
+        
  
         <div class="w-100 px-3 mt-6" >
+            <button @click.prevent="generateId" v-if="showExport" class="btn btn-primary float-right px-3">Export ID</button>
             <table class="table" >
                 <thead>
                     <tr>
+                        <td><p class="title"><input type="checkbox" @change="checkall($event)"></p></td>
                         <td><p class="title">Client ID</p></td>
                         <td><p class="title">Name</p></td>
                         <td><p class="title">Linked To</p></td>
@@ -24,6 +28,7 @@
                 </thead>
                 <tbody v-if="hasRecords">
                     <tr v-for="client in lists.data" :key="client.id">
+                        <td><input type="checkbox" class="checkbox" :id="client.id" @change="checked(client.client_id,$event)"></td>
                         <td><a class="text-lg" :href="clientLink(client.client_id)">{{client.client_id}}</a></td>
                         <td class="text-lg">{{client.firstname + ' ' +client.middlename + ' ' + client.lastname}}</td>
                         <td class="text-lg">{{client.office.name}}</td>
@@ -58,12 +63,16 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 export default {
     data(){
         return {
+            errors:{},
             office_id: "",
             lists: [],
             hasRecords: false,
             isLoading:false,
             query:"",
             toClient: '/client/',
+            export_id_form:{
+                clients_id: [],
+            }
         }
     },
     components:{
@@ -124,6 +133,54 @@ export default {
         url(page=1){
             return `/client/list?office_id=`+this.office_id+`&page=`+page
         },
+        checked(client,event){
+            this.removeFromArray(this.export_id_form.clients_id, client)
+            if(event.target.checked){
+				this.export_id_form.clients_id.push(client)
+			}
+        },
+        generateId(){
+            this.isLoading = true;
+            this.export_id_form.export = true;
+            axios.post('/bulk/generate/id',this.export_id_form,{responseType:'blob'})
+            .then(res=>{
+                const url = window.URL.createObjectURL(new Blob([res.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', res.headers.filename);
+                document.body.appendChild(link);
+                link.click();
+                this.isLoading =false;
+            }).catch(errors => {
+                // this.errors = errors.response.data
+                console.log(errors);
+            })
+        },
+        removeFromArray(obj, id){
+			
+			if(obj !== undefined){
+				var res = obj.filter(item=>{
+					return item != id;
+				})
+				this.export_id_form.clients_id = res
+			}	
+		},
+        checkall(e){
+            
+            $('.checkbox').each(function(k,v){
+                if(e.target.checked){
+                    if(!$(v).prop('checked')){
+                        $(v).click()
+                    }
+                }else{
+                    if($(v).prop('checked')){
+                        $(v).click()
+                    }
+                }
+                
+                
+            })
+        },
         
     },
     computed : {
@@ -149,6 +206,9 @@ export default {
         },
         viewableRecords(){
             return Object.keys(this.lists.data).length
+        },
+        showExport(){
+            return this.export_id_form.clients_id.length > 0 ? true : false
         }
 
     }

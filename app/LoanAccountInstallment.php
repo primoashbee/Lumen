@@ -55,6 +55,9 @@ class LoanAccountInstallment extends Model
     public function ctlpRepayments(){
         return $this->hasMany(DepositToLoanInstallmentRepayment::class);
     }
+    public function topup_installment(){
+        return $this->hasMany(LoanAccountTopupInstallment::class);
+    }
  
     public function payV2(array $data){
         $payment = $data['amount'];
@@ -66,6 +69,7 @@ class LoanAccountInstallment extends Model
 
         $amount_paid = new stdClass;
         $amount_paid->interest = 0;
+        $amount_paid->penalty = 0;
         $amount_paid->principal = 0;
         $amount_paid->total_paid = 0;
 
@@ -75,8 +79,10 @@ class LoanAccountInstallment extends Model
         $interest = (float) $this->interest;
         $principal = (float)  $this->principal_due;
         $amount_due = (float)  $this->amount_due;
+        $penalty = (float)  $this->penalty;
         $interest_paid = 0;
         $principal_paid = 0;
+        $penalty_paid = 0;
         if($isDue){
             $interest = (float)  $this->interest_due;
         }
@@ -121,15 +127,31 @@ class LoanAccountInstallment extends Model
             $payment-=$principal;
 
             //if payment can pay full principal
-           
+            
             if(round($payment,2) >= round($interest,2)){
                 $payment-=$interest;
                 $interest_paid = $interest;
                 $amount_paid->interest = $interest;
                 $amount_paid->total_paid = $interest_paid + $principal_paid;
-
-                $fully_paid = true; // fully paid
-
+                $fully_paid = $this->penalty > 0 ? $fully_paid : true;
+            
+                if ($this->penalty > 0){
+                    if(round($payment,2) >= round($this->penalty,2)) {
+                        
+                        $payment -= $this->penalty;
+                        $penalty_paid = $this->penalty;
+                        $amount_paid->penalty = $this->penalty;
+                        $amount_paid->total_paid += $amount_paid->penalty;
+                        $fully_paid = true; // fully paid  
+                    }
+                    else{
+                        
+                        $amount_paid->penalty = $payment;
+                        $penalty_paid = $payment;
+                        $payment-=$amount_paid->penalty;
+                        $amount_paid->total_paid += $amount_paid->penalty;
+                    }
+                }
                 //update installments
             }else{
                 
@@ -166,6 +188,7 @@ class LoanAccountInstallment extends Model
                 $this->update([
                     'interest_due'=>round($interest - $interest_paid,2),
                     'principal_due'=>round($principal - $principal_paid,2),
+                    'penalty' => round($this->penalty - $penalty_paid,2),
                     'amount_due'=>round($amount_due - ($interest_paid + $principal_paid),2)
                 ]);
             }
@@ -189,10 +212,12 @@ class LoanAccountInstallment extends Model
         $this->repayments()->create([
             'principal_paid'=>$principal_paid,
             'interest_paid'=>$interest_paid,
+            'penalty_paid' => $penalty_paid,
             'total_paid'=>round($principal_paid + $interest_paid, 2),
             'paid_by'=>$paid_by,    
             'loan_account_repayment_id'=>$loan_account_repayment_id
         ]);
+        
         if ($payment > 0) {
             // $temp = $this->pay($amount,$transaction_id);
             
@@ -204,7 +229,8 @@ class LoanAccountInstallment extends Model
             }
             $amount_paid->interest += $temp->interest;
             $amount_paid->principal += $temp->principal;
-            $amount_paid->total_paid += $temp->interest + $temp->principal;
+            $amount_paid->penalty += $temp->penalty;
+            $amount_paid->total_paid += $temp->interest + $temp->principal + $temp->penalty;
             
         }
         
@@ -221,11 +247,13 @@ class LoanAccountInstallment extends Model
         $amount_paid = new stdClass;
         $amount_paid->interest = 0;
         $amount_paid->principal = 0;
+        $amount_paid->penalty = 0;
         $amount_paid->total_paid = 0;
         $fully_paid = false;
         $is_due = $this->isDue();
         $interest_paid = 0;
         $principal_paid = 0;
+        $penalty_paid = 0;
         $amount_due = 0;
         $principal = $this->principal_due;
 
@@ -265,12 +293,31 @@ class LoanAccountInstallment extends Model
             //if payment can pay full principal
            
             if(round($payment,2) >= round($interest,2)){
+                
                 $payment-=$interest;
                 $interest_paid = $interest;
                 $amount_paid->interest = $interest;
                 $amount_paid->total_paid = $interest_paid + $principal_paid;
+                $fully_paid = $this->penalty > 0 ? $fully_paid : true;
+                
+                if ($this->penalty > 0){
+                    if(round($payment,2) >= round($this->penalty,2)) {
+                        
+                        $payment -= $this->penalty;
+                        $penalty_paid = $this->penalty;
+                        $amount_paid->penalty = $this->penalty;
+                        $amount_paid->total_paid += $amount_paid->penalty;
+                        $fully_paid = true; // fully paid  
+                    }
+                    else{
+                        
+                        $amount_paid->penalty = $payment;
+                        $penalty_paid = $payment;
+                        $payment-=$amount_paid->penalty;
+                        $amount_paid->total_paid += $amount_paid->penalty;
+                    }
+                }
 
-                $fully_paid = true; // fully paid
 
                 //update installments
             }else{
@@ -287,7 +334,7 @@ class LoanAccountInstallment extends Model
             $payment-=$principal_paid;
             $amount_paid->total_paid = $interest_paid + $principal_paid;
         }
-
+        
         // Payment Allocation I - P
 
         // if(round($payment,2) >= round($interest,2)){
@@ -330,17 +377,18 @@ class LoanAccountInstallment extends Model
                 $this->update([
                     'interest_due'=>0,
                     'principal_due'=>0,
+                    'penalty' => 0,
                     'amount_due'=>0,
                     'paid'=>$fully_paid
                 ]);
-                
 
             }else{
                 
                 $this->update([
                     'interest_due'=>round($interest - $interest_paid,2),
                     'principal_due'=>round($principal - $principal_paid,2),
-                    'amount_due'=>round($amount_due - ($interest_paid + $principal_paid),2)
+                    'penalty' => round($this->penalty - $penalty_paid,2),
+                    'amount_due'=>round($amount_due - ($interest_paid + $principal_paid + $penalty_paid),2)
                 ]);
             }
         }else{
@@ -349,7 +397,6 @@ class LoanAccountInstallment extends Model
                     'interest'=>0,
                     'principal_due'=>0,
                     'amount_due'=>0,
-                    'paid'=>$fully_paid
                 ]);
             }else{
                 $this->update([
@@ -360,11 +407,12 @@ class LoanAccountInstallment extends Model
                 
             }
         }
-
+        
         $this->ctlpRepayments()->create([
             'principal_paid'=>$amount_paid->principal,
             'interest_paid'=>$amount_paid->interest,
-            'total_paid'=>round($amount_paid->principal + $amount_paid->interest, 2),
+            'penalty_paid'=>$amount_paid->penalty,
+            'total_paid'=>round($amount_paid->principal + $amount_paid->interest + $amount_paid->penalty, 2),
             'paid_by'=>$paid_by,
             'deposit_to_loan_repayment_id'=>$deposit_to_loan_repayment_id,
             'deposit_account_id'=>$ctlp_account_id
@@ -382,7 +430,8 @@ class LoanAccountInstallment extends Model
             
             $amount_paid->interest += $temp->interest;
             $amount_paid->principal += $temp->principal;
-            $amount_paid->total_paid += $temp->interest + $temp->principal;
+            $amount_paid->penalty += $temp->penalty;
+            $amount_paid->total_paid += $temp->interest + $temp->principal + $temp->penalty;
             // $amount_paid->total = round($amount_paid->principal + $amount_paid->interest,2);
         }
         

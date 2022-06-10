@@ -163,6 +163,14 @@
 								</a>
 							</li>
 							@endcan
+							@can('enter_repayment')
+							<li class="sub-list">
+								<a class="sub-nav" href="{{route('bulk.repayment')}}" role="button" aria-expanded="false" aria-controls="create" class="has-sub">
+									<i class="fas fa-id-card"></i>
+									<p>ID CARD</p>
+								</a>
+							</li>
+							@endcan
 						</ul>
 					 </div>
 				</li>

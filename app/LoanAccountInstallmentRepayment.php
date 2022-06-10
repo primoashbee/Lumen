@@ -31,10 +31,12 @@ class LoanAccountInstallmentRepayment extends Model
 
         $returned_interest = $this->interest_paid;
         $returned_principal = $this->principal_paid;
+        $returned_penalty = $this->penalty_paid;
         
 
         $new_interest = round($installment->interest + $returned_interest,2);
         $new_principal = round($installment->principal_due + $returned_principal,2);
+        $new_penalty = round($installment->penalty + $returned_penalty,2);
 
         $date_is_due = $installment->dateIsDue();
         if($date_is_due){

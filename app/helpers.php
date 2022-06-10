@@ -1017,6 +1017,93 @@ use App\Http\Controllers\LoanAccountController;
             "status"=>1,
             "type"=>'DRP'
         ])->id;
+        
+        $id = Loan::create([
+            "name"=>'TANGLAW 1',
+            "code"=>'T1',
+            "description"=>"Multi-Purpose Loan is a flexible Microfinance Loan for growth and expansion of business, for education, housing, asset acquisitions and farm needs amounting to 4k-99k and must qualify based on credit limit and loan performance criteria. Payable in 6 or 12 months only on a weekly cash basis. This is an individual yet CLUSTERED loan with minimum of 20 PARTNER CLIENTS. Pre-termination is allowed if 50% of loan is paid and with either the following reason: (1) Resigning from the program; (2) Transferring to another product",
+            "account_per_client"=>2,
+            "interest_calculation_method_id"=>103,
+
+            "minimum_installment"=>12,
+            "default_installment"=>22,
+            "maximum_installment"=>24,
+
+            "installment_length"=>1,
+            "installment_method"=>'weeks',
+
+            "interest_interval"=>'Monthly',
+            
+            'monthly_rate'=>0.03,
+            'annual_rate'=>0.36,
+            "interest_rate"=>5.475225,
+            
+
+            "loan_minimum_amount"=>5000,
+            "loan_maximum_amount"=>49000,
+
+            "grace_period"=>'NO GRACE PERIOD',
+            "has_tranches"=>false,
+        
+            "loan_portfolio_active"=>26,
+            "loan_portfolio_in_arrears"=>26,
+            "loan_portfolio_matured"=>26,
+
+            "loan_interest_income_active"=>26,
+            "loan_interest_income_in_arrears"=>26,
+            "loan_interest_income_matured"=>26,
+
+            "loan_write_off"=>26,
+            "loan_recovery"=>26,
+            "created_by"=>2,
+            "status"=>1,
+            "type"=>'NORMAL'
+        ])->id;
+
+
+        $id = Loan::create([
+            "name"=>'TANGLAW 2',
+            "code"=>'T2',
+            "description"=>"Multi-Purpose Loan is a flexible Microfinance Loan for growth and expansion of business, for education, housing, asset acquisitions and farm needs amounting to 4k-99k and must qualify based on credit limit and loan performance criteria. Payable in 6 or 12 months only on a weekly cash basis. This is an individual yet CLUSTERED loan with minimum of 20 PARTNER CLIENTS. Pre-termination is allowed if 50% of loan is paid and with either the following reason: (1) Resigning from the program; (2) Transferring to another product",
+            "account_per_client"=>2,
+            "interest_calculation_method_id"=>103,
+
+            "minimum_installment"=>6,
+            "default_installment"=>12,
+            "maximum_installment"=>24,
+
+            "installment_length"=>14,
+            "installment_method"=>'days',
+
+            "interest_interval"=>'Monthly',
+            
+            "monthly_rate"=>0.0275,
+            "interest_rate"=>5.18461,
+            'annual_rate'=>0.33,
+            
+            
+
+            "loan_minimum_amount"=>50000,
+            "loan_maximum_amount"=>300000,
+
+            "grace_period"=>'NO GRACE PERIOD',
+            "has_tranches"=>false,
+        
+            "loan_portfolio_active"=>26,
+            "loan_portfolio_in_arrears"=>26,
+            "loan_portfolio_matured"=>26,
+
+            "loan_interest_income_active"=>26,
+            "loan_interest_income_in_arrears"=>26,
+            "loan_interest_income_matured"=>26,
+
+            "loan_write_off"=>26,
+            "loan_recovery"=>26,
+            "created_by"=>2,
+            "status"=>1,
+            "type"=>'NORMAL'
+        ])->id;
+   
 
     }
     function generatePaymentMethods(){

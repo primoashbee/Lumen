@@ -133,6 +133,7 @@
 									<td><p class="title">Amortization</p></td>
 									<td><p class="title">Principal</p></td>
 									<td><p class="title">Interest</p></td>
+									<td><p class="title">Penalty</p></td>
 									<td><p class="title">Payment Due</p></td>
 									<td><p class="title">Balance</p></td>
 								</tr>
@@ -144,6 +145,7 @@
 									<td class="text-lg">{{item.formatted_amortization}}</td>
 									<td class="text-lg">{{item.formatted_principal}}</td>
 									<td class="text-lg">{{item.formatted_interest}}</td>
+									<td class="text-lg">{{money(item.penalty)}}</td>
 									<td class="text-lg">{{item.formatted_amount_due}}</td>
 									<td class="text-lg">{{item.formatted_principal_balance}}</td>
 								</tr>
